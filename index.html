@@ -1628,7 +1628,7 @@ MKT.btns=LIVE.btns;MKT.staleMsg=LIVE.staleMsg;
 {const _act=APP.act;APP.act=function(a,t){if(a==='live:refresh')return LIVE.refresh();if(a==='live:csv')return LIVE.saveCsv();return _act(a,t)}}
 
 /* ===================== 📊 시세 그래프 창: 칸에 마우스를 올리거나 누르면 · 전체 기간(주봉)~1개월(일봉) · 5/20/60/120/200일선 ===================== */
-const QC={cache:{},sym:null,lab:'',u:'d',rg:{d:'1y',w:'5y',m:'max'},log:null,hv:null,el:null,tm:null,lg:[],P:{},
+const QC={fine:matchMedia('(hover:hover) and (pointer:fine)').matches,cache:{},sym:null,lab:'',u:'d',rg:{d:'1y',w:'5y',m:'max'},log:null,hv:null,el:null,tm:null,lg:[],P:{},
  U:{d:['일봉','일',1],w:['주봉','주',5],m:['월봉','개월',21]},
  RG:{d:[['1m','1개월',21],['3m','3개월',63],['6m','6개월',126],['1y','1년',252],['3y','3년',756],['5y','5년',1260]],
      w:[['1y','1년',52],['3y','3년',156],['5y','5년',260],['10y','10년',520],['max','전체',1e9]],
@@ -1720,11 +1720,12 @@ const QC={cache:{},sym:null,lab:'',u:'d',rg:{d:'1y',w:'5y',m:'max'},log:null,hv:
  need(){const s=QC.sym,u=QC.u;if(!QC.fresh(s,u))QC.load(s,u)},
  open(s,l,anchor){clearTimeout(QC.tm);if(QC.el&&QC.sym===s)return;QC.sym=s;QC.lab=l;QC.hv=null;QC.err=null;QC.log=null;
   if(!QC.el){QC.el=document.createElement('div');QC.el.className='noprint';QC.el.style.cssText='position:fixed;z-index:60;left:50%;transform:translateX(-50%);width:min(820px,calc(100vw - 24px));max-height:calc(100vh - 24px);overflow:auto;padding:12px;border-radius:12px;border:1px solid var(--line,#dfe4ea);background:var(--card,#fff);box-shadow:0 10px 30px rgba(0,0,0,.25)';document.body.appendChild(QC.el);
-   QC.el.addEventListener('mouseenter',()=>clearTimeout(QC.tm));QC.el.addEventListener('mouseleave',()=>QC.soon());
+   /* 마우스(PC)일 때만 '밖으로 나가면 닫기' — 아이폰은 손가락을 떼면 가짜 마우스 이동이 생겨 창이 저절로 닫히던 문제 */
+   if(QC.fine){QC.el.addEventListener('mouseenter',()=>clearTimeout(QC.tm));QC.el.addEventListener('mouseleave',()=>QC.soon())}
    QC.el.addEventListener('click',e=>{const b=e.target.closest('[data-qc]');if(!b)return;const a=b.dataset.qc;if(a==='x')return QC.close();
     if(a==='log')QC.log=!QC.logOn();else if(a.startsWith('u:')){QC.u=a.slice(2);QC.log=null;QC.err=null;QC.need()}else{QC.rg[QC.u]=a.slice(2);QC.log=null}QC.hv=null;QC.paint()});
    const mv=e=>{const cv=QC.el.querySelector('canvas');if(!cv||!QC.geo||e.target!==cv)return;const r=cv.getBoundingClientRect(),cx=(e.touches?e.touches[0].clientX:e.clientX)-r.left;QC.hv=Math.floor((cx-QC.geo.L)/QC.geo.bw);QC.draw()};
-   QC.el.addEventListener('mousemove',mv);QC.el.addEventListener('touchmove',mv,{passive:true});QC.el.addEventListener('touchstart',mv,{passive:true});QC.el.addEventListener('mouseout',e=>{if(e.target.tagName==='CANVAS'){QC.hv=null;QC.draw()}})}
+   if(QC.fine)QC.el.addEventListener('mousemove',mv);QC.el.addEventListener('touchmove',mv,{passive:true});QC.el.addEventListener('touchstart',mv,{passive:true});if(QC.fine)QC.el.addEventListener('mouseout',e=>{if(e.target.tagName==='CANVAS'){QC.hv=null;QC.draw()}})}
   const r=anchor.getBoundingClientRect(),below=r.bottom+8,h=Math.min(500,innerHeight-24);QC.el.style.top=(below+h<innerHeight?below:Math.max(12,r.top-h-8))+'px';
   QC.paint();QC.need()},
  paint(){if(!QC.el)return;QC.el.innerHTML=QC.html();QC.draw()},
