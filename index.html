@@ -9,7 +9,7 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob: 'self'; manifest-src 'self'; connect-src https://query1.finance.yahoo.com https://api.allorigins.win https://corsproxy.io https://api.codetabs.com https://api.anthropic.com; form-action 'none'; frame-src 'none'; object-src 'none'; base-uri 'none';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob: 'self'; manifest-src 'self'; connect-src https://query1.finance.yahoo.com https://query2.finance.yahoo.com https://api.allorigins.win https://corsproxy.io https://api.codetabs.com https://api.anthropic.com; form-action 'none'; frame-src 'none'; object-src 'none'; base-uri 'none';">
 <meta name="referrer" content="no-referrer">
 <title>라오어 투자 계산표</title>
 <style>
@@ -243,7 +243,7 @@ footer{font-size:12px;color:var(--jmute);border-top:1px solid var(--jsoft);backg
 const SRC0='<!DOCTYPE html>\n'+document.documentElement.outerHTML.replace(/\x3cscript type="application\/json" id="savedData">[\s\S]*?<\/script>/,'');
 /* ===== 오프라인 보안: 외부 통신 API 원천 차단 ===== */
 (()=>{const blk=()=>{throw new Error('오프라인 보안 모드: 외부 통신 차단')};
-  try{{const _f=window.fetch.bind(window),ok=['https://query1.finance.yahoo.com/v8/finance/spark?','https://query1.finance.yahoo.com/v8/finance/chart/','https://api.allorigins.win/raw?url=https%3A%2F%2Fquery1.finance.yahoo.com','https://corsproxy.io/?url=https%3A%2F%2Fquery1.finance.yahoo.com','https://api.codetabs.com/v1/proxy?quest=https%3A%2F%2Fquery1.finance.yahoo.com'];window.fetch=(u,o)=>{const s=String(u);if(s==='https://api.anthropic.com/v1/messages'&&o&&o.method==='POST')return _f(s,{method:'POST',headers:o.headers,body:o.body,credentials:'omit',referrerPolicy:'no-referrer',signal:o.signal});if(!ok.some(p=>s.startsWith(p))||(o&&o.method&&o.method!=='GET'))return Promise.reject(new Error('오프라인 보안 모드: 시세·Claude 주소 말고는 외부 통신 차단'));return _f(s,{method:'GET',credentials:'omit',referrerPolicy:'no-referrer',signal:o&&o.signal})}};window.XMLHttpRequest=function(){blk()};window.WebSocket=function(){blk()};window.EventSource=function(){blk()};
+  try{{const _f=window.fetch.bind(window),ok=['https://query1.finance.yahoo.com/v8/finance/spark?','https://query1.finance.yahoo.com/v8/finance/chart/','https://query2.finance.yahoo.com/v8/finance/chart/','https://api.allorigins.win/raw?url=https%3A%2F%2Fquery2.finance.yahoo.com','https://corsproxy.io/?url=https%3A%2F%2Fquery2.finance.yahoo.com','https://api.codetabs.com/v1/proxy?quest=https%3A%2F%2Fquery2.finance.yahoo.com','https://api.allorigins.win/raw?url=https%3A%2F%2Fquery1.finance.yahoo.com','https://corsproxy.io/?url=https%3A%2F%2Fquery1.finance.yahoo.com','https://api.codetabs.com/v1/proxy?quest=https%3A%2F%2Fquery1.finance.yahoo.com'];window.fetch=(u,o)=>{const s=String(u);if(s==='https://api.anthropic.com/v1/messages'&&o&&o.method==='POST')return _f(s,{method:'POST',headers:o.headers,body:o.body,credentials:'omit',referrerPolicy:'no-referrer',signal:o.signal});if(!ok.some(p=>s.startsWith(p))||(o&&o.method&&o.method!=='GET'))return Promise.reject(new Error('오프라인 보안 모드: 시세·Claude 주소 말고는 외부 통신 차단'));return _f(s,{method:'GET',credentials:'omit',referrerPolicy:'no-referrer',signal:o&&o.signal})}};window.XMLHttpRequest=function(){blk()};window.WebSocket=function(){blk()};window.EventSource=function(){blk()};
     if(navigator.sendBeacon)navigator.sendBeacon=()=>false;window.open=()=>null}catch(e){}})();
 
 /* ===== 공통 유틸 ===== */
@@ -1583,8 +1583,10 @@ const LIVE={st:'idle',err:null,at:null,tab:null,lastDate:null,intraday:false,
    LIVE.st='ok';LIVE.at=new Date();LT._bt={};render();if(typeof ART!=='undefined')ART.soon()},
  /* 브라우저(파일로 연 계산표)에서 바로 받기: Yahoo가 직접 막으면 공개 중계 주소를 차례로 시도 — 보내는 건 종목 기호뿐 */
  async viaNet(){LIVE.st='busy';LIVE.err=null;render();const url=LIVE.url();let last=null;
-  for(let k=0;k<LIVE.PROX.length;k++){try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),12000);const r=await fetch(LIVE.PROX[k](url),{signal:ac.signal,credentials:'omit',referrerPolicy:'no-referrer'});clearTimeout(tm);if(!r.ok)throw new Error('HTTP '+r.status);
-    const t=await r.text(),i=t.indexOf('{');const J=JSON.parse(t.slice(i));if(!J['^NDX']&&!J.TQQQ)throw new Error('시세가 비어 있음');LIVE.apply(J,k?['','allorigins','corsproxy','codetabs'][k]+' 중계':'Yahoo 직접');return}catch(e){last=e}}
+  /* 네 길을 동시에 → 가장 먼저 온 답 사용 (예전엔 하나씩 차례로 기다려서 느렸음) */
+  const one=async k=>{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),15000);try{const r=await fetch(LIVE.PROX[k](url),{signal:ac.signal,credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)throw new Error('HTTP '+r.status);
+    const t=await r.text(),i=t.indexOf('{');const J=JSON.parse(t.slice(i));if(!J['^NDX']&&!J.TQQQ)throw new Error('시세가 비어 있음');return [J,k]}finally{clearTimeout(tm)}};
+  try{const [J,k]=await Promise.any(LIVE.PROX.map((_,k)=>one(k)));LIVE.apply(J,k?['','allorigins','corsproxy','codetabs'][k]+' 중계':'Yahoo 직접');return}catch(e){last=(e.errors||[])[1]||(e.errors||[])[0]||e}
   LIVE.st='err';LIVE.err={code:'net',message:(last&&last.message)||'연결 실패'};render()},
  async refresh(){if(LIVE.st==='busy')return;const mcp=(typeof claude!=='undefined'&&claude&&claude.use)?await claude.use('mcp').catch(()=>null):null;if(!mcp){if(typeof ART!=='undefined'){await LIVE.viaNet();if(LIVE.st==='err'){LIVE.st='nomcp';render()}return}return LIVE.viaNet()}
   LIVE.st='busy';LIVE.err=null;render();
@@ -1595,13 +1597,14 @@ const LIVE={st:'idle',err:null,at:null,tab:null,lastDate:null,intraday:false,
    const t=LIVE.text(r),k=t.indexOf('{');if(k<0)throw new Error('시세 페이지를 읽지 못했습니다');LIVE.apply(JSON.parse(t.slice(k)),'데스크톱 앱 브라우저');
   }catch(e){LIVE.st='err';LIVE.err=e;if(e&&e.code==='tool_error'&&LIVE.tab)LIVE.tab=null;render()}},
  /* 시세판: 나스닥 종합·나스닥100·S&P500·금·비트코인 — 마지막 값과 전날 종가 대비 */
- quotes(J){const q={};['^IXIC','^NDX','^GSPC','GC=F','BTC-USD'].forEach(s=>{const o=J[s];if(!o||!o.close)return;const c=o.close.filter(x=>x!=null&&isFinite(x));if(c.length<2)return;const p=c[c.length-1],pv=o.chartPreviousClose&&c.length===1?o.chartPreviousClose:c[c.length-2];q[s]={p,ch:p/pv-1}});if(Object.keys(q).length)LIVE.Q=q},
- tick(){const fx=(S.fx&&S.fx.r)||null,n=(x,d=0)=>x.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}),w=x=>x>=1e8?(x/1e8).toFixed(2)+'억 원':Math.round(x/1e4).toLocaleString()+'만 원';
+ quotes(J){const q={};['^IXIC','^NDX','^GSPC','GC=F','BTC-USD'].forEach(s=>{const o=J[s];if(!o||!o.close)return;const c=o.close.filter(x=>x!=null&&isFinite(x));if(c.length<2)return;const p=c[c.length-1],pv=o.chartPreviousClose&&c.length===1?o.chartPreviousClose:c[c.length-2];q[s]={p,ch:p/pv-1}});if(Object.keys(q).length){LIVE.Q=q;try{localStorage.setItem('laoer_q_v1',JSON.stringify({q,at:Date.now(),fx:S.fx&&S.fx.r}))}catch(e){}}},
+ qboot(){try{const o=JSON.parse(localStorage.getItem('laoer_q_v1')||'null');if(o&&o.q){LIVE.Q=o.q;LIVE.qAt=o.at;if(o.fx&&!(S.fx&&S.fx.r))LIVE.qFx=o.fx}}catch(e){}},
+ tick(){if(!LIVE._qb){LIVE._qb=1;LIVE.qboot()}const fx=(S.fx&&S.fx.r)||LIVE.qFx||null,n=(x,d=0)=>x.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}),w=x=>x>=1e8?(x/1e8).toFixed(2)+'억 원':Math.round(x/1e4).toLocaleString()+'만 원';
   const it=[['^IXIC','나스닥 종합',q=>n(q.p,2),null],['^NDX','나스닥100',q=>n(q.p,2),null],['^GSPC','S&P 500',q=>n(q.p,2),null],
    ['GC=F','금 (1온스)',q=>'$'+n(q.p,1),q=>fx?'1돈(3.75g) ≈ '+Math.round(q.p/31.1035*3.75*fx).toLocaleString()+'원':''],
    ['BTC-USD','비트코인',q=>'$'+n(q.p,0),q=>fx?'≈ '+w(q.p*fx):'']];
   const box=([s,l,f,k])=>{const q=LIVE.Q[s],z=q&&Math.abs(q.ch)<5e-5;return `<div data-qs="${s}" data-ql="${l}" title="마우스를 올리거나 누르면 그래프" style="cursor:pointer;flex:1 1 140px;min-width:0;padding:8px 10px;border:1px solid var(--line,#dfe4ea);border-radius:10px;background:var(--soft,#f6f8fa)"><div class="note" style="font-size:12px">${l}</div>${q?`<div style="font-size:18px;font-weight:800;font-variant-numeric:tabular-nums">${f(q)}</div><div class="${z?'note':q.ch>0?'pos':'neg'}" style="font-weight:700;font-size:13px">${z?'■ 0.00':q.ch>0?'▲ +'+(q.ch*100).toFixed(2):'▼ '+(q.ch*100).toFixed(2)}%</div>${k&&k(q)?`<div class="note" style="font-size:11px">${k(q)}</div>`:''}`:`<div class="note">${LIVE.st==='busy'?'받는 중…':'아직 못 받음'}</div>`}</div>`};
-  return `<div class="card noprint"><h3>📈 지금 시세 <span class="note" style="font-weight:400;font-size:12px">${LIVE.at?LIVE.at.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})+' 기준 · ':''}전날 종가 대비 · 저절로 새로 받음 · <b>칸에 마우스를 올리면(휴대폰은 누르면) 그래프</b></span></h3><div style="display:flex;flex-wrap:wrap;gap:8px">${it.map(box).join('')}</div><div class="note" style="font-size:11px;margin-top:6px">금은 뉴욕 금 선물 값 · 비트코인은 24시간 거래 · 금 1돈 원화값은 국제 시세 기준(국내 금은방 값과 다를 수 있음) · 환율${fx?' '+n(fx,1)+'원':''} 적용</div></div>`},
+  return `<div class="card noprint"><h3>📈 지금 시세 <span class="note" style="font-weight:400;font-size:12px">${LIVE.at?LIVE.at.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})+' 기준 · ':LIVE.qAt?new Date(LIVE.qAt).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})+' 값 (지금 새로 받는 중) · ':''}전날 종가 대비 · 저절로 새로 받음 · <b>칸에 마우스를 올리면(휴대폰은 누르면) 그래프</b></span></h3><div style="display:flex;flex-wrap:wrap;gap:8px">${it.map(box).join('')}</div><div class="note" style="font-size:11px;margin-top:6px">금은 뉴욕 금 선물 값 · 비트코인은 24시간 거래 · 금 1돈 원화값은 국제 시세 기준(국내 금은방 값과 다를 수 있음) · 환율${fx?' '+n(fx,1)+'원':''} 적용</div></div>`},
  /* 자동 갱신: 미국 장중(평일 09:30~16:00 뉴욕)엔 5분마다, 그 밖엔 1시간마다 · 앱/탭으로 다시 돌아오면 5분 넘었을 때 바로 */
  open(){const t=LIVE.etNow(),wd=new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'})).getDay();return wd>0&&wd<6&&t.hm>=570&&t.hm<960},
  gap(){return (LIVE.open()?5:10)*60e3},
@@ -1625,52 +1628,109 @@ MKT.btns=LIVE.btns;MKT.staleMsg=LIVE.staleMsg;
 {const _act=APP.act;APP.act=function(a,t){if(a==='live:refresh')return LIVE.refresh();if(a==='live:csv')return LIVE.saveCsv();return _act(a,t)}}
 
 /* ===================== 📊 시세 그래프 창: 칸에 마우스를 올리거나 누르면 · 전체 기간(주봉)~1개월(일봉) · 5/20/60/120/200일선 ===================== */
-const QC={cache:{},sym:null,lab:'',rg:'1y',log:null,hv:null,el:null,tm:null,
- RG:[['1m','1개월',21],['3m','3개월',63],['6m','6개월',126],['1y','1년',252],['3y','3년',756],['5y','5년',1260],['10y','10년',520],['max','전체',1e9]],
+const QC={cache:{},sym:null,lab:'',u:'d',rg:{d:'1y',w:'5y',m:'max'},log:null,hv:null,el:null,tm:null,lg:[],P:{},
+ U:{d:['일봉','일',1],w:['주봉','주',5],m:['월봉','개월',21]},
+ RG:{d:[['1m','1개월',21],['3m','3개월',63],['6m','6개월',126],['1y','1년',252],['3y','3년',756],['5y','5년',1260]],
+     w:[['1y','1년',52],['3y','3년',156],['5y','5년',260],['10y','10년',520],['max','전체',1e9]],
+     m:[['5y','5년',60],['10y','10년',120],['20y','20년',240],['max','전체',1e9]]},
  MA:[[5,'#95a5a6'],[20,'#e67e22'],[60,'#27ae60'],[120,'#2980b9'],[200,'#8e44ad']],
- async getJ(url){const mcp=(typeof ART!=='undefined'&&typeof claude!=='undefined'&&claude&&claude.use)?await claude.use('mcp').catch(()=>null):null;
-  if(mcp){try{const S_='host:claude_browser';if(!LIVE.tab){const r=await mcp.callTool(S_,'preview_start',{url},{cache:false});const m=LIVE.text(r).match(/tabId\s+([^\s)]+)/);LIVE.tab=m?m[1]:null}else await mcp.callTool(S_,'navigate',{url,tabId:LIVE.tab},{cache:false});
-    const r=await mcp.callTool(S_,'get_page_text',LIVE.tab?{tabId:LIVE.tab,max_chars:400000}:{max_chars:400000},{cache:false});const t=LIVE.text(r),k=t.indexOf('{');if(k>=0)return JSON.parse(t.slice(k))}catch(e){}}
-  let last=null;for(let k=0;k<LIVE.PROX.length;k++){try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),15000);const r=await fetch(LIVE.PROX[k](url),{signal:ac.signal,credentials:'omit',referrerPolicy:'no-referrer'});clearTimeout(tm);if(!r.ok)throw new Error('HTTP '+r.status);const t=await r.text();return JSON.parse(t.slice(t.indexOf('{')))}catch(e){last=e}}throw last||new Error('연결 실패')},
- parse(J){const R=J&&J.chart&&J.chart.result&&J.chart.result[0];if(!R||!R.timestamp)throw new Error('그래프 자료가 비어 있음');const c=R.indicators.quote[0].close,t=[],v=[];R.timestamp.forEach((x,i)=>{if(c[i]!=null&&isFinite(c[i])&&c[i]>0){t.push(x*1000);v.push(c[i])}});return {t,v}},
- async load(s){if(QC.cache[s])return QC.cache[s];const u=(r,i)=>'https://query1.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(s)+'?range='+r+'&interval='+i;
-  const d=QC.parse(await QC.getJ(u('5y','1d'))),w=QC.parse(await QC.getJ(u('max','1wk')));return QC.cache[s]={d,w}},
+ SY:['^IXIC','^NDX','^GSPC','GC=F','BTC-USD'],LS:'laoer_qc_v3',
+ note(x){QC.lg.push(new Date().toLocaleTimeString('ko-KR',{hour12:false})+' '+x);if(QC.lg.length>80)QC.lg.shift();const d=QC.el&&QC.el.querySelector('.qcLog');if(d)d.textContent=QC.lg.join('\n')},
+ /* 한 주소를 모든 길로 동시에 → 먼저 성공한 것 사용 · 길마다 결과를 🔍 기록에 */
+ async getJ(url,ok,tag,tmo){const mcp=(typeof ART!=='undefined'&&typeof claude!=='undefined'&&claude&&claude.use)?await claude.use('mcp').catch(()=>null):null;
+  if(mcp){const t0=Date.now();try{const S_='host:claude_browser';if(!LIVE.tab){const r=await mcp.callTool(S_,'preview_start',{url},{cache:false});const m=LIVE.text(r).match(/tabId\s+([^\s)]+)/);LIVE.tab=m?m[1]:null}else await mcp.callTool(S_,'navigate',{url,tabId:LIVE.tab},{cache:false});
+    const r=await mcp.callTool(S_,'get_page_text',LIVE.tab?{tabId:LIVE.tab,max_chars:600000}:{max_chars:600000},{cache:false});const t=LIVE.text(r),k=t.indexOf('{');const J=JSON.parse(t.slice(k));if(ok&&!ok(J))throw new Error('내용 없음: '+t.slice(k,k+90));QC.note(`${tag} · 앱 브라우저 · 성공 ${((Date.now()-t0)/1000).toFixed(1)}초`);return J}catch(e){QC.note(`${tag} · 앱 브라우저 · 실패 ${(e&&e.message||e+'').slice(0,90)}`)}}
+  const nm=['Yahoo 직접','allorigins','corsproxy','codetabs'];
+  const one=async k=>{const t0=Date.now(),ac=new AbortController(),tm=setTimeout(()=>ac.abort(),tmo||15000);
+   try{const r=await fetch(LIVE.PROX[k](url),{signal:ac.signal,credentials:'omit',referrerPolicy:'no-referrer'});const t=await r.text();if(!r.ok)throw new Error('HTTP '+r.status+' '+t.slice(0,80));
+    const J=JSON.parse(t.slice(t.indexOf('{')));if(ok&&!ok(J))throw new Error('내용 없음: '+t.slice(0,90));QC.note(`${tag} · ${nm[k]} · 성공 ${((Date.now()-t0)/1000).toFixed(1)}초 ${Math.round(t.length/1024)}KB`);return J}
+   catch(e){const m=e&&e.name==='AbortError'?'15초 안에 답이 없음':e&&e.name==='TypeError'?'연결 거부(CORS·차단)':(e&&e.message||String(e));QC.note(`${tag} · ${nm[k]} · 실패 ${((Date.now()-t0)/1000).toFixed(1)}초 · ${m.slice(0,110)}`);throw e}finally{clearTimeout(tm)}};
+  try{return await Promise.any(LIVE.PROX.map((_,k)=>one(k)))}catch(e){throw new Error(tag+': 모든 길 실패')}},
+ /* chart(시가·고가·저가·종가) 또는 spark(종가만) → {t,c,o?,h?,l?} */
+ parse(J){const R=J&&J.chart?J.chart.result&&J.chart.result[0]:J;if(!R||!R.timestamp)throw new Error('비어 있음');const q=R.indicators&&R.indicators.quote&&R.indicators.quote[0],C=q?q.close:R.close,hasO=!!(q&&q.open&&q.high&&q.low);
+  const r6=x=>+x.toPrecision(7),o={t:[],c:[]};if(hasO){o.o=[];o.h=[];o.l=[]}
+  R.timestamp.forEach((x,i)=>{const c=C[i];if(c==null||!isFinite(c)||c<=0)return;o.t.push(x*1000);o.c.push(r6(c));if(hasO){const op=q.open[i],hi=q.high[i],lo=q.low[i];const ok=op>0&&hi>0&&lo>0;o.o.push(r6(ok?op:c));o.h.push(r6(ok?Math.max(hi,c,op):c));o.l.push(r6(ok?Math.min(lo,c,op):c))}});
+  if(o.t.length<5)throw new Error('점이 너무 적음');o.at=Date.now();return o},
+ boot(){try{const o=JSON.parse(localStorage.getItem(QC.LS)||'null');if(o&&o.c)QC.cache=o.c}catch(e){}},
+ save(){try{localStorage.setItem(QC.LS,JSON.stringify({c:QC.cache}))}catch(e){QC.note('기기 보관 실패(용량) — 이번에만 사용')}},
+ put(s,u,x){const o=QC.cache[s]=QC.cache[s]||{},p=o[u];/* 봉(시가·고가·저가) 자료를 종가만 있는 자료보다 우선, 같으면 긴 것·새 것 */
+  const rk=z=>z.o?(z.syn?1:2):0;if(!p||rk(x)>rk(p)||(rk(x)===rk(p)&&x.t.length>=p.t.length*0.9)||Date.now()-p.at>12*3600e3){o[u]=x;return true}return false},
+ /* 진짜 봉 자료(chart)를 못 받을 때: 이미 받은 종가로 봉을 만듦 — 시가=앞 봉 종가, 고가·저가=그 사이 종가(일봉은 1시간 종가)의 최고·최저 */
+ syn(s,u){const D=QC.cache[s]||{},src=u==="d"?null:(D.d||null),key=t=>{const d=new Date(t+(-5*3600e3));if(u==='m')return d.getUTCFullYear()*100+d.getUTCMonth();const w=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()));w.setUTCDate(w.getUTCDate()-((w.getUTCDay()+6)%7));return +w};
+  const agg=(T,C)=>{const o={t:[],o:[],h:[],l:[],c:[],syn:1,at:Date.now()};let k=null,pc=null;T.forEach((t,i)=>{const kk=key(t),c=C[i];if(kk!==k){if(o.c.length)pc=o.c[o.c.length-1];k=kk;const op=pc==null?c:pc;o.t.push(t);o.o.push(op);o.h.push(Math.max(op,c));o.l.push(Math.min(op,c));o.c.push(c)}else{const j=o.c.length-1;o.c[j]=c;o.h[j]=Math.max(o.h[j],c);o.l[j]=Math.min(o.l[j],c)}});return o};
+  if(u==='d'){const d=D.d;if(!d)return null;const H=QC.hr&&QC.hr[s],o={t:d.t.slice(),c:d.c.slice(),o:[],h:[],l:[],syn:1,at:Date.now()},hb={};
+   if(H)H.t.forEach((t,i)=>{const k=new Date(t-5*3600e3).toISOString().slice(0,10);(hb[k]=hb[k]||[]).push(H.c[i])});
+   o.t.forEach((t,i)=>{const op=i?o.c[i-1]:o.c[i],c=o.c[i],hs=(hb[new Date(t-5*3600e3).toISOString().slice(0,10)]||[]).filter(v=>Math.abs(v/c-1)<0.15);o.o.push(op);o.h.push(Math.max(op,c,...hs));o.l.push(Math.min(op,c,...hs))});return o}
+  const W=D.w&&!D.w.o?D.w:(D.wc||null);let T=[],C=[];
+  if(W){const cut=src?src.t[0]:Infinity;W.t.forEach((t,i)=>{if(t<cut){T.push(t);C.push(W.c[i])}})}
+  if(src){T=T.concat(src.t);C=C.concat(src.c)}
+  return T.length>=5?agg(T,C):null},
+ fresh(s,u){const x=QC.cache[s]&&QC.cache[s][u];return !!(x&&x.o&&Date.now()-x.at<12*3600e3)},
+ sp(r,i){return 'https://query1.finance.yahoo.com/v8/finance/spark?symbols='+QC.SY.map(encodeURIComponent).join(',')+'&range='+r+'&interval='+i},
+ ch(s,r,i){return 'https://query1.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(s)+'?range='+r+'&interval='+i},
+ /* 봉 단위 하나 받기: ① 이 종목의 봉 자료(chart) 와 ② 다섯 종목 종가 묶음(spark)을 동시에 → 먼저 온 걸로 바로 그리고, 봉 자료가 오면 봉으로 바꿈 */
+ load(s,u){const key=s+'|'+u;if(QC.P[key])return QC.P[key];QC.t0=Date.now();QC.err=null;const rd=()=>{if(QC.el&&QC.sym===s&&QC.u===u)QC.draw()};
+  const SP={d:[['1y','1d','1년·일봉 종가'],['5y','1d','5년·일봉 종가']],w:[['max','1wk','전체·주봉 종가'],['10y','1wk','10년·주봉 종가']],m:[['max','1mo','전체·월봉 종가']]}[u],
+        CH={d:['5y','1d','5년·일봉'],w:['max','1wk','전체·주봉'],m:['max','1mo','전체·월봉']}[u];
+  const okS=J=>J&&QC.SY.some(z=>J[z]&&J[z].timestamp),okC=J=>J&&J.chart&&J.chart.result&&J.chart.result[0]&&J.chart.result[0].timestamp;
+  if(u==='d'&&!QC.hr&&!QC.P.hr)QC.P.hr=QC.getJ(QC.sp('1y','1h'),okS,'1년·1시간 종가(일봉 꼬리용)').then(J=>{QC.hr={};for(const z of QC.SY){try{QC.hr[z]=QC.parse(J[z])}catch(e){}}rd()}).catch(()=>{QC.hr={}}).finally(()=>{delete QC.P.hr});
+  const a=(async()=>{const k2='sp|'+u;if(!QC.P[k2])QC.P[k2]=(async()=>{for(const [r,i,tag] of SP){try{const J=await QC.getJ(QC.sp(r,i),okS,tag);for(const z of QC.SY){try{const x=QC.parse(J[z]);if(u==='w'){QC.cache[z]=QC.cache[z]||{};QC.cache[z].wc=x}QC.put(z,u,x)}catch(e){}}QC.save();rd()}catch(e){}}})().finally(()=>{delete QC.P[k2]});return QC.P[k2]})();
+  /* 진짜 봉 자료는 종가 자료를 다 받은 뒤에 시도(서로 길을 막지 않게) · 8초 안에 안 오면 포기 · 두 주소 다 실패하면 이번엔 다시 시도 안 함(종가로 만든 봉 사용) */
+  const b=(async()=>{await a.catch(()=>{});if(QC.noChart)return;let fails=0;for(const h of ['query1','query2']){try{const J=await QC.getJ(QC.ch(s,CH[0],CH[1]).replace('query1',h),okC,QC.lab+' '+CH[2]+' 봉('+h+')',8000);QC.put(s,u,QC.parse(J));QC.save();rd();return}catch(e){fails++}}if(fails===2){QC.noChart=true;QC.note('진짜 봉 자료 주소가 막혀 있음 → 이번엔 종가로 만든 봉 사용')}})();
+  return QC.P[key]=Promise.allSettled([a,b]).then(async()=>{const c=QC.cache[s]&&QC.cache[s][u];
+   if(!(c&&c.o)){if(QC.P.hr)await QC.P.hr.catch(()=>{});
+    if(u!=='d'&&!(QC.cache[s]&&QC.cache[s].d)){try{const J=await QC.getJ(QC.sp('5y','1d'),okS,'5년·일봉 종가(봉 만들기용)');for(const z of QC.SY){try{QC.put(z,'d',QC.parse(J[z]))}catch(e){}}}catch(e){}}
+    const x=QC.syn(s,u);if(x){QC.put(s,u,x);QC.note(QC.lab+' '+QC.U[u][0]+': 진짜 봉 자료를 못 받아 종가로 봉을 만듦');QC.save()}}if(!(QC.cache[s]&&QC.cache[s][u]))QC.err='시세 서버에서 그래프 자료를 못 받았어요 (아래 🔍 기록 참고)';QC.note(`${QC.lab} ${QC.U[u][0]} 끝 · ${((Date.now()-QC.t0)/1000).toFixed(1)}초`);rd()}).finally(()=>{delete QC.P[key]})},
  ma(v,k){const o=new Array(v.length).fill(null);let a=0;for(let i=0;i<v.length;i++){a+=v[i];if(i>=k)a-=v[i-k];if(i>=k-1)o[i]=a/k}return o},
- view(){const D=QC.cache[QC.sym];if(!D)return null;const g=QC.RG.find(r=>r[0]===QC.rg),wk=QC.rg==='10y'||QC.rg==='max',S=wk?D.w:D.d,f=wk?5:1;
-  const mas=QC.MA.filter(m=>!(wk&&m[0]===5)).map(([k,c])=>({k,c,w:Math.max(2,Math.round(k/f)),v:QC.ma(S.v,Math.max(2,Math.round(k/f)))}));
-  const n=S.v.length,i0=Math.max(0,n-g[2]);return {wk,t:S.t.slice(i0),v:S.v.slice(i0),mas:mas.map(m=>({...m,v:m.v.slice(i0)})),all:S}},
+ view(){let S=QC.cache[QC.sym]&&QC.cache[QC.sym][QC.u];if(!S)return null;if(!S.o){const D=QC.cache[QC.sym],mk=QC.sym+'|'+QC.u+'|'+S.c.length+'|'+S.at+'|'+(D.d?D.d.at:0)+'|'+(QC.hr&&QC.hr[QC.sym]?1:0);if(!QC._sm||QC._sm.k!==mk)QC._sm={k:mk,x:QC.syn(QC.sym,QC.u)};if(QC._sm.x)S=QC._sm.x}const rg=QC.rg[QC.u],g=QC.RG[QC.u].find(r=>r[0]===rg)||QC.RG[QC.u][0];
+  const n=S.c.length,i0=Math.max(0,n-g[2]),sl=a=>a?a.slice(i0):null;
+  return {syn:!!S.syn,o:sl(S.o),h:sl(S.h),l:sl(S.l),v:S.c.slice(i0),t:S.t.slice(i0),short:g[2]<1e9&&n<g[2]*0.97,
+   mas:QC.MA.map(([k,c])=>({k,c,v:QC.ma(S.c,k).slice(i0)})).filter(m=>m.v.some(x=>x!=null))}},
+ logOn(){const v=QC.log;if(v!=null)return v;const rg=QC.rg[QC.u];return QC.u!=='d'&&(rg==='10y'||rg==='20y'||rg==='max')},
  fmt(x){return x>=1000?x.toLocaleString('en-US',{maximumFractionDigits:x>=1e4?0:1}):x.toLocaleString('en-US',{maximumFractionDigits:2})},
  draw(){const el=QC.el;if(!el)return;const cv=el.querySelector('canvas'),V=QC.view(),info=el.querySelector('.qcI');if(!cv)return;
   const W=cv.clientWidth,H=cv.clientHeight,dp=window.devicePixelRatio||1;cv.width=W*dp;cv.height=H*dp;const x=cv.getContext('2d');x.setTransform(dp,0,0,dp,0,0);x.clearRect(0,0,W,H);
-  const ink=getComputedStyle(document.body).color||'#222';if(!V){x.fillStyle=ink;x.font='14px sans-serif';x.fillText(QC.err?'그래프를 못 받았어요: '+QC.err:'그래프 자료 받는 중…',12,30);return}
-  const log=QC.log==null?(QC.rg==='10y'||QC.rg==='max'):QC.log,tr=y=>log?Math.log(y):y;let lo=Infinity,hi=-Infinity;
-  [V.v,...V.mas.map(m=>m.v)].forEach(a=>a.forEach(y=>{if(y!=null){lo=Math.min(lo,y);hi=Math.max(hi,y)}}));
-  const L=8,Rp=62,T=10,B=22,pw=W-L-Rp,ph=H-T-B,n=V.v.length,X=i=>L+(n<2?0:i/(n-1)*pw),a=tr(lo),b=tr(hi),Y=y=>T+ph-(tr(y)-a)/((b-a)||1)*ph;
-  x.font='11px sans-serif';x.fillStyle=ink;x.globalAlpha=.55;x.strokeStyle=ink;x.lineWidth=.5;
+  const ink=getComputedStyle(document.body).color||'#222',busy=!!QC.P[QC.sym+'|'+QC.u];
+  if(!V){x.fillStyle=ink;x.font='14px sans-serif';x.fillText(busy?QC.U[QC.u][0]+' 자료 받는 중… '+(QC.t0?Math.round((Date.now()-QC.t0)/1000)+'초':'')+' (처음 한 번만)':QC.err?'그래프를 못 받았어요 — ✕ 닫고 다시 올려 보세요 (🔍 기록 참고)':'자료가 없어요',12,30);
+   if(info)info.innerHTML='';clearTimeout(QC.pt);if(busy)QC.pt=setTimeout(()=>{if(QC.el&&!QC.view())QC.draw()},1000);return}
+  const log=QC.logOn(),tr=y=>log?Math.log(y):y,n=V.v.length;let lo=Infinity,hi=-Infinity;
+  [V.h||V.v,V.l||V.v,...V.mas.map(m=>m.v)].forEach(a=>a.forEach(y=>{if(y!=null){lo=Math.min(lo,y);hi=Math.max(hi,y)}}));
+  const L=8,Rp=62,T=10,B=22,pw=W-L-Rp,ph=H-T-B,bw=pw/Math.max(n,1),X=i=>L+(i+.5)*bw,a=tr(lo),b=tr(hi),Y=y=>T+ph-(tr(y)-a)/((b-a)||1)*ph;
+  x.font='11px sans-serif';x.fillStyle=ink;x.strokeStyle=ink;x.lineWidth=.5;
   for(let k=0;k<=4;k++){const y=log?Math.exp(a+(b-a)*k/4):lo+(hi-lo)*k/4,yy=Y(y);x.globalAlpha=.15;x.beginPath();x.moveTo(L,yy);x.lineTo(L+pw,yy);x.stroke();x.globalAlpha=.6;x.fillText(QC.fmt(y),L+pw+4,yy+4)}
   const yrs=(V.t[n-1]-V.t[0])/3.15e10,lab=t=>{const d=new Date(t);return yrs>3?String(d.getFullYear()):yrs>.9?`${String(d.getFullYear()).slice(2)}.${d.getMonth()+1}`:`${d.getMonth()+1}/${d.getDate()}`};
-  for(let k=0;k<=5;k++){const i=Math.round((n-1)*k/5);x.globalAlpha=.6;x.textAlign=k===0?'left':k===5?'right':'center';x.fillText(lab(V.t[i]),X(i),H-6)}x.textAlign='left';x.globalAlpha=1;
+  for(let k=0;k<=5;k++){const i=Math.round((n-1)*k/5);x.globalAlpha=.6;x.textAlign=k===0?'left':k===5?'right':'center';x.fillText(lab(V.t[i]),k===0?L:k===5?L+pw:X(i),H-6)}x.textAlign='left';x.globalAlpha=1;
+  const cs=getComputedStyle(document.documentElement),UP=(cs.getPropertyValue('--pos')||'').trim()||'#1e9e5a',DN=(cs.getPropertyValue('--neg')||'').trim()||'#d63031';
   const line=(arr,c,w)=>{x.strokeStyle=c;x.lineWidth=w;x.beginPath();let st=false;arr.forEach((y,i)=>{if(y==null)return;if(!st){x.moveTo(X(i),Y(y));st=true}else x.lineTo(X(i),Y(y))});x.stroke()};
-  V.mas.forEach(m=>line(m.v,m.c,1.2));line(V.v,ink,1.8);
-  const h=QC.hv==null?n-1:Math.max(0,Math.min(n-1,QC.hv));if(QC.hv!=null){x.strokeStyle=ink;x.globalAlpha=.4;x.lineWidth=1;x.beginPath();x.moveTo(X(h),T);x.lineTo(X(h),T+ph);x.stroke();x.globalAlpha=1;x.fillStyle=ink;x.beginPath();x.arc(X(h),Y(V.v[h]),3.5,0,7);x.fill()}
-  QC.geo={L,pw,n};const p=V.v[h],d=new Date(V.t[h]),pc=(u,v)=>{const r=u/v-1;return `<span class="${r>=0?'pos':'neg'}">${r>=9?(u/v).toLocaleString('en-US',{maximumFractionDigits:u/v>=100?0:1})+'배':(r>=0?'+':'')+(r*100).toFixed(1)+'%'}</span>`};
-  const pk=Math.max(...V.v.slice(0,h+1));
-  info.innerHTML=`<b>${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}${V.wk?' 주':''}</b> · 값 <b>${QC.fmt(p)}</b> · 이 기간 처음보다 ${pc(p,V.v[0])} · 이 기간 최고점보다 ${pc(p,pk)}<br>`+V.mas.map(m=>{const y=m.v[h];return `<span style="white-space:nowrap"><span style="display:inline-block;width:14px;height:3px;background:${m.c};vertical-align:middle"></span> ${m.k}일선${V.wk?'(≈'+m.w+'주)':''} ${y==null?'—':QC.fmt(y)+' ('+(p>=y?'위 ':'아래 ')+pc(p,y)+')'}</span>`}).join(' · ')},
- html(){return `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><b style="font-size:16px">📊 ${esc(QC.lab)}</b><span style="flex:1"></span><button class="btn sm light" data-qc="x">✕ 닫기</button></div>
-  <div style="display:flex;gap:4px;flex-wrap:wrap;margin:6px 0">${QC.RG.map(r=>`<button class="btn sm ${r[0]===QC.rg?'gold':'light'}" data-qc="r:${r[0]}">${r[1]}</button>`).join('')}<button class="btn sm light" data-qc="log">${(QC.log==null?(QC.rg==='10y'||QC.rg==='max'):QC.log)?'비율 눈금 ✓':'비율 눈금'}</button></div>
+  const candle=V.o&&bw>=1.5;
+  if(candle){for(let i=0;i<n;i++){const up=V.v[i]>=V.o[i],c=up?UP:DN;x.strokeStyle=c;x.fillStyle=c;x.lineWidth=1;x.beginPath();x.moveTo(X(i),Y(V.h[i]));x.lineTo(X(i),Y(V.l[i]));x.stroke();
+    const y1=Y(Math.max(V.o[i],V.v[i])),y2=Y(Math.min(V.o[i],V.v[i])),w=Math.max(1,bw*.7);x.fillRect(X(i)-w/2,y1,w,Math.max(1,y2-y1))}}
+  V.mas.forEach(m=>line(m.v,m.c,1.2));if(!candle)line(V.v,ink,1.8);
+  const h=QC.hv==null?n-1:Math.max(0,Math.min(n-1,QC.hv));if(QC.hv!=null){x.strokeStyle=ink;x.globalAlpha=.4;x.lineWidth=1;x.beginPath();x.moveTo(X(h),T);x.lineTo(X(h),T+ph);x.stroke();x.globalAlpha=1;if(!candle){x.fillStyle=ink;x.beginPath();x.arc(X(h),Y(V.v[h]),3.5,0,7);x.fill()}}
+  QC.geo={L,bw,n};const p=V.v[h],d=new Date(V.t[h]),un=QC.U[QC.u],pc=(u,v)=>{const r=u/v-1;return `<span class="${r>=0?'pos':'neg'}">${r>=9?(u/v).toLocaleString('en-US',{maximumFractionDigits:u/v>=100?0:1})+'배':(r>=0?'+':'')+(r*100).toFixed(1)+'%'}</span>`};
+  const pk=Math.max(...(V.h||V.v).slice(0,h+1)),ds=`${d.getFullYear()}.${d.getMonth()+1}${QC.u==='m'?'':'.'+d.getDate()}`;
+  info.innerHTML=`<b>${ds}${QC.u==='w'?' 주':QC.u==='m'?' 월':''}</b>${V.o?` · 시가 ${QC.fmt(V.o[h])} · 고가 ${QC.fmt(V.h[h])} · 저가 ${QC.fmt(V.l[h])} · 종가 <b>${QC.fmt(p)}</b>`:` · 종가 <b>${QC.fmt(p)}</b>`}${h>0?' · '+({d:'전일',w:'전주',m:'전월'}[QC.u])+' 대비 '+pc(p,V.v[h-1]):''}<br>이 기간 처음보다 ${pc(p,V.v[0])} · 이 기간 최고점보다 ${pc(p,pk)}${V.short?' <span class="note">(받은 자료가 이 기간보다 짧음)</span>':''}${V.syn?' <span class="note">(종가로 만든 봉: 시가=앞 봉 종가, 꼬리=그 사이 종가의 최고·최저'+(QC.u==='d'?'(최근 1년은 1시간 종가)':'')+')</span>':''}${!V.o?' <span class="note">(봉 자료를 못 받아 종가 선으로 표시)</span>':!candle?' <span class="note">(봉이 너무 많아 선으로 — 짧은 기간을 누르면 봉으로)</span>':''}<br>`+
+   V.mas.map(m=>{const y=m.v[h];return `<span style="white-space:nowrap"><span style="display:inline-block;width:14px;height:3px;background:${m.c};vertical-align:middle"></span> ${m.k}${un[1]}선 ${y==null?'—':QC.fmt(y)+' ('+(p>=y?'위 ':'아래 ')+pc(p,y)+')'}</span>`}).join(' · ')},
+ html(){const b=(k,l,on)=>`<button class="btn sm ${on?'gold':'light'}" data-qc="${k}">${l}</button>`;
+  return `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><b style="font-size:16px">📊 ${esc(QC.lab)}</b><span style="display:inline-flex;gap:3px;margin-left:8px">${Object.keys(QC.U).map(u=>b('u:'+u,QC.U[u][0],u===QC.u)).join('')}</span><span style="flex:1"></span><button class="btn sm light" data-qc="x">✕ 닫기</button></div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;margin:6px 0">${QC.RG[QC.u].map(r=>b('r:'+r[0],r[1],r[0]===QC.rg[QC.u])).join('')}${b('log',QC.logOn()?'비율 눈금 ✓':'비율 눈금',false)}</div>
   <canvas style="width:100%;height:300px;display:block;touch-action:none"></canvas><div class="qcI note" style="font-size:12px;line-height:1.7;margin-top:4px"></div>
-  <div class="note" style="font-size:11px;margin-top:2px">1개월~5년은 하루 단위, 10년·전체는 일주일 단위(이평선은 같은 기간의 주 수로 계산) · '비율 눈금'은 오래된 기간에서 % 움직임을 같은 높이로 보여 줘요</div>`},
+  <details style="margin-top:4px"><summary class="note" style="font-size:12px;cursor:pointer">🔍 받은 기록 (안 뜰 때 이 내용을 캡처해 주세요)</summary><pre class="qcLog" style="white-space:pre-wrap;font-size:11px;max-height:160px;overflow:auto;margin:4px 0;padding:6px;background:var(--soft,#f6f8fa);border-radius:6px">${esc(QC.lg.join('\n'))}</pre></details>
+  <div class="note" style="font-size:11px;margin-top:2px">일봉=하루 한 개 · 주봉=일주일 한 개 · 월봉=한 달 한 개 · 이평선은 봉 개수로(일봉 20 = 20일선, 주봉 20 = 20주선) · 초록=오른 봉, 빨강=내린 봉 · '비율 눈금'은 긴 기간에서 % 움직임을 같은 높이로</div>`},
+ need(){const s=QC.sym,u=QC.u;if(!QC.fresh(s,u))QC.load(s,u)},
  open(s,l,anchor){clearTimeout(QC.tm);if(QC.el&&QC.sym===s)return;QC.sym=s;QC.lab=l;QC.hv=null;QC.err=null;QC.log=null;
   if(!QC.el){QC.el=document.createElement('div');QC.el.className='noprint';QC.el.style.cssText='position:fixed;z-index:60;left:50%;transform:translateX(-50%);width:min(820px,calc(100vw - 24px));max-height:calc(100vh - 24px);overflow:auto;padding:12px;border-radius:12px;border:1px solid var(--line,#dfe4ea);background:var(--card,#fff);box-shadow:0 10px 30px rgba(0,0,0,.25)';document.body.appendChild(QC.el);
-   QC.el.addEventListener('mouseenter',()=>clearTimeout(QC.tm));QC.el.addEventListener('mouseleave',e=>{if(e.pointerType!=='touch')QC.soon()});
-   QC.el.addEventListener('click',e=>{const b=e.target.closest('[data-qc]');if(!b)return;const a=b.dataset.qc;if(a==='x')return QC.close();if(a==='log'){QC.log=!(QC.log==null?(QC.rg==='10y'||QC.rg==='max'):QC.log)}else{QC.rg=a.slice(2);QC.log=null}QC.hv=null;QC.paint()});
-   const mv=e=>{const cv=QC.el.querySelector('canvas');if(!cv||!QC.geo||e.target!==cv)return;const r=cv.getBoundingClientRect(),cx=(e.touches?e.touches[0].clientX:e.clientX)-r.left;QC.hv=Math.round((cx-QC.geo.L)/QC.geo.pw*(QC.geo.n-1));QC.draw()};
+   QC.el.addEventListener('mouseenter',()=>clearTimeout(QC.tm));QC.el.addEventListener('mouseleave',()=>QC.soon());
+   QC.el.addEventListener('click',e=>{const b=e.target.closest('[data-qc]');if(!b)return;const a=b.dataset.qc;if(a==='x')return QC.close();
+    if(a==='log')QC.log=!QC.logOn();else if(a.startsWith('u:')){QC.u=a.slice(2);QC.log=null;QC.err=null;QC.need()}else{QC.rg[QC.u]=a.slice(2);QC.log=null}QC.hv=null;QC.paint()});
+   const mv=e=>{const cv=QC.el.querySelector('canvas');if(!cv||!QC.geo||e.target!==cv)return;const r=cv.getBoundingClientRect(),cx=(e.touches?e.touches[0].clientX:e.clientX)-r.left;QC.hv=Math.floor((cx-QC.geo.L)/QC.geo.bw);QC.draw()};
    QC.el.addEventListener('mousemove',mv);QC.el.addEventListener('touchmove',mv,{passive:true});QC.el.addEventListener('touchstart',mv,{passive:true});QC.el.addEventListener('mouseout',e=>{if(e.target.tagName==='CANVAS'){QC.hv=null;QC.draw()}})}
-  const r=anchor.getBoundingClientRect(),below=r.bottom+8,h=Math.min(470,innerHeight-24);QC.el.style.top=(below+h<innerHeight?below:Math.max(12,r.top-h-8))+'px';
-  QC.paint();if(!QC.cache[s])QC.load(s).then(()=>{if(QC.sym===s)QC.draw()}).catch(e=>{QC.err=(e&&e.message)||'연결 실패';if(QC.sym===s)QC.draw()})},
+  const r=anchor.getBoundingClientRect(),below=r.bottom+8,h=Math.min(500,innerHeight-24);QC.el.style.top=(below+h<innerHeight?below:Math.max(12,r.top-h-8))+'px';
+  QC.paint();QC.need()},
  paint(){if(!QC.el)return;QC.el.innerHTML=QC.html();QC.draw()},
  soon(){clearTimeout(QC.tm);QC.tm=setTimeout(QC.close,450)},
  close(){clearTimeout(QC.tm);if(QC.el){QC.el.remove();QC.el=null}QC.sym=null}};
+QC.boot();
 {let ht=null;const fine=matchMedia('(hover:hover) and (pointer:fine)').matches;
  document.addEventListener('mouseover',e=>{if(!fine)return;const t=e.target.closest&&e.target.closest('[data-qs]');if(!t)return;clearTimeout(ht);ht=setTimeout(()=>QC.open(t.dataset.qs,t.dataset.ql,t),200)});
  document.addEventListener('mouseout',e=>{if(!fine)return;const t=e.target.closest&&e.target.closest('[data-qs]');if(!t||(e.relatedTarget&&t.contains(e.relatedTarget)))return;clearTimeout(ht);if(QC.el)QC.soon()});
