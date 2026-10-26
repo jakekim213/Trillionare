@@ -243,7 +243,7 @@ footer{font-size:12px;color:var(--jmute);border-top:1px solid var(--jsoft);backg
 const SRC0='<!DOCTYPE html>\n'+document.documentElement.outerHTML.replace(/\x3cscript type="application\/json" id="savedData">[\s\S]*?<\/script>/,'');
 /* ===== 오프라인 보안: 외부 통신 API 원천 차단 ===== */
 (()=>{const blk=()=>{throw new Error('오프라인 보안 모드: 외부 통신 차단')};
-  try{{const _f=window.fetch.bind(window),ok=['https://query1.finance.yahoo.com/v8/finance/spark?','https://api.allorigins.win/raw?url=https%3A%2F%2Fquery1.finance.yahoo.com','https://corsproxy.io/?url=https%3A%2F%2Fquery1.finance.yahoo.com','https://api.codetabs.com/v1/proxy?quest=https%3A%2F%2Fquery1.finance.yahoo.com'];window.fetch=(u,o)=>{const s=String(u);if(s==='https://api.anthropic.com/v1/messages'&&o&&o.method==='POST')return _f(s,{method:'POST',headers:o.headers,body:o.body,credentials:'omit',referrerPolicy:'no-referrer',signal:o.signal});if(!ok.some(p=>s.startsWith(p))||(o&&o.method&&o.method!=='GET'))return Promise.reject(new Error('오프라인 보안 모드: 시세·Claude 주소 말고는 외부 통신 차단'));return _f(s,{method:'GET',credentials:'omit',referrerPolicy:'no-referrer',signal:o&&o.signal})}};window.XMLHttpRequest=function(){blk()};window.WebSocket=function(){blk()};window.EventSource=function(){blk()};
+  try{{const _f=window.fetch.bind(window),ok=['https://query1.finance.yahoo.com/v8/finance/spark?','https://query1.finance.yahoo.com/v8/finance/chart/','https://api.allorigins.win/raw?url=https%3A%2F%2Fquery1.finance.yahoo.com','https://corsproxy.io/?url=https%3A%2F%2Fquery1.finance.yahoo.com','https://api.codetabs.com/v1/proxy?quest=https%3A%2F%2Fquery1.finance.yahoo.com'];window.fetch=(u,o)=>{const s=String(u);if(s==='https://api.anthropic.com/v1/messages'&&o&&o.method==='POST')return _f(s,{method:'POST',headers:o.headers,body:o.body,credentials:'omit',referrerPolicy:'no-referrer',signal:o.signal});if(!ok.some(p=>s.startsWith(p))||(o&&o.method&&o.method!=='GET'))return Promise.reject(new Error('오프라인 보안 모드: 시세·Claude 주소 말고는 외부 통신 차단'));return _f(s,{method:'GET',credentials:'omit',referrerPolicy:'no-referrer',signal:o&&o.signal})}};window.XMLHttpRequest=function(){blk()};window.WebSocket=function(){blk()};window.EventSource=function(){blk()};
     if(navigator.sendBeacon)navigator.sendBeacon=()=>false;window.open=()=>null}catch(e){}})();
 
 /* ===== 공통 유틸 ===== */
@@ -1600,8 +1600,8 @@ const LIVE={st:'idle',err:null,at:null,tab:null,lastDate:null,intraday:false,
   const it=[['^IXIC','나스닥 종합',q=>n(q.p,2),null],['^NDX','나스닥100',q=>n(q.p,2),null],['^GSPC','S&P 500',q=>n(q.p,2),null],
    ['GC=F','금 (1온스)',q=>'$'+n(q.p,1),q=>fx?'1돈(3.75g) ≈ '+Math.round(q.p/31.1035*3.75*fx).toLocaleString()+'원':''],
    ['BTC-USD','비트코인',q=>'$'+n(q.p,0),q=>fx?'≈ '+w(q.p*fx):'']];
-  const box=([s,l,f,k])=>{const q=LIVE.Q[s];return `<div style="flex:1 1 140px;min-width:0;padding:8px 10px;border:1px solid var(--line,#dfe4ea);border-radius:10px;background:var(--soft,#f6f8fa)"><div class="note" style="font-size:12px">${l}</div>${q?`<div style="font-size:18px;font-weight:800;font-variant-numeric:tabular-nums">${f(q)}</div><div class="${q.ch>=0?'pos':'neg'}" style="font-weight:700;font-size:13px">${q.ch>=0?'▲ +':'▼ '}${(q.ch*100).toFixed(2)}%</div>${k&&k(q)?`<div class="note" style="font-size:11px">${k(q)}</div>`:''}`:`<div class="note">${LIVE.st==='busy'?'받는 중…':'아직 못 받음'}</div>`}</div>`};
-  return `<div class="card noprint"><h3>📈 지금 시세 <span class="note" style="font-weight:400;font-size:12px">${LIVE.at?LIVE.at.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})+' 기준 · ':''}전날 종가 대비 · 저절로 새로 받음</span></h3><div style="display:flex;flex-wrap:wrap;gap:8px">${it.map(box).join('')}</div><div class="note" style="font-size:11px;margin-top:6px">금은 뉴욕 금 선물 값 · 비트코인은 24시간 거래 · 금 1돈 원화값은 국제 시세 기준(국내 금은방 값과 다를 수 있음) · 환율${fx?' '+n(fx,1)+'원':''} 적용</div></div>`},
+  const box=([s,l,f,k])=>{const q=LIVE.Q[s],z=q&&Math.abs(q.ch)<5e-5;return `<div data-qs="${s}" data-ql="${l}" title="마우스를 올리거나 누르면 그래프" style="cursor:pointer;flex:1 1 140px;min-width:0;padding:8px 10px;border:1px solid var(--line,#dfe4ea);border-radius:10px;background:var(--soft,#f6f8fa)"><div class="note" style="font-size:12px">${l}</div>${q?`<div style="font-size:18px;font-weight:800;font-variant-numeric:tabular-nums">${f(q)}</div><div class="${z?'note':q.ch>0?'pos':'neg'}" style="font-weight:700;font-size:13px">${z?'■ 0.00':q.ch>0?'▲ +'+(q.ch*100).toFixed(2):'▼ '+(q.ch*100).toFixed(2)}%</div>${k&&k(q)?`<div class="note" style="font-size:11px">${k(q)}</div>`:''}`:`<div class="note">${LIVE.st==='busy'?'받는 중…':'아직 못 받음'}</div>`}</div>`};
+  return `<div class="card noprint"><h3>📈 지금 시세 <span class="note" style="font-weight:400;font-size:12px">${LIVE.at?LIVE.at.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})+' 기준 · ':''}전날 종가 대비 · 저절로 새로 받음 · <b>칸에 마우스를 올리면(휴대폰은 누르면) 그래프</b></span></h3><div style="display:flex;flex-wrap:wrap;gap:8px">${it.map(box).join('')}</div><div class="note" style="font-size:11px;margin-top:6px">금은 뉴욕 금 선물 값 · 비트코인은 24시간 거래 · 금 1돈 원화값은 국제 시세 기준(국내 금은방 값과 다를 수 있음) · 환율${fx?' '+n(fx,1)+'원':''} 적용</div></div>`},
  /* 자동 갱신: 미국 장중(평일 09:30~16:00 뉴욕)엔 5분마다, 그 밖엔 1시간마다 · 앱/탭으로 다시 돌아오면 5분 넘었을 때 바로 */
  open(){const t=LIVE.etNow(),wd=new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'})).getDay();return wd>0&&wd<6&&t.hm>=570&&t.hm<960},
  gap(){return (LIVE.open()?5:10)*60e3},
@@ -1623,6 +1623,59 @@ const LIVE={st:'idle',err:null,at:null,tab:null,lastDate:null,intraday:false,
 };
 MKT.btns=LIVE.btns;MKT.staleMsg=LIVE.staleMsg;
 {const _act=APP.act;APP.act=function(a,t){if(a==='live:refresh')return LIVE.refresh();if(a==='live:csv')return LIVE.saveCsv();return _act(a,t)}}
+
+/* ===================== 📊 시세 그래프 창: 칸에 마우스를 올리거나 누르면 · 전체 기간(주봉)~1개월(일봉) · 5/20/60/120/200일선 ===================== */
+const QC={cache:{},sym:null,lab:'',rg:'1y',log:null,hv:null,el:null,tm:null,
+ RG:[['1m','1개월',21],['3m','3개월',63],['6m','6개월',126],['1y','1년',252],['3y','3년',756],['5y','5년',1260],['10y','10년',520],['max','전체',1e9]],
+ MA:[[5,'#95a5a6'],[20,'#e67e22'],[60,'#27ae60'],[120,'#2980b9'],[200,'#8e44ad']],
+ async getJ(url){const mcp=(typeof ART!=='undefined'&&typeof claude!=='undefined'&&claude&&claude.use)?await claude.use('mcp').catch(()=>null):null;
+  if(mcp){try{const S_='host:claude_browser';if(!LIVE.tab){const r=await mcp.callTool(S_,'preview_start',{url},{cache:false});const m=LIVE.text(r).match(/tabId\s+([^\s)]+)/);LIVE.tab=m?m[1]:null}else await mcp.callTool(S_,'navigate',{url,tabId:LIVE.tab},{cache:false});
+    const r=await mcp.callTool(S_,'get_page_text',LIVE.tab?{tabId:LIVE.tab,max_chars:400000}:{max_chars:400000},{cache:false});const t=LIVE.text(r),k=t.indexOf('{');if(k>=0)return JSON.parse(t.slice(k))}catch(e){}}
+  let last=null;for(let k=0;k<LIVE.PROX.length;k++){try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),15000);const r=await fetch(LIVE.PROX[k](url),{signal:ac.signal,credentials:'omit',referrerPolicy:'no-referrer'});clearTimeout(tm);if(!r.ok)throw new Error('HTTP '+r.status);const t=await r.text();return JSON.parse(t.slice(t.indexOf('{')))}catch(e){last=e}}throw last||new Error('연결 실패')},
+ parse(J){const R=J&&J.chart&&J.chart.result&&J.chart.result[0];if(!R||!R.timestamp)throw new Error('그래프 자료가 비어 있음');const c=R.indicators.quote[0].close,t=[],v=[];R.timestamp.forEach((x,i)=>{if(c[i]!=null&&isFinite(c[i])&&c[i]>0){t.push(x*1000);v.push(c[i])}});return {t,v}},
+ async load(s){if(QC.cache[s])return QC.cache[s];const u=(r,i)=>'https://query1.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(s)+'?range='+r+'&interval='+i;
+  const d=QC.parse(await QC.getJ(u('5y','1d'))),w=QC.parse(await QC.getJ(u('max','1wk')));return QC.cache[s]={d,w}},
+ ma(v,k){const o=new Array(v.length).fill(null);let a=0;for(let i=0;i<v.length;i++){a+=v[i];if(i>=k)a-=v[i-k];if(i>=k-1)o[i]=a/k}return o},
+ view(){const D=QC.cache[QC.sym];if(!D)return null;const g=QC.RG.find(r=>r[0]===QC.rg),wk=QC.rg==='10y'||QC.rg==='max',S=wk?D.w:D.d,f=wk?5:1;
+  const mas=QC.MA.filter(m=>!(wk&&m[0]===5)).map(([k,c])=>({k,c,w:Math.max(2,Math.round(k/f)),v:QC.ma(S.v,Math.max(2,Math.round(k/f)))}));
+  const n=S.v.length,i0=Math.max(0,n-g[2]);return {wk,t:S.t.slice(i0),v:S.v.slice(i0),mas:mas.map(m=>({...m,v:m.v.slice(i0)})),all:S}},
+ fmt(x){return x>=1000?x.toLocaleString('en-US',{maximumFractionDigits:x>=1e4?0:1}):x.toLocaleString('en-US',{maximumFractionDigits:2})},
+ draw(){const el=QC.el;if(!el)return;const cv=el.querySelector('canvas'),V=QC.view(),info=el.querySelector('.qcI');if(!cv)return;
+  const W=cv.clientWidth,H=cv.clientHeight,dp=window.devicePixelRatio||1;cv.width=W*dp;cv.height=H*dp;const x=cv.getContext('2d');x.setTransform(dp,0,0,dp,0,0);x.clearRect(0,0,W,H);
+  const ink=getComputedStyle(document.body).color||'#222';if(!V){x.fillStyle=ink;x.font='14px sans-serif';x.fillText(QC.err?'그래프를 못 받았어요: '+QC.err:'그래프 자료 받는 중…',12,30);return}
+  const log=QC.log==null?(QC.rg==='10y'||QC.rg==='max'):QC.log,tr=y=>log?Math.log(y):y;let lo=Infinity,hi=-Infinity;
+  [V.v,...V.mas.map(m=>m.v)].forEach(a=>a.forEach(y=>{if(y!=null){lo=Math.min(lo,y);hi=Math.max(hi,y)}}));
+  const L=8,Rp=62,T=10,B=22,pw=W-L-Rp,ph=H-T-B,n=V.v.length,X=i=>L+(n<2?0:i/(n-1)*pw),a=tr(lo),b=tr(hi),Y=y=>T+ph-(tr(y)-a)/((b-a)||1)*ph;
+  x.font='11px sans-serif';x.fillStyle=ink;x.globalAlpha=.55;x.strokeStyle=ink;x.lineWidth=.5;
+  for(let k=0;k<=4;k++){const y=log?Math.exp(a+(b-a)*k/4):lo+(hi-lo)*k/4,yy=Y(y);x.globalAlpha=.15;x.beginPath();x.moveTo(L,yy);x.lineTo(L+pw,yy);x.stroke();x.globalAlpha=.6;x.fillText(QC.fmt(y),L+pw+4,yy+4)}
+  const yrs=(V.t[n-1]-V.t[0])/3.15e10,lab=t=>{const d=new Date(t);return yrs>3?String(d.getFullYear()):yrs>.9?`${String(d.getFullYear()).slice(2)}.${d.getMonth()+1}`:`${d.getMonth()+1}/${d.getDate()}`};
+  for(let k=0;k<=5;k++){const i=Math.round((n-1)*k/5);x.globalAlpha=.6;x.textAlign=k===0?'left':k===5?'right':'center';x.fillText(lab(V.t[i]),X(i),H-6)}x.textAlign='left';x.globalAlpha=1;
+  const line=(arr,c,w)=>{x.strokeStyle=c;x.lineWidth=w;x.beginPath();let st=false;arr.forEach((y,i)=>{if(y==null)return;if(!st){x.moveTo(X(i),Y(y));st=true}else x.lineTo(X(i),Y(y))});x.stroke()};
+  V.mas.forEach(m=>line(m.v,m.c,1.2));line(V.v,ink,1.8);
+  const h=QC.hv==null?n-1:Math.max(0,Math.min(n-1,QC.hv));if(QC.hv!=null){x.strokeStyle=ink;x.globalAlpha=.4;x.lineWidth=1;x.beginPath();x.moveTo(X(h),T);x.lineTo(X(h),T+ph);x.stroke();x.globalAlpha=1;x.fillStyle=ink;x.beginPath();x.arc(X(h),Y(V.v[h]),3.5,0,7);x.fill()}
+  QC.geo={L,pw,n};const p=V.v[h],d=new Date(V.t[h]),pc=(u,v)=>{const r=u/v-1;return `<span class="${r>=0?'pos':'neg'}">${r>=9?(u/v).toLocaleString('en-US',{maximumFractionDigits:u/v>=100?0:1})+'배':(r>=0?'+':'')+(r*100).toFixed(1)+'%'}</span>`};
+  const pk=Math.max(...V.v.slice(0,h+1));
+  info.innerHTML=`<b>${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}${V.wk?' 주':''}</b> · 값 <b>${QC.fmt(p)}</b> · 이 기간 처음보다 ${pc(p,V.v[0])} · 이 기간 최고점보다 ${pc(p,pk)}<br>`+V.mas.map(m=>{const y=m.v[h];return `<span style="white-space:nowrap"><span style="display:inline-block;width:14px;height:3px;background:${m.c};vertical-align:middle"></span> ${m.k}일선${V.wk?'(≈'+m.w+'주)':''} ${y==null?'—':QC.fmt(y)+' ('+(p>=y?'위 ':'아래 ')+pc(p,y)+')'}</span>`}).join(' · ')},
+ html(){return `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><b style="font-size:16px">📊 ${esc(QC.lab)}</b><span style="flex:1"></span><button class="btn sm light" data-qc="x">✕ 닫기</button></div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;margin:6px 0">${QC.RG.map(r=>`<button class="btn sm ${r[0]===QC.rg?'gold':'light'}" data-qc="r:${r[0]}">${r[1]}</button>`).join('')}<button class="btn sm light" data-qc="log">${(QC.log==null?(QC.rg==='10y'||QC.rg==='max'):QC.log)?'비율 눈금 ✓':'비율 눈금'}</button></div>
+  <canvas style="width:100%;height:300px;display:block;touch-action:none"></canvas><div class="qcI note" style="font-size:12px;line-height:1.7;margin-top:4px"></div>
+  <div class="note" style="font-size:11px;margin-top:2px">1개월~5년은 하루 단위, 10년·전체는 일주일 단위(이평선은 같은 기간의 주 수로 계산) · '비율 눈금'은 오래된 기간에서 % 움직임을 같은 높이로 보여 줘요</div>`},
+ open(s,l,anchor){clearTimeout(QC.tm);if(QC.el&&QC.sym===s)return;QC.sym=s;QC.lab=l;QC.hv=null;QC.err=null;QC.log=null;
+  if(!QC.el){QC.el=document.createElement('div');QC.el.className='noprint';QC.el.style.cssText='position:fixed;z-index:60;left:50%;transform:translateX(-50%);width:min(820px,calc(100vw - 24px));max-height:calc(100vh - 24px);overflow:auto;padding:12px;border-radius:12px;border:1px solid var(--line,#dfe4ea);background:var(--card,#fff);box-shadow:0 10px 30px rgba(0,0,0,.25)';document.body.appendChild(QC.el);
+   QC.el.addEventListener('mouseenter',()=>clearTimeout(QC.tm));QC.el.addEventListener('mouseleave',e=>{if(e.pointerType!=='touch')QC.soon()});
+   QC.el.addEventListener('click',e=>{const b=e.target.closest('[data-qc]');if(!b)return;const a=b.dataset.qc;if(a==='x')return QC.close();if(a==='log'){QC.log=!(QC.log==null?(QC.rg==='10y'||QC.rg==='max'):QC.log)}else{QC.rg=a.slice(2);QC.log=null}QC.hv=null;QC.paint()});
+   const mv=e=>{const cv=QC.el.querySelector('canvas');if(!cv||!QC.geo||e.target!==cv)return;const r=cv.getBoundingClientRect(),cx=(e.touches?e.touches[0].clientX:e.clientX)-r.left;QC.hv=Math.round((cx-QC.geo.L)/QC.geo.pw*(QC.geo.n-1));QC.draw()};
+   QC.el.addEventListener('mousemove',mv);QC.el.addEventListener('touchmove',mv,{passive:true});QC.el.addEventListener('touchstart',mv,{passive:true});QC.el.addEventListener('mouseout',e=>{if(e.target.tagName==='CANVAS'){QC.hv=null;QC.draw()}})}
+  const r=anchor.getBoundingClientRect(),below=r.bottom+8,h=Math.min(470,innerHeight-24);QC.el.style.top=(below+h<innerHeight?below:Math.max(12,r.top-h-8))+'px';
+  QC.paint();if(!QC.cache[s])QC.load(s).then(()=>{if(QC.sym===s)QC.draw()}).catch(e=>{QC.err=(e&&e.message)||'연결 실패';if(QC.sym===s)QC.draw()})},
+ paint(){if(!QC.el)return;QC.el.innerHTML=QC.html();QC.draw()},
+ soon(){clearTimeout(QC.tm);QC.tm=setTimeout(QC.close,450)},
+ close(){clearTimeout(QC.tm);if(QC.el){QC.el.remove();QC.el=null}QC.sym=null}};
+{let ht=null;const fine=matchMedia('(hover:hover) and (pointer:fine)').matches;
+ document.addEventListener('mouseover',e=>{if(!fine)return;const t=e.target.closest&&e.target.closest('[data-qs]');if(!t)return;clearTimeout(ht);ht=setTimeout(()=>QC.open(t.dataset.qs,t.dataset.ql,t),200)});
+ document.addEventListener('mouseout',e=>{if(!fine)return;const t=e.target.closest&&e.target.closest('[data-qs]');if(!t||(e.relatedTarget&&t.contains(e.relatedTarget)))return;clearTimeout(ht);if(QC.el)QC.soon()});
+ document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-qs]');if(t){if(QC.el&&QC.sym===t.dataset.qs&&!fine)QC.close();else QC.open(t.dataset.qs,t.dataset.ql,t);return}if(QC.el&&e.target.isConnected&&!QC.el.contains(e.target))QC.close()});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')QC.close()});addEventListener('resize',()=>QC.draw())}
 
 /* ===================== 🤖 AI 해설: 판정 카드의 숫자를 Claude에게 보내 쉬운 말로 설명 받기 =====================
    · Claude 페이지: 페이지에 들어 있는 Claude 호출 기능(sample) 사용 → API 키 필요 없음
