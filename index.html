@@ -1593,16 +1593,23 @@ const LIVE={st:'idle',err:null,at:null,tab:null,lastDate:null,intraday:false,
    const r=await mcp.callTool(S_,'get_page_text',LIVE.tab?{tabId:LIVE.tab,max_chars:120000}:{max_chars:120000},{cache:false});
    const t=LIVE.text(r),k=t.indexOf('{');if(k<0)throw new Error('시세 페이지를 읽지 못했습니다');LIVE.apply(JSON.parse(t.slice(k)),'데스크톱 앱 브라우저');
   }catch(e){LIVE.st='err';LIVE.err=e;if(e&&e.code==='tool_error'&&LIVE.tab)LIVE.tab=null;render()}},
+ /* 자동 갱신: 미국 장중(평일 09:30~16:00 뉴욕)엔 5분마다, 그 밖엔 1시간마다 · 앱/탭으로 다시 돌아오면 5분 넘었을 때 바로 */
+ open(){const t=LIVE.etNow(),wd=new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'})).getDay();return wd>0&&wd<6&&t.hm>=570&&t.hm<960},
+ gap(){return (LIVE.open()?5:60)*60e3},
+ auto(){if(LIVE._auto)return;LIVE._auto=1;const due=()=>!LIVE.at||Date.now()-LIVE.at.getTime()>=LIVE.gap();
+  setInterval(()=>{if(document.visibilityState!=='hidden'&&LIVE.st!=='busy'&&LIVE.st!=='nomcp'&&due())LIVE.refresh()},60e3);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&LIVE.st!=='busy'&&(!LIVE.at||Date.now()-LIVE.at.getTime()>5*60e3))LIVE.refresh()})},
+ nextTxt(){if(!LIVE.at)return '';const n=new Date(LIVE.at.getTime()+LIVE.gap());return ` · 다음 자동 갱신 ${n.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})} (${LIVE.open()?'장중 5분마다':'장 마감 중 1시간마다'})`},
  async saveCsv(){if(!S.mkt||!S.mkt.csv){toast('먼저 시세를 받아 주세요');return}const dl=(typeof claude!=='undefined'&&claude&&claude.use)?await claude.use('downloads').catch(()=>null):null;if(!dl){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+S.mkt.csv],{type:'text/csv'}));a.download='라오어_최신시세_'+(LIVE.lastDate||today())+'.csv';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);return}
   try{await dl.save({filename:'라오어_최신시세_'+(LIVE.lastDate||today())+'.csv',data:S.mkt.csv});toast('📥 저장했습니다 — 계산표의 \'📥 최신 시세 불러오기\'로 넣으세요',4500)}catch(e){if(e&&e.code==='declined')return;toast('내려받지 못했습니다: '+(e&&e.message||e))}},
  errMsg(e){const c=e&&e.code;return c==='net'?'인터넷 연결이 없거나 시세 주소가 모두 막혀 있습니다('+esc(e.message)+').':c==='server_not_connected'?'Claude 데스크톱 앱에서 열어야 시세를 받을 수 있습니다 (앱의 내장 브라우저를 씀).':c==='cancelled'||c==='approval_required'||c==='not_in_manifest'?'브라우저 사용을 허락하지 않아 시세를 받지 않았습니다. 다시 받기를 누르면 다시 묻습니다.':c==='server_unavailable'?'브라우저가 잠시 응답하지 않습니다. 조금 뒤 다시 받기를 눌러 주세요.':'시세를 받지 못했습니다: '+((e&&e.message)||e)},
  status(){const st=LIVE.st;
   if(st==='busy')return '⏳ Yahoo에서 11종목 시세를 받는 중…';
-  if(st==='ok')return `✔ ${LIVE.at.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}에 받음${LIVE.via?' ('+esc(LIVE.via)+')':''} · 마지막 날 <b>${LIVE.lastDate}</b>${LIVE.intraday?' <span class="pill w">장중 값</span>':''}${LIVE.miss&&LIVE.miss.length?`<br>받지 못한 종목: ${esc(LIVE.miss.join(', '))} (그래프는 앞날 값으로 이어 둠)`:''}`;
+  if(st==='ok')return `✔ ${LIVE.at.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}에 받음${LIVE.via?' ('+esc(LIVE.via)+')':''}${LIVE.nextTxt()} · 마지막 날 <b>${LIVE.lastDate}</b>${LIVE.intraday?' <span class="pill w">장중 값</span>':''}${LIVE.miss&&LIVE.miss.length?`<br>받지 못한 종목: ${esc(LIVE.miss.join(', '))} (그래프는 앞날 값으로 이어 둠)`:''}`;
   if(st==='err')return '⚠ '+esc(LIVE.errMsg(LIVE.err))+' 지금은 파일에 들어 있는 시세로 보여 줍니다.';
   if(st==='nomcp')return (S.mkt&&S.mkt.loadedAt?'📎 이 화면(아이패드·휴대폰·웹)에서는 직접 시세를 받을 수 없어, PC의 Claude 데스크톱 앱에서 마지막으로 받은 시세('+esc(S.mkt.loadedAt.slice(0,16))+')를 보여 줍니다. 데스크톱 앱에서 한 번 열면 자동으로 최신이 됩니다.':'📎 이 화면에서는 직접 시세를 받을 수 없어 파일에 들어 있는 시세(2026-10-22 종가까지)로 보여 줍니다. Claude 데스크톱 앱에서 열면 바로 최신 시세를 받습니다.');
   return '시세를 받을 준비 중…'},
- btns(){const b=LIVE.st==='busy';return `<div class="noprint" style="display:flex;flex-direction:column;gap:6px;max-width:260px"><button class="btn gold" data-act="live:refresh"${b?' disabled':''}>${b?'⏳ 받는 중…':'🔄 지금 시세 다시 받기'}</button><button class="btn light" data-act="live:csv"${S.mkt&&S.mkt.csv?'':' disabled'}>📥 계산표용 CSV 내려받기</button><div class="note" style="font-size:12.5px;line-height:1.5">${LIVE.status()}</div></div>`},
+ btns(){const b=LIVE.st==='busy';return `<div class="noprint" style="display:flex;flex-direction:column;gap:6px;max-width:260px"><button class="btn gold" data-act="live:refresh"${b?' disabled':''}>${b?'⏳ 받는 중…':'🔄 지금 바로 다시 받기'}</button><button class="btn light" data-act="live:csv"${S.mkt&&S.mkt.csv?'':' disabled'}>📥 계산표용 CSV 내려받기</button><div class="note" style="font-size:12.5px;line-height:1.5">${LIVE.status()}</div></div>`},
  staleMsg(age){return LIVE.st==='ok'?'':`<div class="bub warn" style="margin:12px 0 0"><b>${age}일 전 시세입니다.</b> ${LIVE.st==='busy'?'지금 새 시세를 받는 중입니다.':'인터넷에 연결된 상태에서 🔄 다시 받기를 눌러 주세요.'}</div>`}
 };
 MKT.btns=LIVE.btns;MKT.staleMsg=LIVE.staleMsg;
@@ -1611,7 +1618,7 @@ MKT.btns=LIVE.btns;MKT.staleMsg=LIVE.staleMsg;
 /* ===================== 🤖 AI 해설: 판정 카드의 숫자를 Claude에게 보내 쉬운 말로 설명 받기 =====================
    · Claude 페이지: 페이지에 들어 있는 Claude 호출 기능(sample) 사용 → API 키 필요 없음
    · HTML 파일·홈 화면 앱: 내 Claude API 키로 직접 호출 — 키는 이 기기 안(브라우저 저장소)에만 보관, 파일에는 저장 안 됨 */
-const AI={busy:false,text:'',err:'',q:'',mode:null,KEY:'laoer_claude_api_key',MODEL:'claude-sonnet-5-5',
+const AI={busy:false,text:'',err:'',q:'',hist:[],mode:null,KEY:'laoer_claude_api_key',MODEL:'claude-sonnet-5-5',
  key(){try{return localStorage.getItem(AI.KEY)||''}catch(e){return ''}},
  setKey(k){try{if(k)localStorage.setItem(AI.KEY,k);else localStorage.removeItem(AI.KEY);return true}catch(e){return false}},
  async smp(){if(typeof claude==='undefined'||!claude||!claude.use)return null;try{return await claude.use('sample')}catch(e){return null}},
@@ -1625,29 +1632,35 @@ const AI={busy:false,text:'',err:'',q:'',mode:null,KEY:'laoer_claude_api_key',MO
  SYS:`너는 한국 개인 투자자를 돕는 설명가다. 초등학생도 이해할 만큼 쉬운 한국어로, 짧게(8줄 안팎) 답한다. 반드시 아래 '지금 숫자'와 '검증된 사실'만 근거로 삼고, 모르는 것은 모른다고 말한다. 투자 권유가 아니며 결정은 본인 몫이라는 말을 마지막에 한 줄로 붙인다.
 검증된 사실(이 계산표의 백테스트): ①나스닥100 200일선 규칙(−3% 아래 매도, +3% 위 매수)은 37년 가상 TQQQ에서 3년 뒤 반토막 확률을 16.9%→3.8%로 줄임 ②나스닥100이 200일선에서 ±1% 안이면 3년 손해 확률 13.8%, ±20% 밖이면 44% ③VIX는 3년 성적과 거의 무관 ④TQQQ 이평선 배열·120일선 아래 매수 신호는 2010년 이후엔 좋았지만 37년으로 보면 효과 없거나 반대 ⑤웅덩이 매매법은 결과가 '그냥 사기'와 거의 같고 파는 규칙이 없음 ⑥시스템 3규칙은 2010년 이후엔 그냥 보유보다 덜 벌었지만 최대 하락을 −80%→−55%로 줄였고, 1999년부터 보면 훨씬 나았음 ⑦TQQQ 3년 보유 손해 확률은 2010년 이후 4%, 37년 전체 23.5% ⑧검증 순위: 1위 TQQQ+시스템 3규칙(1999년~ 연 22.1%, 최대 하락 −55%), 2위 QLD+3규칙(연 16.0%, −40%), 3위 200일선+변동성+과열, 4위 200일선만(연 19.7%, −91%), QLD 보유, TQQQ 보유(1999년~ 연 3.6%, −100%). 판단은 3규칙을 1순위로, 웅덩이·120일선·회복 신호는 나눠 살 때 참고용.`,
  async ask(q){if(AI.busy)return;AI.q=q;AI.busy=true;AI.err='';AI.text='';render();const out=()=>document.getElementById('aiOut');
-  const prompt=`지금 숫자:\n${AI.ctx()}\n\n질문: ${q}`;
+  const prompt=`지금 숫자:\n${AI.ctx()}\n\n질문: ${q}`,H=AI.hist.slice(-4).flatMap(h=>[{role:'user',content:h.q},{role:'assistant',content:h.a}]);
   try{const s=await AI.smp();
-   if(s){AI.mode='claude';const r=await s([{role:'user',content:AI.SYS+'\n\n'+prompt}],{modelTier:'default',cache:false,onText:({text})=>{AI.text=text;const o=out();if(o)o.textContent=text}});AI.text=r.text}
+   if(s){AI.mode='claude';const r=await s([...(H.length?[{role:'user',content:AI.SYS+'\n\n(앞 대화 이어서)'},{role:'assistant',content:'네, 이어서 답하겠습니다.'}]:[]),...H,{role:'user',content:(H.length?'':AI.SYS+'\n\n')+prompt}],{modelTier:'default',cache:false,onText:({text})=>{AI.text=text;const o=out();if(o)o.textContent=text}});AI.text=r.text}
    else{const k=AI.key();if(!k){AI.err='Claude API 키를 먼저 넣어 주세요 (아래 🔑).';AI.busy=false;render();return}AI.mode='api';
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'x-api-key':k,'anthropic-version':'2023-06-01','content-type':'application/json','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:AI.MODEL,max_tokens:1200,system:AI.SYS,messages:[{role:'user',content:prompt}]})});
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'x-api-key':k,'anthropic-version':'2023-06-01','content-type':'application/json','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:AI.MODEL,max_tokens:1200,system:AI.SYS,messages:[...H,{role:'user',content:prompt}]})});
     const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(r.status===401?'API 키가 맞지 않습니다':r.status===429?'요청이 너무 많습니다 — 잠시 뒤 다시':((j.error&&j.error.message)||('HTTP '+r.status)));
     AI.text=(j.content||[]).filter(c=>c.type==='text').map(c=>c.text).join('\n')}
   }catch(e){AI.err=(e&&e.code==='not_granted')?'Claude 호출을 허락하지 않았습니다.':(e&&e.code==='rate_limited')?'잠시 뒤 다시 눌러 주세요.':('답을 받지 못했습니다: '+((e&&e.message)||e));if(e&&e.text)AI.text=e.text}
-  AI.busy=false;render()},
+  if(AI.text&&!AI.err){AI.hist.push({q,a:AI.text});AI.text='';AI.q=''}
+  AI.busy=false;render();const o=document.getElementById('aiQ');if(o&&AI.hist.length)o.focus()},
  box(){const b=(q,l)=>`<button class="btn sm light" data-act="ai:q" data-q="${esc(q)}"${AI.busy?' disabled':''}>${l}</button>`,hasKey=!!AI.key();
-  return `<div class="noprint" style="margin-top:10px;padding:10px 12px;border:2px solid #6c5ce7;border-radius:10px"><div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center"><b>🤖 AI 해설</b><span class="note">위 숫자들을 Claude에게 보내 쉬운 말로 설명받기</span></div>
+  const hh=AI.hist.map(h=>`<div style="margin-top:8px"><div style="font-weight:700;color:#6c5ce7">🙋 ${esc(h.q)}</div><div style="white-space:pre-wrap;padding:8px 10px;background:var(--soft,#f6f8fa);border-radius:8px;line-height:1.6;font-size:14px;margin-top:3px">${esc(h.a)}</div></div>`).join('');
+  return `<div id="aiBox" class="noprint" style="margin-top:10px;padding:10px 12px;border:2px solid #6c5ce7;border-radius:10px"><div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center"><b>🤖 AI 해설</b><span class="note">지금 숫자를 보고 Claude가 답해요 · 이어서 계속 물어봐도 앞 대화를 기억해요</span>${AI.hist.length?'<button class="btn sm light" data-act="ai:clear" style="margin-left:auto">새 대화</button>':''}</div>${hh}
   <div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0">${b('지금 상황을 쉽게 설명해 줘. 사도 되는 때야, 기다릴 때야?','지금 상황 쉽게 설명')}${b('신호들이 서로 엇갈리는 이유와, 어떤 신호를 더 믿어야 하는지 알려 줘.','신호가 왜 엇갈려?')}${b('지금 TQQQ를 나눠 산다면 어떤 순서와 조건으로 사고, 언제 팔지 규칙을 정리해 줘.','나눠 사기·팔 규칙 정리')}</div>
-  <div style="display:flex;gap:6px"><input id="aiQ" style="flex:1;min-width:0;padding:6px 10px;border:1px solid var(--line,#dfe4ea);border-radius:8px;font:inherit" placeholder="직접 질문 (예: QLD로 바꾸면 어때?)" value="${esc(AI.q&&!AI.busy?'':AI.q||'')}"><button class="btn sm gold" data-act="ai:ask"${AI.busy?' disabled':''}>${AI.busy?'⏳':'묻기'}</button></div>
-  ${AI.busy||AI.text||AI.err?`<div id="aiOut" style="white-space:pre-wrap;margin-top:8px;padding:8px 10px;background:var(--soft,#f6f8fa);border-radius:8px;line-height:1.6;font-size:14px">${esc(AI.text||(AI.busy?'생각하는 중… (처음엔 10~30초)':''))}</div>`:''}${AI.err?`<div class="note neg" style="margin-top:4px">${esc(AI.err)}</div>`:''}
+  <div style="display:flex;gap:6px"><input id="aiQ" style="flex:1;min-width:0;padding:6px 10px;border:1px solid var(--line,#dfe4ea);border-radius:8px;font:inherit" placeholder="${AI.hist.length?'이어서 물어보기 (예: 그럼 언제 팔아?)':'무엇이든 물어보기 (예: QLD로 바꾸면 어때?)'}" value=""><button class="btn sm gold" data-act="ai:ask"${AI.busy?' disabled':''}>${AI.busy?'⏳':'묻기'}</button></div>
+  ${AI.busy?`<div style="margin-top:8px;font-weight:700;color:#6c5ce7">🙋 ${esc(AI.q)}</div>`:''}${AI.busy||AI.text||AI.err?`<div id="aiOut" style="white-space:pre-wrap;margin-top:8px;padding:8px 10px;background:var(--soft,#f6f8fa);border-radius:8px;line-height:1.6;font-size:14px">${esc(AI.text||(AI.busy?'생각하는 중… (처음엔 10~30초)':''))}</div>`:''}${AI.err?`<div class="note neg" style="margin-top:4px">${esc(AI.err)}</div>`:''}
   <div class="note" style="margin-top:6px;font-size:12px">${AI.mode==='claude'||typeof ART!=='undefined'?'Claude 페이지에서는 API 키 없이 Claude가 답합니다.':`🔑 Claude API 키: ${hasKey?'<b>이 기기에 저장됨</b> <button class="btn sm light" data-act="ai:delkey">지우기</button>':'<button class="btn sm light" data-act="ai:setkey">키 넣기</button>'} — 키는 이 기기 브라우저에만 저장되고 HTML 파일·💾 저장에는 들어가지 않습니다. 질문 1번에 보통 수 원~수십 원(API 요금).`} 답은 참고용이며 투자 권유가 아닙니다.</div></div>`}
 };
 {const _act=APP.act;APP.act=function(a,t){
   if(a==='ai:q')return AI.ask(t.dataset.q);
   if(a==='ai:ask'){const v=(document.getElementById('aiQ')||{}).value||'';if(v.trim())AI.ask(v.trim());return}
   if(a==='ai:setkey'){const k=window.prompt('Claude API 키를 붙여 넣으세요 (sk-ant-로 시작). 이 기기에만 저장됩니다.','');if(k&&k.trim()){if(!/^sk-ant-/.test(k.trim())){toast('sk-ant- 로 시작하는 키가 아닙니다');return}toast(AI.setKey(k.trim())?'🔑 이 기기에 저장했습니다':'이 브라우저는 저장을 막고 있습니다')}render();return}
+  if(a==='ai:clear'){AI.hist=[];AI.text='';AI.err='';render();return}
+  if(a==='ai:jump'){if(!document.getElementById('aiBox')&&S.tab!=='home'){S.tab='home';render()}const b=document.getElementById('aiBox');if(b){b.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>{const i=document.getElementById('aiQ');if(i)i.focus()},400)}return}
   if(a==='ai:delkey'){AI.setKey('');toast('키를 지웠습니다');render();return}
   return _act(a,t)}}
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target&&e.target.id==='aiQ'){e.preventDefault();APP.act('ai:ask',e.target)}});
+
+{const f=document.createElement('button');f.className='noprint';f.dataset.act='ai:jump';f.textContent='🤖 질문하기';f.style.cssText='position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:50;padding:10px 14px;border:0;border-radius:24px;background:#6c5ce7;color:#fff;font:inherit;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.25);cursor:pointer';document.body.appendChild(f)}
 
 /* ===== 홈 화면 앱: 입력값을 이 기기에 자동 저장 (파일 저장 대신) ===== */
 const PWA={K:'laoer_pwa_state',t:0,load(){try{const j=localStorage.getItem(PWA.K);if(!j)return;const d=JSON.parse(j);if(d&&d.app===APP.id){S=migrate(d);S.tab='home';S.firstRun=false;DIRTY=false;render()}}catch(e){}},
@@ -1655,7 +1668,7 @@ const PWA={K:'laoer_pwa_state',t:0,load(){try{const j=localStorage.getItem(PWA.K
 {const _m=mark;mark=function(){_m.apply(this,arguments);clearTimeout(PWA.t);PWA.t=setTimeout(PWA.save,800)}}
 saveWork=function(){PWA.save();toast('✔ 이 기기에 저장했습니다')};
 
-boot();PWA.load();LIVE.refresh();
+boot();PWA.load();LIVE.refresh();LIVE.auto();
 {const _r=render;render=function(){_r();if(!DIRTY){const b=document.getElementById('stBadge');if(b&&!/저장됨/.test(b.textContent)){b.className='badge final';b.textContent='✔ 이 기기에 저장됨'}}}}
 document.addEventListener('click',e=>{const d=document.querySelector('header.jtop details.more');if(!d||!d.open)return;if(!d.contains(e.target)||e.target.closest('.menu [data-act]'))d.open=false});
 </script>
