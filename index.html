@@ -975,7 +975,7 @@ const MKT={
    pushHx('시장 데이터 불러오기 전');S.mkt={csv:t,from:'불러온 파일 '+f.name,loadedAt:nowTs()};logEdit('시장 데이터 불러오기',old?old.date+' · '+old.verdict:'',L.date+' · '+L.verdict,'가져오기');mark();render();toast('📥 '+L.date+' 기준으로 다시 판정했습니다: '+L.verdict,4000)}catch(e){toast('⚠ '+e.message,5000)}};fi.click()}
 };
 {const _act=APP.act;APP.act=function(a,t){if(a==='mkt:load')return MKT.load();if(a==='mkt:reset'){pushHx('내장 데이터로 되돌리기 전');logEdit('시장 데이터','불러온 파일','내장 데이터','복원');S.mkt=null;mark();render();return}return _act(a,t)};
- const _home=APP.views.home;APP.views.home=function(){return MKT.card()+_home()};
+ const _home=APP.views.home;APP.views.home=function(){return (typeof LIVE!=='undefined'&&LIVE.tick?LIVE.tick():'')+MKT.card()+_home()};
  const _csv=APP.csv;APP.csv=function(){let r=[];try{const L=MKT.now().L;r=[['[지금 매수 구간 판정]'],['기준일',L.date,'판정',L.verdict,'200일선 대비(%)',L.distPct,'규칙',L.state,'VIX',L.vix,'1년 고점 대비(%)',L.ddPct,'20일 변동성(%)',L.volPct],[]]}catch(e){}return r.concat(_csv())};}
 
 /* ===================== 첫 화면: TQQQ · QLD 전체 기간 그래프 (같은 200일선 신호) ===================== */
@@ -1560,12 +1560,13 @@ document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.dataset&&d.datas
    · 받은 값은 판정(200일선·VIX)과 그래프·성적표가 함께 쓰는 CSV 한 장으로 만들어 S.mkt 에 넣음 (오프라인 계산표의 '최신 시세 불러오기'와 같은 길)
    · 데스크톱 앱 밖(웹·휴대폰)에서는 브라우저를 쓸 수 없어 파일에 들어 있는 시세로 보여 줌 */
 const LIVE={st:'idle',err:null,at:null,tab:null,lastDate:null,intraday:false,
- SYMS:['TQQQ','QLD','NVDA','PLTR','META','TSLA','TECL','000660.KS','005930.KS','009150.KS','^NDX','^VIX','KRW=X'],
+ SYMS:['TQQQ','QLD','NVDA','PLTR','META','TSLA','TECL','000660.KS','005930.KS','009150.KS','^NDX','^VIX','KRW=X','^IXIC','^GSPC','GC=F','BTC-USD'],
+ Q:{},QS:['^IXIC','^GSPC','GC=F','BTC-USD'],
  url(){return 'https://query1.finance.yahoo.com/v8/finance/spark?symbols='+LIVE.SYMS.map(encodeURIComponent).join(',')+'&range=3mo&interval=1d'},
  text(r){if(!r)return'';if(typeof r.payload==='string')return r.payload;const b=(r.content||[]).find(c=>c&&c.type==='text');return b?b.text:(r.payload?JSON.stringify(r.payload):'')},
  etNow(){const p=new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(new Date());const g=k=>(p.find(x=>x.type===k)||{}).value;return{d:`${g('year')}-${g('month')}-${g('day')}`,hm:+g('hour')*60+ +g('minute')}},
  /* spark JSON → {date:{sym:close}} */
- rows(j){const by={};LIVE.miss=[];for(const s of LIVE.SYMS){if(s==='KRW=X')continue;const o=j[s];if(!o||!o.timestamp||!o.close){if(s==='^NDX'||s==='TQQQ')throw new Error(s+' 시세가 응답에 없습니다');LIVE.miss.push(s);continue}
+ rows(j){const by={};LIVE.miss=[];for(const s of LIVE.SYMS){if(s==='KRW=X'||LIVE.QS.includes(s))continue;const o=j[s];if(!o||!o.timestamp||!o.close){if(s==='^NDX'||s==='TQQQ')throw new Error(s+' 시세가 응답에 없습니다');LIVE.miss.push(s);continue}
    const off=/\.KS$/.test(s)?9*3600:-5*3600;o.timestamp.forEach((t,i)=>{const c=o.close[i];if(c==null||!isFinite(c))return;const d=new Date((t+off)*1000).toISOString().slice(0,10);(by[d]=by[d]||{})[s]=c})}return by},
  /* 판정용 내장 시세(2년) + 받은 시세 → 한 장의 CSV (date,ndx,tqqq,vix,qld,nvda,pltr,meta) */
  csv(by){const m=new Map();String(MKT_SNAPSHOT).replace(/\r/g,'').trim().split('\n').slice(1).forEach(l=>{const c=l.split(',');m.set(c[0],{ndx:c[1],tqqq:c[2],vix:c[3]})});
@@ -1576,7 +1577,7 @@ const LIVE={st:'idle',err:null,at:null,tab:null,lastDate:null,intraday:false,
   const ds=[...m.keys()].sort();return 'date,ndx,tqqq,vix,qld,nvda,pltr,meta,tsla,skhynix,samsung,semco,tecl\n'+ds.map(d=>{const o=m.get(d);return [d,o.ndx,o.tqqq,o.vix,o.qld||'',o.nvda||'',o.pltr||'',o.meta||'',o.tsla||'',o.skhynix||'',o.samsung||'',o.semco||'',o.tecl||''].join(',')}).join('\n')},
  PROX:[u=>u,u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u),u=>'https://corsproxy.io/?url='+encodeURIComponent(u),u=>'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(u)],
  /* 받은 spark JSON을 계산표에 넣기 (두 길 공통) */
- apply(J,via){const by=LIVE.rows(J);{const f=J['KRW=X'];const c=f&&f.close?f.close.filter(x=>x>0):[];if(c.length)S.fx={r:c[c.length-1],at:nowTs()}}
+ apply(J,via){const by=LIVE.rows(J);LIVE.quotes(J);{const f=J['KRW=X'];const c=f&&f.close?f.close.filter(x=>x>0):[];if(c.length)S.fx={r:c[c.length-1],at:nowTs()}}
    const ds=Object.keys(by).filter(d=>by[d]['^NDX']!=null&&by[d].TQQQ!=null).sort(),last=ds[ds.length-1],et=LIVE.etNow();LIVE.lastDate=last;LIVE.intraday=last===et.d&&et.hm<16*60;LIVE.via=via;
    const csv=LIVE.csv(by);S.mkt={csv,from:LIVE.intraday?'실시간(장중 값 포함)':'실시간 Yahoo 종가',loadedAt:nowTs()};
    LIVE.st='ok';LIVE.at=new Date();LT._bt={};render();if(typeof ART!=='undefined')ART.soon()},
@@ -1593,13 +1594,21 @@ const LIVE={st:'idle',err:null,at:null,tab:null,lastDate:null,intraday:false,
    const r=await mcp.callTool(S_,'get_page_text',LIVE.tab?{tabId:LIVE.tab,max_chars:120000}:{max_chars:120000},{cache:false});
    const t=LIVE.text(r),k=t.indexOf('{');if(k<0)throw new Error('시세 페이지를 읽지 못했습니다');LIVE.apply(JSON.parse(t.slice(k)),'데스크톱 앱 브라우저');
   }catch(e){LIVE.st='err';LIVE.err=e;if(e&&e.code==='tool_error'&&LIVE.tab)LIVE.tab=null;render()}},
+ /* 시세판: 나스닥 종합·나스닥100·S&P500·금·비트코인 — 마지막 값과 전날 종가 대비 */
+ quotes(J){const q={};['^IXIC','^NDX','^GSPC','GC=F','BTC-USD'].forEach(s=>{const o=J[s];if(!o||!o.close)return;const c=o.close.filter(x=>x!=null&&isFinite(x));if(c.length<2)return;const p=c[c.length-1],pv=o.chartPreviousClose&&c.length===1?o.chartPreviousClose:c[c.length-2];q[s]={p,ch:p/pv-1}});if(Object.keys(q).length)LIVE.Q=q},
+ tick(){const fx=(S.fx&&S.fx.r)||null,n=(x,d=0)=>x.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}),w=x=>x>=1e8?(x/1e8).toFixed(2)+'억 원':Math.round(x/1e4).toLocaleString()+'만 원';
+  const it=[['^IXIC','나스닥 종합',q=>n(q.p,2),null],['^NDX','나스닥100',q=>n(q.p,2),null],['^GSPC','S&P 500',q=>n(q.p,2),null],
+   ['GC=F','금 (1온스)',q=>'$'+n(q.p,1),q=>fx?'1돈(3.75g) ≈ '+Math.round(q.p/31.1035*3.75*fx).toLocaleString()+'원':''],
+   ['BTC-USD','비트코인',q=>'$'+n(q.p,0),q=>fx?'≈ '+w(q.p*fx):'']];
+  const box=([s,l,f,k])=>{const q=LIVE.Q[s];return `<div style="flex:1 1 140px;min-width:0;padding:8px 10px;border:1px solid var(--line,#dfe4ea);border-radius:10px;background:var(--soft,#f6f8fa)"><div class="note" style="font-size:12px">${l}</div>${q?`<div style="font-size:18px;font-weight:800;font-variant-numeric:tabular-nums">${f(q)}</div><div class="${q.ch>=0?'pos':'neg'}" style="font-weight:700;font-size:13px">${q.ch>=0?'▲ +':'▼ '}${(q.ch*100).toFixed(2)}%</div>${k&&k(q)?`<div class="note" style="font-size:11px">${k(q)}</div>`:''}`:`<div class="note">${LIVE.st==='busy'?'받는 중…':'아직 못 받음'}</div>`}</div>`};
+  return `<div class="card noprint"><h3>📈 지금 시세 <span class="note" style="font-weight:400;font-size:12px">${LIVE.at?LIVE.at.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})+' 기준 · ':''}전날 종가 대비 · 저절로 새로 받음</span></h3><div style="display:flex;flex-wrap:wrap;gap:8px">${it.map(box).join('')}</div><div class="note" style="font-size:11px;margin-top:6px">금은 뉴욕 금 선물 값 · 비트코인은 24시간 거래 · 금 1돈 원화값은 국제 시세 기준(국내 금은방 값과 다를 수 있음) · 환율${fx?' '+n(fx,1)+'원':''} 적용</div></div>`},
  /* 자동 갱신: 미국 장중(평일 09:30~16:00 뉴욕)엔 5분마다, 그 밖엔 1시간마다 · 앱/탭으로 다시 돌아오면 5분 넘었을 때 바로 */
  open(){const t=LIVE.etNow(),wd=new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'})).getDay();return wd>0&&wd<6&&t.hm>=570&&t.hm<960},
- gap(){return (LIVE.open()?5:60)*60e3},
+ gap(){return (LIVE.open()?5:10)*60e3},
  auto(){if(LIVE._auto)return;LIVE._auto=1;const due=()=>!LIVE.at||Date.now()-LIVE.at.getTime()>=LIVE.gap();
   setInterval(()=>{if(document.visibilityState!=='hidden'&&LIVE.st!=='busy'&&LIVE.st!=='nomcp'&&due())LIVE.refresh()},60e3);
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&LIVE.st!=='busy'&&(!LIVE.at||Date.now()-LIVE.at.getTime()>5*60e3))LIVE.refresh()})},
- nextTxt(){if(!LIVE.at)return '';const n=new Date(LIVE.at.getTime()+LIVE.gap());return ` · 다음 자동 갱신 ${n.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})} (${LIVE.open()?'장중 5분마다':'장 마감 중 1시간마다'})`},
+ nextTxt(){if(!LIVE.at)return '';const n=new Date(LIVE.at.getTime()+LIVE.gap());return ` · 다음 자동 갱신 ${n.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})} (${LIVE.open()?'장중 5분마다':'장 마감 중 10분마다 (비트코인·금 때문)'})`},
  async saveCsv(){if(!S.mkt||!S.mkt.csv){toast('먼저 시세를 받아 주세요');return}const dl=(typeof claude!=='undefined'&&claude&&claude.use)?await claude.use('downloads').catch(()=>null):null;if(!dl){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+S.mkt.csv],{type:'text/csv'}));a.download='라오어_최신시세_'+(LIVE.lastDate||today())+'.csv';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);return}
   try{await dl.save({filename:'라오어_최신시세_'+(LIVE.lastDate||today())+'.csv',data:S.mkt.csv});toast('📥 저장했습니다 — 계산표의 \'📥 최신 시세 불러오기\'로 넣으세요',4500)}catch(e){if(e&&e.code==='declined')return;toast('내려받지 못했습니다: '+(e&&e.message||e))}},
  errMsg(e){const c=e&&e.code;return c==='net'?'인터넷 연결이 없거나 시세 주소가 모두 막혀 있습니다('+esc(e.message)+').':c==='server_not_connected'?'Claude 데스크톱 앱에서 열어야 시세를 받을 수 있습니다 (앱의 내장 브라우저를 씀).':c==='cancelled'||c==='approval_required'||c==='not_in_manifest'?'브라우저 사용을 허락하지 않아 시세를 받지 않았습니다. 다시 받기를 누르면 다시 묻습니다.':c==='server_unavailable'?'브라우저가 잠시 응답하지 않습니다. 조금 뒤 다시 받기를 눌러 주세요.':'시세를 받지 못했습니다: '+((e&&e.message)||e)},
