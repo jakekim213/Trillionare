@@ -53,7 +53,7 @@ print('q.json ok', len(json.dumps(J)) // 1024, 'KB')
 prev = None
 try: prev = json.load(open('prev_g.json'))
 except Exception: pass
-if prev and prev.get('v') == 4 and now - prev.get('at', 0) < 6 * 3600:
+if prev and prev.get('v') == 5 and now - prev.get('at', 0) < 6 * 3600:
     json.dump(prev, open(f'{OUT}/g.json', 'w'), separators=(',', ':')); print('g.json 이전 것 유지')
 else:
     C = {}
@@ -63,9 +63,21 @@ else:
             try: C[s][u] = ohlc(s, rng, iv)
             except Exception as e: print('봉 실패', s, u, e)
             time.sleep(1)
+        # 이번 주·이번 달 봉은 일봉으로 다시 만듦(Yahoo의 마지막 주·월봉은 시가가 '오늘 시가'로 잘못 오는 경우가 있음)
+        import datetime as dt
+        d = C[s].get('d')
+        for u in ('w', 'm'):
+            x = C[s].get(u)
+            if not d or not x: continue
+            key = lambda ms: (lambda z: tuple(z.isocalendar()[:2]) if u == 'w' else (z.year, z.month))(dt.datetime.utcfromtimestamp(ms / 1000))
+            kk = key(d['t'][-1]); idx = [i for i, t in enumerate(d['t']) if key(t) == kk]
+            bar = (d['t'][idx[0]], d['o'][idx[0]], max(d['h'][i] for i in idx), min(d['l'][i] for i in idx), d['c'][idx[-1]])
+            while x['t'] and key(x['t'][-1]) == kk:
+                for v in x.values(): v.pop()
+            for k_, v in zip(('t', 'o', 'h', 'l', 'c'), bar): x[k_].append(v)
     H = {}
     try: H = spark(G5, '1y', '1h')
     except Exception as e: print('1시간 실패', e)
     if not any(C[s] for s in C) and prev: C = prev.get('c', {})
-    json.dump({'v': 4, 'at': now, 'c': C, 'h': H}, open(f'{OUT}/g.json', 'w'), separators=(',', ':'))
+    json.dump({'v': 5, 'at': now, 'c': C, 'h': H}, open(f'{OUT}/g.json', 'w'), separators=(',', ':'))
     print('g.json 새로 만듦', os.path.getsize(f'{OUT}/g.json') // 1024, 'KB')
