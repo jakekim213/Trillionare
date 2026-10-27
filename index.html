@@ -1647,11 +1647,12 @@ MKT.btns=LIVE.btns;MKT.staleMsg=LIVE.staleMsg;
 /* ===================== 📊 시세 그래프 창: 칸에 마우스를 올리거나 누르면 · 전체 기간(주봉)~1개월(일봉) · 5/20/60/120/200일선 ===================== */
 const QC={fine:matchMedia('(hover:hover) and (pointer:fine)').matches,cache:{},sym:null,lab:'',u:'d',rg:{d:'1y',w:'5y',m:'max'},log:null,hv:null,el:null,tm:null,lg:[],P:{},
  U:{d:['일봉','일',1],w:['주봉','주',5],m:['월봉','개월',21]},
- RG:{d:[['1m','1개월',21],['3m','3개월',63],['6m','6개월',126],['1y','1년',252],['3y','3년',756],['5y','5년',1260]],
-     w:[['1y','1년',52],['3y','3년',156],['5y','5년',260],['10y','10년',520],['max','전체',1e9]],
-     m:[['5y','5년',60],['10y','10년',120],['20y','20년',240],['max','전체',1e9]]},
+ /* 기간은 봉 개수가 아니라 '날짜'로 자름 (세 번째 값 = 일수) */
+ RG:{d:[['1m','1개월',31],['3m','3개월',92],['6m','6개월',183],['1y','1년',366],['3y','3년',1096],['5y','5년',1827]],
+     w:[['3m','3개월',92],['6m','6개월',183],['1y','1년',366],['2y','2년',731],['3y','3년',1096],['5y','5년',1827],['10y','10년',3653],['20y','20년',7305],['max','전체',1e9]],
+     m:[['1y','1년',366],['2y','2년',731],['3y','3년',1096],['5y','5년',1827],['10y','10년',3653],['20y','20년',7305],['max','전체',1e9]]},
  MA:[[5,'#95a5a6'],[20,'#e67e22'],[60,'#27ae60'],[120,'#2980b9'],[200,'#8e44ad']],
- SY:['^IXIC','^NDX','^GSPC','GC=F','BTC-USD'],LS:'laoer_qc_v3',
+ SY:['^IXIC','^NDX','^GSPC','GC=F','BTC-USD'],LS:'laoer_qc_v4',
  note(x){QC.lg.push(new Date().toLocaleTimeString('ko-KR',{hour12:false})+' '+x);if(QC.lg.length>80)QC.lg.shift();const d=QC.el&&QC.el.querySelector('.qcLog');if(d)d.textContent=QC.lg.join('\n')},
  /* 한 주소를 모든 길로 동시에 → 먼저 성공한 것 사용 · 길마다 결과를 🔍 기록에 */
  async getJ(url,ok,tag,tmo){const mcp=(typeof ART!=='undefined'&&typeof claude!=='undefined'&&claude&&claude.use)?await claude.use('mcp').catch(()=>null):null;
@@ -1670,7 +1671,7 @@ const QC={fine:matchMedia('(hover:hover) and (pointer:fine)').matches,cache:{},s
   if(o.t.length<5)throw new Error('점이 너무 적음');o.at=Date.now();return o},
  boot(){try{const o=JSON.parse(localStorage.getItem(QC.LS)||'null');if(o&&o.c)QC.cache=o.c}catch(e){}},
  save(){try{localStorage.setItem(QC.LS,JSON.stringify({c:QC.cache}))}catch(e){QC.note('기기 보관 실패(용량) — 이번에만 사용')}},
- put(s,u,x){const o=QC.cache[s]=QC.cache[s]||{},p=o[u];/* 봉(시가·고가·저가) 자료를 종가만 있는 자료보다 우선, 같으면 긴 것·새 것 */
+ put(s,u,x){if(u!=='d'&&x.t.length>3){const g=[];for(let i=1;i<x.t.length;i++)g.push(x.t[i]-x.t[i-1]);g.sort((a,b)=>a-b);const md=g[g.length>>1]/86400e3;if((u==='w'&&md>10)||(u==='m'&&md>40)){QC.note(QC.U[u][0]+' 자료가 '+Math.round(md)+'일 간격으로 뭉쳐 와서 버림');return false}}const o=QC.cache[s]=QC.cache[s]||{},p=o[u];/* 봉(시가·고가·저가) 자료를 종가만 있는 자료보다 우선, 같으면 긴 것·새 것 */
   const rk=z=>z.o?(z.syn?1:2):0;if(!p||rk(x)>rk(p)||(rk(x)===rk(p)&&x.t.length>=p.t.length*0.9)||Date.now()-p.at>12*3600e3){o[u]=x;return true}return false},
  /* 진짜 봉 자료(chart)를 못 받을 때: 이미 받은 종가로 봉을 만듦 — 시가=앞 봉 종가, 고가·저가=그 사이 종가(일봉은 1시간 종가)의 최고·최저 */
  syn(s,u){const D=QC.cache[s]||{},src=u==="d"?null:(D.d||null),key=t=>{const d=new Date(t+(-5*3600e3));if(u==='m')return d.getUTCFullYear()*100+d.getUTCMonth();const w=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()));w.setUTCDate(w.getUTCDate()-((w.getUTCDay()+6)%7));return +w};
@@ -1684,13 +1685,13 @@ const QC={fine:matchMedia('(hover:hover) and (pointer:fine)').matches,cache:{},s
   return T.length>=5?agg(T,C):null},
  fresh(s,u){const x=QC.cache[s]&&QC.cache[s][u];return !!(x&&x.o&&Date.now()-x.at<(x.syn?30*60e3:12*3600e3))},
  sp(r,i){return 'https://query1.finance.yahoo.com/v8/finance/spark?symbols='+QC.SY.map(encodeURIComponent).join(',')+'&range='+r+'&interval='+i},
- ch(s,r,i){return 'https://query1.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(s)+'?range='+r+'&interval='+i},
+ ch(s,r,i){return 'https://query1.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(s)+'?'+(r==='max'?'period1=0&period2='+Math.floor(Date.now()/1000):'range='+r)+'&interval='+i},
  /* 봉 단위 하나 받기: ① 이 종목의 봉 자료(chart) 와 ② 다섯 종목 종가 묶음(spark)을 동시에 → 먼저 온 걸로 바로 그리고, 봉 자료가 오면 봉으로 바꿈 */
  ghLoad(){if(!QC._gp){QC._gpw=1;QC.t0=Date.now()}if(!QC._gp)QC._gp=LIVE.ghJ('g.json',10000).then(G=>{let n=0;for(const z in (G.c||{}))for(const u in G.c[z]){const x=G.c[z][u];if(x&&x.t&&x.t.length>4){x.at=G.at*1000;QC.put(z,u,x);n++}}
    if(G.h){QC.hr=QC.hr||{};for(const z of QC.SY){try{QC.hr[z]=QC.parse(G.h[z])}catch(e){}}}QC.save();QC.note(`GitHub 자동 수집 그래프 자료 ${n}개 받음 (${Math.round((Date.now()/1000-G.at)/3600)}시간 전에 모음)`)}).catch(e=>QC.note('GitHub 자동 수집 그래프 자료 실패 '+((e&&e.message)||'').slice(0,60))).finally(()=>{QC._gpw=0});return QC._gp},
  load(s,u){return QC.ghLoad().then(()=>{if(QC.fresh(s,u)){if(QC.el&&QC.sym===s&&QC.u===u)QC.draw();return}return QC.load0(s,u)})},
  load0(s,u){const key=s+'|'+u;if(QC.P[key])return QC.P[key];QC.t0=Date.now();QC.err=null;const rd=()=>{if(QC.el&&QC.sym===s&&QC.u===u)QC.draw()};
-  const SP={d:[['1y','1d','1년·일봉 종가'],['5y','1d','5년·일봉 종가']],w:[['max','1wk','전체·주봉 종가'],['10y','1wk','10년·주봉 종가']],m:[['max','1mo','전체·월봉 종가']]}[u],
+  const SP={d:[['1y','1d','1년·일봉 종가'],['5y','1d','5년·일봉 종가']],w:[['10y','1wk','10년·주봉 종가'],['5y','1wk','5년·주봉 종가']],m:[['10y','1mo','10년·월봉 종가'],['5y','1mo','5년·월봉 종가']]}[u],
         CH={d:['5y','1d','5년·일봉'],w:['max','1wk','전체·주봉'],m:['max','1mo','전체·월봉']}[u];
   const okS=J=>J&&QC.SY.some(z=>J[z]&&J[z].timestamp),okC=J=>J&&J.chart&&J.chart.result&&J.chart.result[0]&&J.chart.result[0].timestamp;
   if(u==='d'&&!QC.hr&&!QC.P.hr)QC.P.hr=QC.getJ(QC.sp('1y','1h'),okS,'1년·1시간 종가(일봉 꼬리용)').then(J=>{QC.hr={};for(const z of QC.SY){try{QC.hr[z]=QC.parse(J[z])}catch(e){}}rd()}).catch(()=>{QC.hr={}}).finally(()=>{delete QC.P.hr});
@@ -1703,8 +1704,8 @@ const QC={fine:matchMedia('(hover:hover) and (pointer:fine)').matches,cache:{},s
     const x=QC.syn(s,u);if(x){QC.put(s,u,x);QC.note(QC.lab+' '+QC.U[u][0]+': 진짜 봉 자료를 못 받아 종가로 봉을 만듦');QC.save()}}if(!(QC.cache[s]&&QC.cache[s][u]))QC.err='시세 서버에서 그래프 자료를 못 받았어요 (아래 🔍 기록 참고)';QC.note(`${QC.lab} ${QC.U[u][0]} 끝 · ${((Date.now()-QC.t0)/1000).toFixed(1)}초`);rd()}).finally(()=>{delete QC.P[key]})},
  ma(v,k){const o=new Array(v.length).fill(null);let a=0;for(let i=0;i<v.length;i++){a+=v[i];if(i>=k)a-=v[i-k];if(i>=k-1)o[i]=a/k}return o},
  view(){let S=QC.cache[QC.sym]&&QC.cache[QC.sym][QC.u];if(!S)return null;if(!S.o){const D=QC.cache[QC.sym],mk=QC.sym+'|'+QC.u+'|'+S.c.length+'|'+S.at+'|'+(D.d?D.d.at:0)+'|'+(QC.hr&&QC.hr[QC.sym]?1:0);if(!QC._sm||QC._sm.k!==mk)QC._sm={k:mk,x:QC.syn(QC.sym,QC.u)};if(QC._sm.x)S=QC._sm.x}const rg=QC.rg[QC.u],g=QC.RG[QC.u].find(r=>r[0]===rg)||QC.RG[QC.u][0];
-  const n=S.c.length,i0=Math.max(0,n-g[2]),sl=a=>a?a.slice(i0):null;
-  return {syn:!!S.syn,o:sl(S.o),h:sl(S.h),l:sl(S.l),v:S.c.slice(i0),t:S.t.slice(i0),short:g[2]<1e9&&n<g[2]*0.97,
+  const n=S.c.length,cut=S.t[n-1]-g[2]*86400e3;let i0=0;while(i0<n-2&&S.t[i0]<cut)i0++;const sl=a=>a?a.slice(i0):null;
+  return {syn:!!S.syn,o:sl(S.o),h:sl(S.h),l:sl(S.l),v:S.c.slice(i0),t:S.t.slice(i0),short:g[2]<1e9&&S.t[0]>cut+45*86400e3,
    mas:QC.MA.map(([k,c])=>({k,c,v:QC.ma(S.c,k).slice(i0)})).filter(m=>m.v.some(x=>x!=null))}},
  logOn(){const v=QC.log;if(v!=null)return v;const rg=QC.rg[QC.u];return QC.u!=='d'&&(rg==='10y'||rg==='20y'||rg==='max')},
  fmt(x){return x>=1000?x.toLocaleString('en-US',{maximumFractionDigits:x>=1e4?0:1}):x.toLocaleString('en-US',{maximumFractionDigits:2})},
