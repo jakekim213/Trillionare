@@ -964,7 +964,7 @@ const MKT={
    <div style="margin-top:14px;font-weight:700">③ 참고 · 사는 타이밍 <span class="note" style="font-weight:400">(검증상 장기 성적을 바꾸는 효과는 작음 — 나눠 살 때 순서 정하는 용도)</span></div>
    ${typeof LT!=='undefined'&&LT.m120Line?LT.m120Line():''}
    ${typeof LT!=='undefined'&&LT.recLine?LT.recLine():''}
-   ${typeof AI!=='undefined'?AI.box():''}
+   ${typeof AI!=='undefined'&&typeof ART!=='undefined'?AI.box():''}
    <div style="margin-top:12px"><div class="note" style="margin-bottom:2px">최근 1년 · 나스닥100의 200일선 대비 거리 (초록 바탕 = 보유, 회색 = 현금, +3% 매수선 · −3% 매도선)</div>${mini}</div>
    <p class="note" style="margin:8px 0 0">판정 규칙: 200일선 규칙이 현금이면 🔴 매수 보류 · 보유이면서 1년 고점 대비 −40% 이하, 200일 평균에서 +20% 넘게 위(과열), 20일 변동성 30% 이상 중 하나라도 있으면 🟡 주의 · 없으면 🟢 매수 가능 구간. <b>37년 검증</b>(가상 TQQQ, 3년 뒤 손해 확률): 1년 고점 −40% 이하 59% vs 아닐 때 22% · 200일 평균 범위(−15~+20%) 밖 42% vs 안 20% · 20일 변동성 30% 이상 51% vs 미만 17%. <span style="color:#8a95a5">VIX는 검증에서 3년 성적과 거의 무관(영향력 5점)해 판정에서 뺐습니다(값은 CSV에만 남김).</span> 기계적으로 낸 결과이며 투자 권유가 아닙니다.</p>${typeof LT!=='undefined'?LT.section():''}</div>`},
  btns(){return `<div class="noprint" style="display:flex;flex-direction:column;gap:6px">${MKT_LIVE.startsWith('https://')?`<a class="btn gold" href="${MKT_LIVE}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;text-align:center">📡 자동 계산표 열기 (최신 시세)</a>`:''}<a class="btn ${MKT_LIVE.startsWith('https://')?'light':'gold'}" href="${MKT_DASH}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;text-align:center">📊 매수 판정 대시보드</a><button class="btn light" data-act="mkt:load">📥 최신 시세 불러오기 (CSV)</button>${S.mkt&&S.mkt.csv?`<button class="btn sm light" data-act="mkt:reset">내장 데이터로 되돌리기</button>`:''}</div>`},
@@ -1804,7 +1804,8 @@ const AI={busy:false,text:'',err:'',q:'',hist:[],mode:null,KEY:'laoer_claude_api
   return _act(a,t)}}
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target&&e.target.id==='aiQ'){e.preventDefault();APP.act('ai:ask',e.target)}});
 
-{const f=document.createElement('button');f.className='noprint';f.dataset.act='ai:jump';f.textContent='🤖 질문하기';f.style.cssText='position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:50;padding:10px 14px;border:0;border-radius:24px;background:#6c5ce7;color:#fff;font:inherit;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.25);cursor:pointer';document.body.appendChild(f)}
+/* AI 해설은 Claude 아티팩트 페이지에서만(추가 요금 없음) — 파일·GitHub 앱에서는 사용자 요청으로 뺌 */
+setTimeout(()=>{if(typeof ART==='undefined')return;const f=document.createElement('button');f.className='noprint';f.dataset.act='ai:jump';f.textContent='🤖 질문하기';f.style.cssText='position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:50;padding:10px 14px;border:0;border-radius:24px;background:#6c5ce7;color:#fff;font:inherit;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.25);cursor:pointer';document.body.appendChild(f)},0)
 
 /* ===== 홈 화면 앱: 입력값을 이 기기에 자동 저장 (파일 저장 대신) ===== */
 const PWA={K:'laoer_pwa_state',t:0,load(){try{const j=localStorage.getItem(PWA.K);if(!j)return;const d=JSON.parse(j);if(d&&d.app===APP.id){S=migrate(d);S.tab='home';S.firstRun=false;DIRTY=false;render()}}catch(e){}},
