@@ -1811,6 +1811,8 @@ const PWA={K:'laoer_pwa_state',t:0,load(){try{const j=localStorage.getItem(PWA.K
  save(){try{localStorage.setItem(PWA.K,JSON.stringify(S));DIRTY=false;const b=document.getElementById('stBadge');if(b){b.className='badge final';b.textContent='✔ 이 기기에 저장됨'}}catch(e){}}};
 {const _m=mark;mark=function(){_m.apply(this,arguments);clearTimeout(PWA.t);PWA.t=setTimeout(PWA.save,800)}}
 saveWork=function(){PWA.save();toast('✔ 이 기기에 저장했습니다')};
+/* 📂 열기로 불러온 파일(HTML 저장 파일·백업 JSON)도 바로 이 기기에 저장 — 전에는 다음 편집 때까지 저장이 안 돼서 새로고침하면 사라졌음 */
+{const _o=openFile;openFile=async function(f){const r=await _o(f);setTimeout(PWA.save,50);return r}}
 
 boot();PWA.load();LIVE.refresh();LIVE.auto();
 {const _r=render;render=function(){_r();if(!DIRTY){const b=document.getElementById('stBadge');if(b&&!/저장됨/.test(b.textContent)){b.className='badge final';b.textContent='✔ 이 기기에 저장됨'}}}}
