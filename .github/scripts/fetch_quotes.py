@@ -2,7 +2,7 @@
 # q.json: 시세판·판정용 (3개월 일봉 종가, 앱과 같은 17종목) — 매번
 # g.json: 그래프용 진짜 봉(시가·고가·저가·종가) 5종목 × 일봉5년·주봉전체·월봉전체 + 1년 1시간 종가 — 6시간마다
 import json, os, time, urllib.request, urllib.parse
-SYMS = ['TQQQ','QLD','NVDA','PLTR','META','TSLA','TECL','000660.KS','005930.KS','009150.KS','^NDX','^VIX','KRW=X','^IXIC','^GSPC','GC=F','BTC-USD','NQ=F','ES=F']
+SYMS = ['TQQQ','QLD','NVDA','PLTR','META','TSLA','TECL','000660.KS','005930.KS','009150.KS','^NDX','^VIX','KRW=X','^IXIC','^GSPC','GC=F','BTC-USD','NQ=F','ES=F','SPXL']
 G5 = ['^IXIC','^NDX','NQ=F','^GSPC','ES=F','GC=F','BTC-USD']
 UA = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36', 'Accept': 'application/json'}
 OUT = 'out'; os.makedirs(OUT, exist_ok=True)
