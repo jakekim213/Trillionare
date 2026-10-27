@@ -1,0 +1,36 @@
+name: 과거 일봉 한 번 받기 (수동)
+on:
+  workflow_dispatch:
+    inputs:
+      symbols:
+        description: '종목 (쉼표로)'
+        default: 'SPXL,UPRO'
+permissions:
+  contents: write
+jobs:
+  hist:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: 받기
+        env:
+          SYMS: ${{ github.event.inputs.symbols }}
+        run: |
+          mkdir out && cd out
+          python3 - <<'PY'
+          import json, os, time, urllib.request
+          UA = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/130.0 Safari/537.36'}
+          for s in os.environ['SYMS'].split(','):
+              for host in ('query1', 'query2'):
+                  try:
+                      u = f'https://{host}.finance.yahoo.com/v8/finance/chart/{s}?period1=0&period2={int(time.time())}&interval=1d'
+                      R = json.load(urllib.request.urlopen(urllib.request.Request(u, headers=UA), timeout=60))['chart']['result'][0]
+                      q = R['indicators']['quote'][0]
+                      rows = [(time.strftime('%Y-%m-%d', time.gmtime(t - 5 * 3600)), c) for t, c in zip(R['timestamp'], q['close']) if c]
+                      open(f'{s}.csv', 'w').write('date,close\n' + '\n'.join(f'{d},{c}' for d, c in rows))
+                      print(s, len(rows), rows[0], rows[-1]); break
+                  except Exception as e:
+                      print('retry', s, host, e); time.sleep(5)
+          PY
+          git init -q -b hist && git config user.name "github-actions[bot]" && git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A && git commit -qm hist && git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" hist
