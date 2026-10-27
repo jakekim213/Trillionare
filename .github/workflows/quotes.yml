@@ -1,0 +1,29 @@
+name: 시세 자동 수집
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: quotes
+  cancel-in-progress: false
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: 이전 그래프 자료 가져오기
+        run: git fetch -q --depth 1 origin data && git show FETCH_HEAD:g.json > prev_g.json || echo "이전 자료 없음"
+      - name: Yahoo 시세 받기
+        run: python3 .github/scripts/fetch_quotes.py
+      - name: data 가지에 올리기 (기록 없이 덮어씀 — 저장소가 커지지 않음)
+        run: |
+          cd out
+          git init -q -b data
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -qm "시세 $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" data
