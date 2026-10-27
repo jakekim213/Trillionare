@@ -23,7 +23,9 @@ def spark(syms, rng, iv):
     return get('/v8/finance/spark?symbols=' + ','.join(urllib.parse.quote(s, safe='') for s in syms) + f'&range={rng}&interval={iv}')
 
 def ohlc(sym, rng, iv):
-    R = get(f'/v8/finance/chart/{urllib.parse.quote(sym, safe="")}?range={rng}&interval={iv}')['chart']['result'][0]
+    # range=max 는 Yahoo가 3개월 단위로 뭉쳐 버림 → 전체 기간은 period1=0(1970년)부터 직접 지정해야 진짜 주봉·월봉이 옴
+    q = f'range={rng}' if rng != 'max' else f'period1=0&period2={int(time.time())}'
+    R = get(f'/v8/finance/chart/{urllib.parse.quote(sym, safe="")}?{q}&interval={iv}')['chart']['result'][0]
     q = R['indicators']['quote'][0]; o = {'t': [], 'o': [], 'h': [], 'l': [], 'c': []}
     for i, t in enumerate(R['timestamp']):
         c = q['close'][i]
@@ -44,7 +46,7 @@ print('q.json ok', len(json.dumps(J)) // 1024, 'KB')
 prev = None
 try: prev = json.load(open('prev_g.json'))
 except Exception: pass
-if prev and now - prev.get('at', 0) < 6 * 3600:
+if prev and prev.get('v') == 2 and now - prev.get('at', 0) < 6 * 3600:
     json.dump(prev, open(f'{OUT}/g.json', 'w'), separators=(',', ':')); print('g.json 이전 것 유지')
 else:
     C = {}
@@ -58,5 +60,5 @@ else:
     try: H = spark(G5, '1y', '1h')
     except Exception as e: print('1시간 실패', e)
     if not any(C[s] for s in C) and prev: C = prev.get('c', {})
-    json.dump({'at': now, 'c': C, 'h': H}, open(f'{OUT}/g.json', 'w'), separators=(',', ':'))
+    json.dump({'v': 2, 'at': now, 'c': C, 'h': H}, open(f'{OUT}/g.json', 'w'), separators=(',', ':'))
     print('g.json 새로 만듦', os.path.getsize(f'{OUT}/g.json') // 1024, 'KB')
