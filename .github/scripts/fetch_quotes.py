@@ -2,8 +2,8 @@
 # q.json: 시세판·판정용 (3개월 일봉 종가, 앱과 같은 17종목) — 매번
 # g.json: 그래프용 진짜 봉(시가·고가·저가·종가) 5종목 × 일봉5년·주봉전체·월봉전체 + 1년 1시간 종가 — 6시간마다
 import json, os, time, urllib.request, urllib.parse
-SYMS = ['TQQQ','QLD','NVDA','PLTR','META','TSLA','TECL','000660.KS','005930.KS','009150.KS','^NDX','^VIX','KRW=X','^IXIC','^GSPC','GC=F','BTC-USD']
-G5 = ['^IXIC','^NDX','^GSPC','GC=F','BTC-USD']
+SYMS = ['TQQQ','QLD','NVDA','PLTR','META','TSLA','TECL','000660.KS','005930.KS','009150.KS','^NDX','^VIX','KRW=X','^IXIC','^GSPC','GC=F','BTC-USD','NQ=F','ES=F']
+G5 = ['^IXIC','^NDX','NQ=F','^GSPC','ES=F','GC=F','BTC-USD']
 UA = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36', 'Accept': 'application/json'}
 OUT = 'out'; os.makedirs(OUT, exist_ok=True)
 
@@ -53,7 +53,7 @@ print('q.json ok', len(json.dumps(J)) // 1024, 'KB')
 prev = None
 try: prev = json.load(open('prev_g.json'))
 except Exception: pass
-if prev and prev.get('v') == 6 and now - prev.get('at', 0) < 6 * 3600:
+if prev and prev.get('v') == 7 and now - prev.get('at', 0) < 6 * 3600:
     json.dump(prev, open(f'{OUT}/g.json', 'w'), separators=(',', ':')); print('g.json 이전 것 유지')
 else:
     C = {}
@@ -86,5 +86,5 @@ else:
     try: H = spark(G5, '1y', '1h')
     except Exception as e: print('1시간 실패', e)
     if not any(C[s] for s in C) and prev: C = prev.get('c', {})
-    json.dump({'v': 6, 'at': now, 'c': C, 'h': H}, open(f'{OUT}/g.json', 'w'), separators=(',', ':'))
+    json.dump({'v': 7, 'at': now, 'c': C, 'h': H}, open(f'{OUT}/g.json', 'w'), separators=(',', ':'))
     print('g.json 새로 만듦', os.path.getsize(f'{OUT}/g.json') // 1024, 'KB')
