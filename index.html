@@ -1237,6 +1237,21 @@ let i1=-1;for(let i=W.length-1;i>=0;i--)if(W[i].d<=e){i1=i;break}if(i1<=i0)i1=Ma
   <span style="color:#8a95a5">⚠ 가상 TQQQ는 실제 상품이 아닙니다: 1987년 블랙먼데이(하루 −14%)엔 실제 3배 상품이 있었다면 −42%보다 더 깨졌을 수도 있고(장중 청산 위험), 그때의 차입 비용·배당은 근사값입니다. 3년 기간이 서로 겹쳐서 독립된 3년은 12개 남짓입니다.</span></div></div>`},
  /* 접어 두는 상자: 펼친 상태는 다시 그려도 유지 */
  dt(k,t,sub,html){LT.op=LT.op||{};return `<details data-ltk="${k}"${LT.op[k]?' open':''} style="border:1px solid var(--line,#dfe4ea);border-radius:10px;margin:0 0 8px;background:#fff"><summary style="cursor:pointer;padding:10px 12px;list-style:none;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap"><span class="lt-chev" style="display:inline-block;transition:transform .15s;color:#8a95a5">▶</span><b>${t}</b><span class="note" style="font-size:13px">${sub}</span></summary><div style="padding:0 10px 4px">${html}</div></details>`},
+ /* 📶 200일선 위·아래 × RSI(14) 구간별로 TQQQ를 샀다면 3개월·1년 뒤 (나스닥100 매일 종가 · TQQQ = 나스닥100 하루 움직임×3 − 연 1%) */
+ rsiStudy(){if(LT._rs&&LT._rsk===LT._dk)return LT._rs;const X=LT.nx(),D=X.D,N=X.V,n=D.length;const S=[1];for(let i=1;i<n;i++)S.push(S[i-1]*Math.max(1e-4,1+3*(N[i]/N[i-1]-1)-0.01/252));
+  const R=new Array(n).fill(null);let g=0,l=0;for(let i=1;i<n;i++){const c=N[i]-N[i-1],u=Math.max(c,0),d=Math.max(-c,0);if(i<=14){g+=u/14;l+=d/14;if(i===14)R[i]=100-100/(1+g/(l||1e-9))}else{g=(g*13+u)/14;l=(l*13+d)/14;R[i]=100-100/(1+g/(l||1e-9))}}
+  const ma=new Array(n).fill(null);let sm=0;for(let i=0;i<n;i++){sm+=N[i];if(i>=200)sm-=N[i-200];if(i>=199)ma[i]=sm/200}
+  const B=[[0,30],[30,35],[35,40],[40,50],[50,60],[60,70],[70,101]],i0=Math.max(200,D.findIndex(d=>d>='2010-02-11'));
+  const cell=(up,a,b,H)=>{const xs=[];for(let i=i0;i+H<n;i++){if(R[i]==null||ma[i]==null||(N[i]>ma[i])!==up||R[i]<a||R[i]>=b)continue;xs.push(S[i+H]/S[i])}xs.sort((x,y)=>x-y);return xs.length?{n:xs.length,med:xs[xs.length>>1]-1,neg:xs.filter(x=>x<1).length/xs.length}:null};
+  const rows=[true,false].map(up=>B.map(([a,b])=>({up,a,b,m3:cell(up,a,b,63),y1:cell(up,a,b,252)})));
+  LT._rsk=LT._dk;return LT._rs={rows,now:{d:D[n-1],rsi:R[n-1],up:N[n-1]>ma[n-1],dist:N[n-1]/ma[n-1]-1},from:D[i0]}},
+ rsibox(){const Z=LT.rsiStudy(),N=Z.now,f=x=>(x>=0?'+':'')+(x*100).toFixed(0)+'%',lab=r=>r.a===0?'30 미만':r.b>100?'70 이상':r.a+'~'+r.b;
+  const tb=(rs,title)=>`<div style="flex:1 1 380px;min-width:0"><div style="font-weight:700;margin:4px 0">${title}</div><div class="tw"><table class="g"><thead><tr><th>RSI(14)</th><th class="n">날 수</th><th class="n">3개월 뒤<br><span style="font-weight:400;font-size:.85em">가운데 · 손해 확률</span></th><th class="n">1년 뒤<br><span style="font-weight:400;font-size:.85em">가운데 · 손해 확률</span></th></tr></thead><tbody>${rs.map(r=>{const now=N.up===r.up&&N.rsi>=r.a&&N.rsi<r.b,hot=r.up&&r.a===70;
+   return `<tr style="${now?'background:#fff4cc;font-weight:700':hot?'background:#fdecea':''}"><td>${lab(r)}${now?' ◀ 지금':''}</td><td class="n">${r.m3?r.m3.n.toLocaleString():'—'}</td><td class="n">${r.m3?`<span class="${r.m3.med>=0?'pos':'neg'}">${f(r.m3.med)}</span> · <span class="${r.m3.neg>=0.4?'neg':''}">${(r.m3.neg*100).toFixed(0)}%</span>`:'—'}</td><td class="n">${r.y1?`${f(r.y1.med)} · ${(r.y1.neg*100).toFixed(0)}%`:'—'}</td></tr>`}).join('')}</tbody></table></div></div>`;
+  return `<div class="note" style="margin-bottom:6px">${Z.from} ~ ${N.d} 나스닥100 매일 종가로, 200일선 위·아래와 RSI(14) 구간별로 그날 TQQQ를 샀다면 3개월(63거래일)·1년(252거래일) 뒤 어땠는지 셌습니다. TQQQ = 나스닥100 하루 움직임 × 3 − 연 1% 비용. <b>지금</b>: RSI ${N.rsi.toFixed(1)} · 200일선 ${N.up?'위':'아래'} ${f(N.dist)} (노란 줄)</div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap">${tb(Z.rows[0],'✅ 200일선 위 (3규칙 \'보유\' 쪽)')}${tb(Z.rows[1],'⚠ 200일선 아래')}</div>
+  <div class="note" style="margin-top:8px;line-height:1.7"><b>쉽게 말하면:</b> ① 200일선 위에서 <b>3개월처럼 짧게 보면 RSI가 낮을수록 좋았습니다</b>(30~35에서 사면 가운데 ${f(Z.rows[0][1].m3.med)}, 70 이상이면 ${f(Z.rows[0][6].m3.med)}). ② <b>1년으로 보면 30~70 사이는 차이가 거의 없습니다</b> — RSI는 '얼마나 버나'보다 '사고 나서 얼마나 덜 흔들리나'에 영향. ③ 가장 확실한 건 <b>RSI 70 이상(빨간 줄)에서 서두르지 않기</b> — 3개월 뒤 손해 확률 ${(Z.rows[0][6].m3.neg*100).toFixed(0)}%로 가장 높음.<br>
+  <b>쓰는 법:</b> 3규칙이 '보유'일 때 RSI 70 이상이면 나눠서 천천히, 30~40대로 내려오면 더 많이. <b>주의:</b> RSI 30~35·30 미만은 날 수가 적고(몇 번의 조정 시기에 몰림) 2010년 이후 상승장 위주라 200일선 아래 결과가 좋아 보이지만, 37년 분석에서 보듯 2000·2008년 같은 붕괴장에서는 달랐습니다.</div>`},
  etfbox(){const N=[['엔비디아','NVDA',8.48],['애플','AAPL',8.41],['마이크로소프트','MSFT',6.37],['알파벳(구글)','GOOGL',5.98],['아마존','AMZN',4.42],['마이크론','MU',4.38],['AMD','AMD',3.76],['메타','META',3.15],['테슬라','TSLA',3.08],['월마트','WMT',2.69]],
   X=[['엔비디아','NVDA',16.32],['애플','AAPL',15.24],['마이크로소프트','MSFT',11.99],['AMD','AMD',5.00],['브로드컴','AVGO',4.84],['마이크론','MU',4.28],['팔란티어','PLTR',2.55],['인텔','INTC',2.42],['시스코','CSCO',2.36],['램리서치','LRCX',1.81]];
   const sum=a=>a.reduce((t,r)=>t+r[2],0);const bar=(v,m,c)=>`<div style="display:flex;align-items:center;gap:6px;justify-content:flex-end"><span>${v.toFixed(1)}%</span><div style="width:70px;height:8px;background:#eef1f5;border-radius:4px;overflow:hidden"><div style="width:${(v/m*100).toFixed(0)}%;height:100%;background:${c}"></div></div></div>`;
@@ -1523,6 +1538,7 @@ let i1=-1;for(let i=W.length-1;i>=0;i--)if(W[i].d<=e){i1=i;break}if(i1<=i0)i1=Ma
    ${LT.r3box()}
    ${LT.keybox()}
    <div style="font-weight:700;margin:14px 0 6px">📚 자세한 분석 <span class="note" style="font-weight:400">— 눌러서 펼치기</span></div>
+   ${LT.dt('rsi','📶 200일선 위에서 RSI가 낮을 때 사면 더 좋았나?','짧게(3개월)는 RSI 낮을수록 좋고 70 이상은 손해 확률 최고 · 1년으로는 차이 작음',LT.rsibox())}
    ${LT.dt('etf','📦 TQQQ · QLD · TECL 안에는 뭐가 들어 있나','TECL은 기술주만 74개 · 엔비디아에 TQQQ의 2배 가까이 걸림',LT.etfbox())}
    ${LT.dt('pud','🕳️ TQQQ 웅덩이 매매법으로 했다면','이동평균 아래로 빠질 때 나눠 사기 — 결과는 그냥 사기와 거의 같음 (파는 규칙이 없어서)',LT.pudbox())}
    ${LT.dt('cmp','🔬 최고 3년 vs 최악 3년 — 무엇이 달랐나','산 자리·판 자리가 갈랐고 출렁임 크기는 비슷',LT.r3cmp())}
