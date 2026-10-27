@@ -53,7 +53,7 @@ print('q.json ok', len(json.dumps(J)) // 1024, 'KB')
 prev = None
 try: prev = json.load(open('prev_g.json'))
 except Exception: pass
-if prev and prev.get('v') == 5 and now - prev.get('at', 0) < 6 * 3600:
+if prev and prev.get('v') == 6 and now - prev.get('at', 0) < 6 * 3600:
     json.dump(prev, open(f'{OUT}/g.json', 'w'), separators=(',', ':')); print('g.json 이전 것 유지')
 else:
     C = {}
@@ -63,21 +63,28 @@ else:
             try: C[s][u] = ohlc(s, rng, iv)
             except Exception as e: print('봉 실패', s, u, e)
             time.sleep(1)
-        # 이번 주·이번 달 봉은 일봉으로 다시 만듦(Yahoo의 마지막 주·월봉은 시가가 '오늘 시가'로 잘못 오는 경우가 있음)
+        # 최근 5년치 주봉·월봉은 일봉으로 다시 만듦 (Yahoo의 주·월봉은 마지막 봉에 '오늘 값'이 섞이는 등 어긋나는 경우가 있음) — 그 이전은 Yahoo 주·월봉 그대로
         import datetime as dt
         d = C[s].get('d')
         for u in ('w', 'm'):
             x = C[s].get(u)
             if not d or not x: continue
             key = lambda ms: (lambda z: tuple(z.isocalendar()[:2]) if u == 'w' else (z.year, z.month))(dt.datetime.utcfromtimestamp(ms / 1000))
-            kk = key(d['t'][-1]); idx = [i for i, t in enumerate(d['t']) if key(t) == kk]
-            bar = (d['t'][idx[0]], d['o'][idx[0]], max(d['h'][i] for i in idx), min(d['l'][i] for i in idx), d['c'][idx[-1]])
-            while x['t'] and key(x['t'][-1]) == kk:
-                for v in x.values(): v.pop()
-            for k_, v in zip(('t', 'o', 'h', 'l', 'c'), bar): x[k_].append(v)
+            groups = {}
+            for i, t in enumerate(d['t']): groups.setdefault(key(t), []).append(i)
+            ks = list(groups)[1:]          # 첫 묶음은 중간부터 시작했을 수 있어 버림
+            if not ks: continue
+            first = ks[0]; y = {k_: [] for k_ in ('t', 'o', 'h', 'l', 'c')}
+            for i, t in enumerate(x['t']):
+                if key(t) < first:
+                    for k_ in y: y[k_].append(x[k_][i])
+            for kk in ks:
+                ix = groups[kk]
+                for k_, v in zip(('t', 'o', 'h', 'l', 'c'), (d['t'][ix[0]], d['o'][ix[0]], max(d['h'][i] for i in ix), min(d['l'][i] for i in ix), d['c'][ix[-1]])): y[k_].append(v)
+            C[s][u] = y
     H = {}
     try: H = spark(G5, '1y', '1h')
     except Exception as e: print('1시간 실패', e)
     if not any(C[s] for s in C) and prev: C = prev.get('c', {})
-    json.dump({'v': 5, 'at': now, 'c': C, 'h': H}, open(f'{OUT}/g.json', 'w'), separators=(',', ':'))
+    json.dump({'v': 6, 'at': now, 'c': C, 'h': H}, open(f'{OUT}/g.json', 'w'), separators=(',', ':'))
     print('g.json 새로 만듦', os.path.getsize(f'{OUT}/g.json') // 1024, 'KB')
