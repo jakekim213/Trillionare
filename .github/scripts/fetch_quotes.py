@@ -38,7 +38,7 @@ def ohlc(sym, rng, iv):
     # Yahoo는 주봉·월봉 끝에 '지금 값' 한 점을 따로 붙임 → 같은 주·같은 달이면 앞 봉에 합침(시가는 앞 봉, 고가·저가는 둘 중 큰·작은 값, 종가는 지금 값)
     if iv in ('1wk', '1mo') and len(o['t']) >= 2:
         import datetime as dt
-        k = lambda ms: (lambda d: (d.isocalendar()[0], d.isocalendar()[1]) if iv == '1wk' else (d.year, d.month))(dt.datetime.utcfromtimestamp(ms / 1000 - 5 * 3600))
+        k = lambda ms: (lambda d: (d.isocalendar()[0], d.isocalendar()[1]) if iv == '1wk' else (d.year, d.month))(dt.datetime.utcfromtimestamp(ms / 1000))
         if k(o['t'][-1]) == k(o['t'][-2]):
             o['h'][-2] = max(o['h'][-2], o['h'][-1]); o['l'][-2] = min(o['l'][-2], o['l'][-1]); o['c'][-2] = o['c'][-1]
             for x in o.values(): x.pop()
@@ -53,7 +53,7 @@ print('q.json ok', len(json.dumps(J)) // 1024, 'KB')
 prev = None
 try: prev = json.load(open('prev_g.json'))
 except Exception: pass
-if prev and prev.get('v') == 3 and now - prev.get('at', 0) < 6 * 3600:
+if prev and prev.get('v') == 4 and now - prev.get('at', 0) < 6 * 3600:
     json.dump(prev, open(f'{OUT}/g.json', 'w'), separators=(',', ':')); print('g.json 이전 것 유지')
 else:
     C = {}
@@ -67,5 +67,5 @@ else:
     try: H = spark(G5, '1y', '1h')
     except Exception as e: print('1시간 실패', e)
     if not any(C[s] for s in C) and prev: C = prev.get('c', {})
-    json.dump({'v': 3, 'at': now, 'c': C, 'h': H}, open(f'{OUT}/g.json', 'w'), separators=(',', ':'))
+    json.dump({'v': 4, 'at': now, 'c': C, 'h': H}, open(f'{OUT}/g.json', 'w'), separators=(',', ':'))
     print('g.json 새로 만듦', os.path.getsize(f'{OUT}/g.json') // 1024, 'KB')
