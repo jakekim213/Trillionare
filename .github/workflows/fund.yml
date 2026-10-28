@@ -1,0 +1,46 @@
+name: 재무 자료 받기 (수동, SEC)
+on:
+  workflow_dispatch:
+    inputs:
+      tickers:
+        description: '종목 (쉼표로)'
+        default: 'AAPL,MSFT'
+permissions:
+  contents: write
+jobs:
+  fund:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: 받기
+        env:
+          TK: ${{ github.event.inputs.tickers }}
+        run: |
+          mkdir out && cd out
+          python3 - <<'PY'
+          import json, os, time, urllib.request, gzip
+          UA = {'User-Agent': 'Trillionare research noreply@anthropic.com', 'Accept-Encoding': 'gzip'}
+          def get(u):
+              r = urllib.request.urlopen(urllib.request.Request(u, headers=UA), timeout=60); b = r.read()
+              return json.loads(gzip.decompress(b) if r.headers.get('Content-Encoding') == 'gzip' else b)
+          M = {v['ticker']: v['cik_str'] for v in get('https://www.sec.gov/files/company_tickers.json').values()}
+          KEEP = ['NetIncomeLoss','ProfitLoss','StockholdersEquity','StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest','OperatingIncomeLoss','Revenues','RevenueFromContractWithCustomerExcludingAssessedTax','LongTermDebt','LongTermDebtNoncurrent','LongTermDebtCurrent','DebtCurrent','CommercialPaper','ShortTermBorrowings','CashAndCashEquivalentsAtCarryingValue','ShortTermInvestments','MarketableSecuritiesCurrent','AvailableForSaleSecuritiesDebtSecuritiesCurrent','IncomeTaxExpenseBenefit','IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest','GrossProfit','CostOfRevenue','CostOfGoodsAndServicesSold','LongTermDebtAndCapitalLeaseObligations','OperatingLeaseLiabilityNoncurrent']
+          OUT = {}
+          for t in os.environ['TK'].split(','):
+              try:
+                  c = M[t.replace('.', '-')]
+                  F = get(f'https://data.sec.gov/api/xbrl/companyfacts/CIK{c:010d}.json')
+                  g = {}
+                  for tax in ('us-gaap', 'ifrs-full'):
+                      for k, v in F['facts'].get(tax, {}).items():
+                          if k in KEEP or tax == 'ifrs-full' and k in ('ProfitLoss','Equity','ProfitLossFromOperatingActivities','Revenue','Borrowings','CashAndCashEquivalents','CurrentBorrowings','NoncurrentBorrowings'):
+                              for u, arr in v['units'].items():
+                                  g[tax + ':' + k] = [[x.get('start'), x['end'], x['val'], x['fy'], x['fp'], x['form'], x.get('filed')] for x in arr if x['form'] in ('10-K', '20-F', '40-F', '10-K/A')]
+                  OUT[t] = {'name': F['entityName'], 'f': g}; print(t, len(g))
+              except Exception as e:
+                  print('fail', t, e)
+              time.sleep(0.3)
+          json.dump(OUT, open('fund.json', 'w'))
+          PY
+          git init -q -b fund && git config user.name "github-actions[bot]" && git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A && git commit -qm fund && git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" fund
