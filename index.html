@@ -946,7 +946,7 @@ const MKT={
   const col=L.verdict==='매수 가능 구간'?'var(--pos)':L.verdict==='매수 보류'?'var(--neg)':'var(--amb)',lamp=L.verdict==='매수 가능 구간'?'🟢':L.verdict==='매수 보류'?'🔴':'🟡';
   const age=Math.round((new Date(today()+'T00:00:00Z')-new Date(L.date+'T00:00:00Z'))/864e5),stale=age>4;
   const why=L.state==='현금'?`나스닥100이 200일선 +3% 위로 다시 올라설 때까지 기다리는 구간입니다. 매수선까지 ${sg(L.toBuyPct)}% 남았습니다.`:`200일선 규칙상 들고 있어도 되는 구간입니다. 나스닥100이 지금보다 ${Math.abs(L.toSellPct).toFixed(1)}% 더 빠지면 매도선(200일선 −3%)에 닿습니다.`;
-  let HV=L.verdict,HC=col,HL=lamp,HW=why;try{const I=typeof LT!=='undefined'&&LT.sysNow?LT.sysNow():null;if(I){HV=I.pos===1?'매수 가능 구간':I.pos===0.5?'절반만 보유 (과열)':'매수 보류 (현금)';HC=I.pos===1?'var(--pos)':I.pos===0.5?'var(--amb)':'var(--neg)';HL=I.pos===1?'🟢':I.pos===0.5?'🟡':'🔴';HW=`검증 1위 규칙(시스템 3규칙) 기준 TQQQ 비중 ${Math.round(I.pos*100)}%. `+why}}catch(e){}
+  let HV=L.verdict,HC=col,HL=lamp,HW=why;try{const I=typeof LT!=='undefined'&&LT.sysNow?LT.sysNow():null;if(I){HV=I.pos===1?'매수 가능 구간':I.pos===0.5?'절반만 보유 (과열)':'매수 보류 (현금)';HC=I.pos===1?'var(--pos)':I.pos===0.5?'var(--amb)':'var(--neg)';HL=I.pos===1?'🟢':I.pos===0.5?'🟡':'🔴';HW=`하락 방어 규칙(시스템 3규칙) 기준 TQQQ 비중 ${Math.round(I.pos*100)}%. `+why}}catch(e){}
   const ck=[{ok:L.state==='보유',t:'200일선 규칙',d:(L.state==='보유'?'보유':'현금')+' 구간 (200일선 '+sg(L.distPct)+'%)'},{ok:L.ddPct>-40,t:'떨어지는 칼날 아님',d:'1년 고점 대비 '+sg(L.ddPct)+'% (−40% 이하면 위험)'},{ok:L.distPct<=20&&L.distPct>=-15,t:'200일 평균에서 너무 멀지 않음',d:'200일 평균 '+sg(L.distPct)+'% (+20% 넘으면 과열)'},{ok:L.volPct<30,t:'흔들림 30% 미만',d:'20일 변동성 '+L.volPct.toFixed(1)+'%'}];
   // 최근 1년 200일선 대비 거리 미니 차트
   const R=rule.slice(-252),W=760,H=140,pl=44,pr=10,pt=8,pb=20,ds=R.map(r=>r.dist*100),mn=Math.min(-5,...ds),mx=Math.max(5,...ds),X=i=>pl+i/(R.length-1)*(W-pl-pr),Y=v=>pt+(1-(v-mn)/(mx-mn))*(H-pt-pb);
@@ -959,7 +959,7 @@ const MKT={
     ${MKT.btns()}</div>
    ${stale?MKT.staleMsg(age):''}
    ${typeof LT!=='undefined'&&LT.sysLine?LT.sysLine():''}
-   <div style="margin-top:14px;font-weight:700">② 2순위 · 200일선 판정: <span style="color:${col}">${esc(L.verdict)}</span> <span class="note" style="font-weight:400">(3규칙이 꺼질 때 함께 확인)</span></div>
+   <div style="margin-top:14px;font-weight:700">② 참고 · 200일선 판정: <span style="color:${col}">${esc(L.verdict)}</span> <span class="note" style="font-weight:400">(3규칙이 꺼질 때 함께 확인)</span></div>
    <div class="row c4" style="margin-top:6px">${ck.map(c=>`<div class="kpi" style="border-top-color:${c.ok?'var(--pos)':'var(--neg)'};padding:10px 12px"><div style="font-weight:700"><span class="${c.ok?'pos':'neg'}">${c.ok?'✓':'✗'}</span> ${esc(c.t)}</div><div class="dl" style="font-size:13.5px">${esc(c.d)}</div></div>`).join('')}</div>
    <div style="margin-top:14px;font-weight:700">③ 참고 · 사는 타이밍 <span class="note" style="font-weight:400">(검증상 장기 성적을 바꾸는 효과는 작음 — 나눠 살 때 순서 정하는 용도)</span></div>
    ${typeof LT!=='undefined'&&LT.m120Line?LT.m120Line():''}
@@ -1079,11 +1079,22 @@ const LT={
    for(const o of out){const k=all.indexOf(o.d);if(k<1)continue;const s0=st.get(all[k-1]);const np=s0==='보유'?1:0;if(np!==pos){pos=np;const x={d:o.d,pos};LT_TK.forEach(({k})=>x[k]=o[k]);sw.push(x)}}}catch(e){}
   return{rows:out,sw}},
  /* 규칙 자산 곡선: 매매일 가격으로 정확히 재구성 (보유 구간만 가격 비율을 곱함) */
+ /* 💸 세금 뒤 결과: 한국 해외주식 양도소득세 22%(지방세 포함) · 연 250만 원 기본공제 · 같은 해 이익·손실 합산 · 1만 달러(지금 환율 원화)로 시작 · 그날 전부 판다면 손에 쥐는 돈 */
+ TAX:{rate:0.22,ded:2.5e6},
+ taxify(ds,P,q,v){const X=1e4*LT.fx().r,DED=LT.TAX.ded,TR=LT.TAX.rate;let f=1,R=0,Q=q[0]||0,B=Q*P[0];const L=new Array(v.length);
+  for(let k=0;k<v.length;k++){if(v[k]==null||P[k]==null){L[k]=null;continue}
+   if(k>0){if(ds[k].slice(0,4)!==ds[k-1].slice(0,4)){const t=TR*Math.max(0,f*R*X-DED)/X;if(t>0&&v[k-1]>0)f*=1-t/(f*v[k-1]);R=0}
+    const dq=(q[k]||0)-Q;if(dq<-1e-12&&Q>0){const avg=B/Q,sd=-dq;R+=(P[k]-avg)*sd;B-=avg*sd}else if(dq>1e-12)B+=dq*P[k];Q=q[k]||0}
+   const ug=Q*P[k]-B;L[k]=f*v[k]-TR*Math.max(0,f*(R+ug)*X-DED)/X}return L},
+ taxHold(v){const X=1e4*LT.fx().r,DED=LT.TAX.ded,TR=LT.TAX.rate;return v.map(x=>x==null?null:x-TR*Math.max(0,(x-1)*X-DED)/X)},
+ /* 종목 1개: 그냥 보유(hold) 또는 200일선 규칙(rule) — 세금 뒤 값 (아파트는 미국 주식 세금 대상이 아니라 그대로) */
+ tkV(P,j,key,md,W,SW,i0,i1,re){if(md==='hold'){const b=P[j][key],v=P.slice(j).map(w=>w[key]/b);return re?v:LT.taxHold(v)}
+  const c=LT.curve(W,SW,i0+j,i1,key);if(re)return c;const ds=P.slice(j).map(w=>w.d),px=P.slice(j).map(w=>w[key]!=null?w[key]:key==='c'?LT.tcAt(w.d):null);return LT.taxify(ds,px,c.q,c)},
  tqf(d){const F=LT_TQF;if(!F.length||d<F[0][0])return F.length?F[0][1]:1;let lo=0,hi=F.length-1;while(lo<hi){const m=(lo+hi+1)>>1;if(F[m][0]<=d)lo=m;else hi=m-1}return F[lo][1]},
  tcAt(d,x){const D=x?LT._sxD:LT._tcD,VV=x?LT._sxV:LT._tcV;if(!D)return null;let lo=0,hi=D.length-1;if(d<D[0])return null;while(lo<hi){const m=(lo+hi+1)>>1;if(D[m]<=d)lo=m;else hi=m-1}return Math.exp(VV[lo]/1000)},
  curve(W,SW,i0,i1,key){const s=W[i0].d;const xp=x=>x[key]!=null?x[key]:key==='c'?LT.tcAt(x.d):key==='x'?LT.tcAt(x.d,1):null;let st=0;for(const x of SW)if(x.d<=s)st=x.pos;let bank=1,entry=W[i0][key],j=SW.findIndex(x=>x.d>s);if(j<0)j=SW.length;
-  const out=[];for(let i=i0;i<=i1;i++){while(j<SW.length&&SW[j].d<=W[i].d){const x=SW[j];if(x.pos===0&&st===1){bank*=xp(x)/entry;st=0}else if(x.pos===1&&st===0){entry=xp(x);st=1}j++}
-   out.push(st===1?bank*W[i][key]/entry:bank)}return out},
+  const out=[],qq=[];for(let i=i0;i<=i1;i++){while(j<SW.length&&SW[j].d<=W[i].d){const x=SW[j];if(x.pos===0&&st===1){bank*=xp(x)/entry;st=0}else if(x.pos===1&&st===0){entry=xp(x);st=1}j++}
+   out.push(st===1?bank*W[i][key]/entry:bank);qq.push(st===1?bank/entry:0)}out.q=qq;return out},
  PRESET:{'1m':['최근 1개월'],'3m':['3개월'],'6m':['6개월'],'ytd':['올해'],'1y':['1년'],'2y':['2년'],'3y':['3년'],'5y':['5년'],'10y':['10년'],'all':['전체 (TECL 상장 2008-12-17~)'],
   'c20':['2020 코로나','2020-01-02','2020-12-31'],'c22':['2022 긴 하락장','2021-11-01','2023-12-29'],'c25':['2025 관세 급락','2025-01-02','2025-09-30'],'b3':['🏆 TQQQ 최고 3년'],'w3':['📉 TQQQ 최악 3년']},
  range(W){const last=W[W.length-1].d,first=W[0].d;const back=(y,mo)=>{const t=new Date(last+'T00:00:00Z');if(y)t.setUTCFullYear(t.getUTCFullYear()-y);if(mo)t.setUTCMonth(t.getUTCMonth()-mo);return t.toISOString().slice(0,10)};
@@ -1100,12 +1111,12 @@ let i1=-1;for(let i=W.length-1;i>=0;i--)if(W[i].d<=e){i1=i;break}if(i1<=i0)i1=Ma
  /* VR·무한매수용 TQQQ 매일 종가: 2023-10-20 전은 LT_TD, 그 뒤는 계산표 일간 자료 (이음매 날 값으로 눈금 맞춤) */
  /* TQQQ를 아무 날에 사서 정확히 3년 들고 있었다면: 매일 종가로 모든 시작일을 다 따져 최고·최악 3년을 찾음 (파이썬 따로 계산과 같음) */
  roll3(){if(LT._r3&&LT._r3k===LT._dk)return LT._r3;const DD=LT.days(),L=DD[DD.length-1].d,o=[];let j=0;
-  for(let i=0;i<DD.length;i++){const t=new Date(DD[i].d+'T00:00:00Z');t.setUTCFullYear(t.getUTCFullYear()+3);const e=t.toISOString().slice(0,10);if(e>L)break;while(j+1<DD.length&&DD[j+1].d<=e)j++;o.push({s:DD[i].d,e:DD[j].d,x:DD[j].t/DD[i].t})}
+  for(let i=0;i<DD.length;i++){const t=new Date(DD[i].d+'T00:00:00Z');t.setUTCFullYear(t.getUTCFullYear()+3);const e=t.toISOString().slice(0,10);if(e>L)break;while(j+1<DD.length&&DD[j+1].d<=e)j++;o.push({s:DD[i].d,e:DD[j].d,x:LT.taxHold([DD[j].t/DD[i].t])[0]})}
   const so=o.slice().sort((a,b)=>a.x-b.x);LT._r3k=LT._dk;return LT._r3={n:o.length,worst:so[0],best:so[so.length-1],med:so[so.length>>1],neg:o.filter(r=>r.x<1).length,lose50:o.filter(r=>r.x<0.5).length,x10:o.filter(r=>r.x>=10).length}},
  /* TECL도 같은 방법(매일 종가, 모든 시작일에서 딱 3년) + 같은 날 시작한 TQQQ와 3년 대결 */
  roll3c(){if(LT._r3c&&LT._r3ck===LT._dk)return LT._r3c;LT.data();const D=LT._tcD,V=LT._tcV.map(v=>Math.exp(v/1000)),T=new Map(LT.days().map(x=>[x.d,x.t]));
   const roll=(d,v)=>{const o=[];let j=0;const L=d[d.length-1];for(let i=0;i<d.length;i++){const t=new Date(d[i]+'T00:00:00Z');t.setUTCFullYear(t.getUTCFullYear()+3);const e=t.toISOString().slice(0,10);if(e>L)break;while(j+1<d.length&&d[j+1]<=e)j++;o.push({s:d[i],e:d[j],x:v[j]/v[i]})}return o};
-  const o=roll(D,V),so=o.slice().sort((a,b)=>a.x-b.x);const cd=D.filter(d=>T.has(d)),ix=new Map(D.map((d,i)=>[d,i]));const rc=roll(cd,cd.map(d=>V[ix.get(d)])),rt=roll(cd,cd.map(d=>T.get(d)));
+  const o=roll(D,V).map(r=>({...r,x:LT.taxHold([r.x])[0]})),so=o.slice().sort((a,b)=>a.x-b.x);const cd=D.filter(d=>T.has(d)),ix=new Map(D.map((d,i)=>[d,i]));const rc=roll(cd,cd.map(d=>V[ix.get(d)])),rt=roll(cd,cd.map(d=>T.get(d)));
   let win=0;const by={};rc.forEach((x,i)=>{const w=x.x>rt[i].x?1:0;win+=w;const y=x.s.slice(0,4);(by[y]=by[y]||[0,0])[0]+=w;by[y][1]++});
   LT._r3ck=LT._dk;return LT._r3c={n:o.length,from:D[0],worst:so[0],best:so[so.length-1],med:so[so.length>>1],neg:o.filter(r=>r.x<1).length,lose50:o.filter(r=>r.x<0.5).length,x10:o.filter(r=>r.x>=10).length,h2h:{n:rc.length,win,by}}},
  /* 최고·최악 3년을 같은 잣대로 숫자로 비교 (모두 TQQQ 매일 종가) */
@@ -1197,7 +1208,7 @@ let i1=-1;for(let i=W.length-1;i>=0;i--)if(W[i].d<=e){i1=i;break}if(i1<=i0)i1=Ma
   return {d:DD[i].d,p,m,pairs,nu,al,s200,s200p:ma(200)/ma(200,i-20)-1,ndist:L?L.distPct:null}},
  sysLine(){let I;try{I=LT.sysNow()}catch(e){return ''}if(!I)return '';const w=I.pos,c=w===1?'#1a7f37':w===0.5?'#d68a00':'#c62828',pc=x=>(x>=0?'+':'−')+Math.abs(x*100).toFixed(1)+'%';
   const it=(ok,t,d)=>`<div style="flex:1 1 200px;border-top:3px solid ${ok?'var(--pos,#1a7f37)':'var(--neg,#c62828)'};background:var(--soft,#f6f8fa);border-radius:8px;padding:7px 10px"><div style="font-weight:700;font-size:13.5px"><span class="${ok?'pos':'neg'}">${ok?'✓':'✗'}</span> ${t}</div><div class="note" style="font-size:12.5px">${d}</div></div>`;
-  return `<div style="margin-top:12px;padding:10px 12px;border:2px solid ${c};border-radius:10px"><div style="display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline"><b>① 1순위 · 📺 시스템 3규칙 (QQQ 기준)</b><span style="font-size:20px;font-weight:800;color:${c}">TQQQ 비중 ${Math.round(w*100)}%</span><span class="note">${w===1?'매수(보유) 구간':w===0.5?'과열 — 절반만 보유':'매도(현금) 구간'} · ${I.d} 종가 기준, 다음 날 종가에 체결</span></div>
+  return `<div style="margin-top:12px;padding:10px 12px;border:2px solid ${c};border-radius:10px"><div style="display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline"><b>① 하락 방어 · 📺 시스템 3규칙 (QQQ 기준)</b><span style="font-size:20px;font-weight:800;color:${c}">TQQQ 비중 ${Math.round(w*100)}%</span><span class="note">${w===1?'매수(보유) 구간':w===0.5?'과열 — 절반만 보유':'매도(현금) 구간'} · ${I.d} 종가 기준, 다음 날 종가에 체결</span></div>
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">${it(I.tr,'① 추세',`200일선 ${pc(I.dist)} (${I.tr?'+1% 위로 올라선 뒤 200일선 아래로 안 내려감':'200일선 아래로 내려간 뒤 +1% 위로 아직 못 올라옴'})`)}${it(I.vo,'② 변동성',`20일 변동성 연 ${(I.vol*100).toFixed(1)}% (${I.vo?'30% 넘으면 매도':'20% 아래로 내려와야 매수'})`)}${it(!I.ht,'③ 과열',`200일선 ${pc(I.dist)} (${I.ht?'+15% 넘어 절반 익절 · +7.5% 이하로 식으면 다시 채움':'+15% 넘으면 절반 익절'})`)}</div></div>`},
  /* 회복 신호: TQQQ가 20일선·60일선 위로 다시 올라오고 RSI(14)가 40~50 넘게 회복하는지 */
  recNow(){const DD=LT.days(),n=DD.length,i=n-1;if(n<80)return null;const ma=k=>{let t=0;for(let q=i-k+1;q<=i;q++)t+=DD[q].t;return t/k};
@@ -1239,19 +1250,21 @@ let i1=-1;for(let i=W.length-1;i>=0;i--)if(W[i].d<=e){i1=i;break}if(i1<=i0)i1=Ma
   <div class="note" style="margin-top:8px;line-height:1.7"><b>한 줄 정리:</b> 질문하신 대로 해 보니 <b>2010년 이후 결론 중 절반이 뒤집혔습니다.</b> 2010~2023년은 '빠지면 결국 다시 오른' 특별한 시기였고, 그래서 '많이 빠졌을 때 · 역배열일 때 사면 좋다'가 맞아 보였을 뿐입니다. 37년으로 보면 3배짜리를 그냥 들고 있는 건 <b>4번 중 1번은 3년 뒤 손해, 6번 중 1번은 반토막 이하</b>였고, 끝까지 살아남은 결론은 <b>'200일 평균 근처에서 사고, 200일선 규칙으로 큰 하락을 피하라'</b> 두 가지입니다.<br>
   <span style="color:#8a95a5">⚠ 가상 TQQQ는 실제 상품이 아닙니다: 1987년 블랙먼데이(하루 −14%)엔 실제 3배 상품이 있었다면 −42%보다 더 깨졌을 수도 있고(장중 청산 위험), 그때의 차입 비용·배당은 근사값입니다. 3년 기간이 서로 겹쳐서 독립된 3년은 12개 남짓입니다.</span></div></div>`},
  /* 접어 두는 상자: 펼친 상태는 다시 그려도 유지 */
- dt(k,t,sub,html){LT.op=LT.op||{};return `<details data-ltk="${k}"${LT.op[k]?' open':''} style="border:1px solid var(--line,#dfe4ea);border-radius:10px;margin:0 0 8px;background:#fff"><summary style="cursor:pointer;padding:10px 12px;list-style:none;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap"><span class="lt-chev" style="display:inline-block;transition:transform .15s;color:#8a95a5">▶</span><b>${t}</b><span class="note" style="font-size:13px">${sub}</span></summary><div style="padding:0 10px 4px">${html}</div></details>`},
+ /* 세금 전 숫자만 있는 상자(가상 37년·고정 표)는 '세금 뒤만 보기'로 숨김 */
+ HIDE:['pud','cmp','long','dist','rule'],
+ dt(k,t,sub,html){if(LT.HIDE.includes(k))return '';LT.op=LT.op||{};return `<details data-ltk="${k}"${LT.op[k]?' open':''} style="border:1px solid var(--line,#dfe4ea);border-radius:10px;margin:0 0 8px;background:#fff"><summary style="cursor:pointer;padding:10px 12px;list-style:none;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap"><span class="lt-chev" style="display:inline-block;transition:transform .15s;color:#8a95a5">▶</span><b>${t}</b><span class="note" style="font-size:13px">${sub}</span></summary><div style="padding:0 10px 4px">${html}</div></details>`},
  /* 📶 200일선 위·아래 × RSI(14) 구간별로 TQQQ를 샀다면 3개월·1년 뒤 (나스닥100 매일 종가 · TQQQ = 나스닥100 하루 움직임×3 − 연 1%) */
  rsiStudy(){if(LT._rs&&LT._rsk===LT._dk)return LT._rs;const X=LT.nx(),D=X.D,N=X.V,n=D.length;const S=[1];for(let i=1;i<n;i++)S.push(S[i-1]*Math.max(1e-4,1+3*(N[i]/N[i-1]-1)-0.01/252));
   const R=new Array(n).fill(null);let g=0,l=0;for(let i=1;i<n;i++){const c=N[i]-N[i-1],u=Math.max(c,0),d=Math.max(-c,0);if(i<=14){g+=u/14;l+=d/14;if(i===14)R[i]=100-100/(1+g/(l||1e-9))}else{g=(g*13+u)/14;l=(l*13+d)/14;R[i]=100-100/(1+g/(l||1e-9))}}
   const ma=new Array(n).fill(null);let sm=0;for(let i=0;i<n;i++){sm+=N[i];if(i>=200)sm-=N[i-200];if(i>=199)ma[i]=sm/200}
   const B=[[0,30],[30,35],[35,40],[40,50],[50,60],[60,70],[70,101]],i0=Math.max(200,D.findIndex(d=>d>='2010-02-11'));
-  const cell=(up,a,b,H)=>{const xs=[];for(let i=i0;i+H<n;i++){if(R[i]==null||ma[i]==null||(N[i]>ma[i])!==up||R[i]<a||R[i]>=b)continue;xs.push(S[i+H]/S[i])}xs.sort((x,y)=>x-y);return xs.length?{n:xs.length,med:xs[xs.length>>1]-1,neg:xs.filter(x=>x<1).length/xs.length}:null};
+  const cell=(up,a,b,H)=>{const xs=[];for(let i=i0;i+H<n;i++){if(R[i]==null||ma[i]==null||(N[i]>ma[i])!==up||R[i]<a||R[i]>=b)continue;xs.push(LT.taxHold([S[i+H]/S[i]])[0])}xs.sort((x,y)=>x-y);return xs.length?{n:xs.length,med:xs[xs.length>>1]-1,neg:xs.filter(x=>x<1).length/xs.length}:null};
   const rows=[true,false].map(up=>B.map(([a,b])=>({up,a,b,m3:cell(up,a,b,63),y1:cell(up,a,b,252)})));
   LT._rsk=LT._dk;return LT._rs={rows,now:{d:D[n-1],rsi:R[n-1],up:N[n-1]>ma[n-1],dist:N[n-1]/ma[n-1]-1},from:D[i0]}},
  rsibox(){const Z=LT.rsiStudy(),N=Z.now,f=x=>(x>=0?'+':'')+(x*100).toFixed(0)+'%',lab=r=>r.a===0?'30 미만':r.b>100?'70 이상':r.a+'~'+r.b;
   const tb=(rs,title)=>`<div style="flex:1 1 380px;min-width:0"><div style="font-weight:700;margin:4px 0">${title}</div><div class="tw"><table class="g"><thead><tr><th>RSI(14)</th><th class="n">날 수</th><th class="n">3개월 뒤<br><span style="font-weight:400;font-size:.85em">가운데 · 손해 확률</span></th><th class="n">1년 뒤<br><span style="font-weight:400;font-size:.85em">가운데 · 손해 확률</span></th></tr></thead><tbody>${rs.map(r=>{const now=N.up===r.up&&N.rsi>=r.a&&N.rsi<r.b,hot=r.up&&r.a===70;
    return `<tr style="${now?'background:#fff4cc;font-weight:700':hot?'background:#fdecea':''}"><td>${lab(r)}${now?' ◀ 지금':''}</td><td class="n">${r.m3?r.m3.n.toLocaleString():'—'}</td><td class="n">${r.m3?`<span class="${r.m3.med>=0?'pos':'neg'}">${f(r.m3.med)}</span> · <span class="${r.m3.neg>=0.4?'neg':''}">${(r.m3.neg*100).toFixed(0)}%</span>`:'—'}</td><td class="n">${r.y1?`${f(r.y1.med)} · ${(r.y1.neg*100).toFixed(0)}%`:'—'}</td></tr>`}).join('')}</tbody></table></div></div>`;
-  return `<div class="note" style="margin-bottom:6px">${Z.from} ~ ${N.d} 나스닥100 매일 종가로, 200일선 위·아래와 RSI(14) 구간별로 그날 TQQQ를 샀다면 3개월(63거래일)·1년(252거래일) 뒤 어땠는지 셌습니다. TQQQ = 나스닥100 하루 움직임 × 3 − 연 1% 비용. <b>지금</b>: RSI ${N.rsi.toFixed(1)} · 200일선 ${N.up?'위':'아래'} ${f(N.dist)} (노란 줄)</div>
+  return `<div class="note" style="margin-bottom:6px">${Z.from} ~ ${N.d} 나스닥100 매일 종가로, 200일선 위·아래와 RSI(14) 구간별로 그날 TQQQ를 사서 3개월(63거래일)·1년(252거래일) 뒤 팔았다면 <b>세금 뒤</b> 어땠는지 셌습니다(양도세 22%·연 250만 원 공제·1만 달러). TQQQ = 나스닥100 하루 움직임 × 3 − 연 1% 비용. 손해 확률은 세금과 무관(세금은 이익에만 붙음). <b>지금</b>: RSI ${N.rsi.toFixed(1)} · 200일선 ${N.up?'위':'아래'} ${f(N.dist)} (노란 줄)</div>
   <div style="display:flex;gap:12px;flex-wrap:wrap">${tb(Z.rows[0],'✅ 200일선 위 (3규칙 \'보유\' 쪽)')}${tb(Z.rows[1],'⚠ 200일선 아래')}</div>
   <div class="note" style="margin-top:8px;line-height:1.7"><b>쉽게 말하면:</b> ① 200일선 위에서 <b>3개월처럼 짧게 보면 RSI가 낮을수록 좋았습니다</b>(30~35에서 사면 가운데 ${f(Z.rows[0][1].m3.med)}, 70 이상이면 ${f(Z.rows[0][6].m3.med)}). ② <b>1년으로 보면 30~70 사이는 차이가 거의 없습니다</b> — RSI는 '얼마나 버나'보다 '사고 나서 얼마나 덜 흔들리나'에 영향. ③ 가장 확실한 건 <b>RSI 70 이상(빨간 줄)에서 서두르지 않기</b> — 3개월 뒤 손해 확률 ${(Z.rows[0][6].m3.neg*100).toFixed(0)}%로 가장 높음.<br>
   <b>쓰는 법:</b> 3규칙이 '보유'일 때 RSI 70 이상이면 나눠서 천천히, 30~40대로 내려오면 더 많이. <b>주의:</b> RSI 30~35·30 미만은 날 수가 적고(몇 번의 조정 시기에 몰림) 2010년 이후 상승장 위주라 200일선 아래 결과가 좋아 보이지만, 37년 분석에서 보듯 2000·2008년 같은 붕괴장에서는 달랐습니다.</div>`},
@@ -1280,20 +1293,27 @@ let i1=-1;for(let i=W.length-1;i>=0;i--)if(W[i].d<=e){i1=i;break}if(i1<=i0)i1=Ma
   <div style="flex:1 1 300px;min-width:0"><div style="font-weight:700;margin-bottom:4px">② 매달 1,000달러씩 넣을 때 (넣은 돈 대비)</div><div class="tw"><table class="g"><thead><tr><th>기간</th><th class="n">매달 바로 사기</th><th class="n">웅덩이</th></tr></thead><tbody>
   ${r('2010-02 → 2026-10','×49.2','×47.4')}${r('1986-08 → 2026-10 (37년)','×103.8','×103.7')}${r('1986 → 1999 (상승장)','×211.6','×207.3')}${r('2000 → 2009 (하락장)','×0.69','<b>×0.71</b>',1)}</tbody></table></div></div></div>
   <div class="note" style="margin-top:8px;line-height:1.7"><b>쉽게 말하면: 웅덩이 매매법 ≈ 그냥 사기</b>입니다. 나스닥100이 20일선 아래로 내려가는 일이 거의 매달 있어서, 1만 달러를 한 번에 넣어도 <b>석 달 만에(2010-05-10) 현금이 거의 다 들어가고</b>, 매달 넣어도 쉬는 현금이 평균 2%뿐이었습니다. 그래서 상승장에선 조금 늦게 사는 만큼 <b>약간 덜 벌고</b>(−2~6%), 꼭대기에서 시작하면 <b>약간 덜 잃습니다</b>. 다만 <b>파는 규칙이 없어서</b> 2000~2002년 같은 큰 하락은 그대로 맞습니다 — 같은 37년에 200일선 규칙(파는 규칙 있음)은 ×935였습니다.<br><span style="color:#8a95a5">수수료·세금·현금 이자 0 · 배당 빠진 TQQQ 종가 기준이라 위 그래프의 '그냥 들고 있기'(배당 포함 ×322)와 조금 다름 · 2026-10-22 기준 고정 결과</span></div></div>`},
- keybox(){/* 37년(가상 TQQQ·QLD) 백테스트 순위 — rank.py, 2026-10-22 기준 고정. [이름, 1999~ 연평균, 1999~ 최대하락, 2010~ 연평균, 2010~ 최대하락, 37년 연평균, 37년 3년뒤 반토막 확률, 2000년대(2000~09) 결과 배수, 비고] */
-  const R=[['TQQQ + 📺 시스템 3규칙',22.1,-55,36.1,-55,16.9,1.9,1.64,'1위 · 수익과 손실 방어의 균형이 가장 좋음',1],
-   ['QLD + 📺 시스템 3규칙',16.0,-40,25.1,-40,13.1,1.2,1.55,'손실을 더 줄이고 싶을 때 (최대 하락 −40%)',1],
-   ['TQQQ + 200일선(±3%) + 변동성 + 과열',19.7,-62,32.4,-62,16.0,2.3,1.49,'3규칙과 비슷 · 신호가 덜 자주 바뀜',0],
-   ['TQQQ + 200일선 규칙(±3%)만',19.7,-91,29.2,-62,18.6,3.6,0.43,'37년 수익은 높지만 닷컴 때 −91%',0],
-   ['QLD 그냥 보유',11.0,-99,32.0,-64,18.0,8.6,0.05,'규칙 없으면 2000년대에 −95%',0],
-   ['TQQQ 그냥 보유',3.6,-100,41.2,-82,14.1,15.6,0.002,'2010년 뒤 1등, 37년으로는 꼴찌권',0]];
-  const pc=(x,b)=>`<span style="${b?'font-weight:700':''}">${x>0?'+':''}${x.toFixed(1)}%</span>`,md=x=>`<span class="${x<=-80?'neg':''}">${x}%</span>`;
-  return `<div class="card" style="margin:6px 0 12px;border:2px solid var(--gold,#b8892b);padding:12px 14px"><div style="font-weight:800;font-size:16px;margin-bottom:2px">🏆 지금까지 올린 규칙 검증 순위 — 목표: 수익은 최대로, 손해는 덜</div>
-  <div class="note" style="margin-bottom:8px">TQQQ가 없던 때는 나스닥100으로 만든 가상 TQQQ·QLD(실제와 매일 움직임 일치도 99.8%)로 1986년부터 계산 · 신호 다음 날 종가 체결 · 현금 이자·세금·수수료 0</div>
-  <div class="tw"><table class="g"><thead><tr><th>순위 · 방법</th><th class="n">1999년~ (27년)<br><span style="font-weight:400;font-size:.85em">연평균 · 최대 하락</span></th><th class="n">2010년~ (실제 TQQQ 시기)</th><th class="n">37년 연평균<br><span style="font-weight:400;font-size:.85em">· 3년 뒤 반토막 확률</span></th><th class="n">2000년대<br>1만 달러가</th><th>한 줄 평</th></tr></thead><tbody>
-  ${R.slice(0,3).map((r,i)=>`<tr${r[9]?' style="background:#eaf6ec"':''}><td style="white-space:normal;min-width:170px"><b>${i+1}. ${r[0]}</b></td><td class="n">${pc(r[1],r[9])} · ${md(r[2])}</td><td class="n">${pc(r[3])} · ${md(r[4])}</td><td class="n">${pc(r[5])} · ${r[6]}%</td><td class="n">$${(r[7]*1e4).toLocaleString('en-US',{maximumFractionDigits:0})}</td><td class="note" style="white-space:normal;min-width:160px">${r[8]}</td></tr>`).join('')}
-  </tbody></table></div>
-  <div class="note" style="margin-top:8px;line-height:1.7"><b>결론:</b> ① <b>사고팔기는 📺 시스템 3규칙</b>(위 판정 카드 1순위)으로 — 1999년부터 연 22%로 가장 많이 벌면서 최대 하락은 −55%로 그냥 보유(−100%)의 절반, 2000년대 하락장에도 원금을 지켰습니다. ② 손실이 더 무서우면 같은 규칙을 <b>QLD</b>로(최대 하락 −40%). ③ <b>웅덩이 매매·120일선 아래 매수·단기 회복 신호</b>는 검증해 보니 장기 성적을 거의 바꾸지 못했습니다(웅덩이 ≈ 그냥 사기) → <b>3규칙이 '보유'일 때 나눠 살 순서를 정하는 참고용</b>으로만. ④ <b>VIX·이평선 정배열/역배열</b>은 효과가 없거나 시대마다 뒤집혀 뺐습니다. ⑤ VR·무한매수는 2010년 이후만 검증됨(VR 연 39%·최대 하락 −79%, 무한매수 연 18%·−51%).<br><span style="color:#8a95a5">한계: 1987년 블랙먼데이처럼 하루에 −14% 빠지는 날은 어떤 규칙도 못 피합니다(3규칙의 37년 최대 하락 −82%는 1987년 10월 고점부터 블랙먼데이와 1990년까지의 오르내림에서 나옴). 과거 성적이 미래를 보장하지 않으며 투자 권유가 아닙니다.</span></div></div>`},
+ keybox(){/* 💸 세금 뒤 순위 (2010-02-11~, 실제 종가 · 한국 해외주식 양도세 22%·연 250만 원 공제·같은 해 손익 합산 · 1만 달러 시작 · 마지막 날 전부 판다고 가정) */
+  let rows=[];try{const {W,SW}=LT.data();const i0=W.findIndex(w=>w.d>='2010-02-11'),i1=W.length-1,P=W.slice(i0,i1+1),n=P.length,d0=P[0].d,d1=P[n-1].d;
+   const tk=(k,md,nm,note,tr)=>{let j=0;while(j<n&&!(P[j][k]>0))j++;const v=LT.tkV(P,j,k,md,W,SW,i0,i1,false);rows.push({nm,note,trades:tr,...LT.stats(v,P[j].d,d1)})};
+   const sw=SW.filter(x=>x.d>d0&&x.d<=d1).length;
+   /* TQQQ·TECL·반반은 매일 종가(전략들과 같은 날 시작), QLD는 2023-10 전 주간 종가 */
+   {const DD=LT.days().filter(x=>x.d>='2010-02-11'&&x.d<=d1),tm=new Map(LT._tcD.map((d,i)=>[d,Math.exp(LT._tcV[i]/1000)])),DC=DD.filter(x=>tm.has(x.d));
+    const t0=DD[0].t,v1=LT.taxHold(DD.map(x=>x.t/t0));rows.push({nm:'TQQQ 그냥 보유',note:'사고팔지 않아 세금은 마지막에 한 번',trades:0,...LT.stats(v1,DD[0].d,DD[DD.length-1].d)});
+    const c0=tm.get(DC[0].d),v2=LT.taxHold(DC.map(x=>tm.get(x.d)/c0));rows.push({nm:'TECL 그냥 보유',note:'',trades:0,...LT.stats(v2,DC[0].d,DC[DC.length-1].d)});
+    const tq0=DC[0].t,v3=LT.taxHold(DC.map(x=>0.5*x.t/tq0+0.5*tm.get(x.d)/c0));rows.push({nm:'TQQQ 50 + TECL 50 그냥 보유',note:'비율 다시 맞추지 않음',trades:0,...LT.stats(v3,DC[0].d,DC[DC.length-1].d)})}
+   tk('q','hold','QLD(2배) 그냥 보유','',0);
+   tk('t','rule','TQQQ + 200일선 규칙(±3%)','',sw);tk('q','rule','QLD + 200일선 규칙(±3%)','',sw);
+   const B=LT.bt(i0,i1);if(B){const st=(k,nm,note,tr)=>rows.push({nm,note,trades:tr,...LT.stats(B[k].vd,B.from,B.to)});
+    st('sys','TQQQ + 📺 시스템 3규칙','최대 하락은 가장 작음',B.sys.trades);st('pud','TQQQ 웅덩이 매매','',0);st('m120','TQQQ 120일선 아래 매수','',0);st('vr','TQQQ VR 실력공식','',B.vr.trades);st('imb','TQQQ 무한매수 V4','',B.imb.trades)}}catch(e){rows=[]}
+  rows.sort((a,b)=>b.end-a.end);const f=x=>(x>=0?'+':'')+(x*100).toFixed(1)+'%',mx=x=>x>=100?Math.round(x).toLocaleString()+'배':x.toFixed(1)+'배';
+  const tr=(r,i)=>`<tr${i<3?' style="background:#eaf6ec"':''}><td style="white-space:normal;min-width:170px"><b>${i+1}. ${r.nm}</b></td><td class="n"><b>${mx(r.end)}</b><br><span class="note">${LT.won(r.end)}</span></td><td class="n">${r.cagr!=null?f(r.cagr):'—'}</td><td class="n"><span class="${r.mdd<=-0.8?'neg':''}">${(r.mdd*100).toFixed(0)}%</span></td><td class="n">${r.trades?r.trades+'번':'—'}</td><td class="note" style="white-space:normal">${r.note}</td></tr>`;
+  const head=`<thead><tr><th>순위 · 방법</th><th class="n">세금 뒤<br>1만 달러가</th><th class="n">세금 뒤<br>연평균</th><th class="n">최대 하락<br><span style="font-weight:400;font-size:.85em">(그날 다 팔면)</span></th><th class="n">비중 바꾼 날</th><th>한 줄 평</th></tr></thead>`;
+  return `<div class="card" style="margin:6px 0 12px;border:2px solid var(--gold,#b8892b);padding:12px 14px"><div style="font-weight:800;font-size:16px;margin-bottom:2px">🏆 세금 뒤 순위 — 2010년부터 1만 달러, 다 팔고 세금 낸 뒤 손에 쥐는 돈</div>
+  <div class="note" style="margin-bottom:8px">실제 종가(분배금 반영) · 한국 해외주식 양도소득세 22%(지방세 포함), 연 250만 원 공제, 같은 해 이익·손실 합산 · 사고팔 때마다 그해 이익에 세금 → 다음 해 1월에 내고, 마지막 날 전부 팔아 남은 세금까지 냄 · 환율은 지금 값 고정 · 수수료·환전비 0</div>
+  <div class="tw"><table class="g">${head}<tbody>${rows.slice(0,3).map(tr).join('')}</tbody></table></div>
+  <details style="margin-top:6px"><summary class="note" style="cursor:pointer">나머지 ${Math.max(0,rows.length-3)}개 방법 보기</summary><div class="tw" style="margin-top:6px"><table class="g">${head}<tbody>${rows.slice(3).map((r,i)=>tr(r,i+3)).join('')}</tbody></table></div></details>
+  <div class="note" style="margin-top:8px;line-height:1.7"><b>결론:</b> 일반 계좌에서는 <b>사고팔지 않고 그냥 들고 있는 쪽이 세금 뒤 가장 많이 남았습니다</b> — 세금을 마지막에 한 번만 내니 그동안 낼 세금까지 불어나기 때문입니다. 자주 사고파는 방법(3규칙·VR·무한매수)은 이익이 날 때마다 그해 세금이 나가 복리가 깎였습니다. 3규칙은 최대 하락을 줄이는 '보험'으로만 보세요.<br><span style="font-size:.95em">※ 예전 37년(가상 TQQQ) 순위는 세금을 넣어 다시 계산할 수 없어서 뺐습니다. 과거 결과는 미래를 보장하지 않으며 투자 권유가 아닙니다.</span></div></div>`},
  epbox(){const E=LT_EP,t=E.reduce((a,r)=>a+r[2],0),l=E.reduce((a,r)=>a+r[6],0),re=E.filter(r=>r[0]>='2010'),pre=E.filter(r=>r[0]<'2010');
   const rows=E.map(r=>{const bad=r[6]>r[2]/2,ok=r[6]===0;return `<tr style="${bad?'background:#fdecea':r[0]>='2010'?'background:#eef4fc':''}"><td style="white-space:nowrap"><b>${r[0].slice(0,7)}</b>${r[1].slice(0,7)!==r[0].slice(0,7)?' ~ '+r[1].slice(0,7):''}${r[0]>='2010'?' <span class="pill" style="font-size:11px">실제 TQQQ</span>':''}</td><td class="n">${r[2]}일</td><td style="white-space:normal;min-width:170px" class="note">${r[7]}</td><td>${r[8]}</td><td class="n"><b class="${r[3]<1?'neg':'pos'}">×${r[3].toFixed(2)}</b><br><span class="note">×${r[4].toFixed(2)} ~ ×${r[5].toFixed(2)}</span></td><td class="n"><b class="${bad?'neg':ok?'pos':''}">${r[6]}일</b>${r[6]?` <span class="note">(${(r[6]/r[2]*100).toFixed(0)}%)</span>`:''}</td></tr>`}).join('');
   const up=n=>((1-Math.pow(0.05,1/n))*100).toFixed(0);
@@ -1334,15 +1354,15 @@ let i1=-1;for(let i=W.length-1;i>=0;i--)if(W[i].d<=e){i1=i;break}if(i1<=i0)i1=Ma
   <b>③ 가장 위험한 조합: 나스닥100이 200일 평균보다 +10% 넘게 위 + TQQQ 정배열 → 3년 뒤 손해 ${pc(M.X[2][1][2])}</b>(${M.X[2][1][0]}일). 같은 +10% 위라도 혼조면 ${pc(M.X[2][2][2])}였습니다. '추세가 너무 좋아 보일 때'가 3배짜리엔 가장 비싼 때였습니다.<br>
   <b>④ 단, 기간에 따라 답이 바뀝니다.</b> 6개월만 보면 역배열에서 산 날의 <b>${pc(M.H[2][2][1])}</b>가 손해로 셋 중 가장 나빴고, 정배열은 ${pc(M.H[0][2][1])}로 가장 덜 손해였습니다. 즉 <b>정배열은 '몇 달 단위'로는 조금 유리하지만, 3년 단위로는 불리</b>합니다. 역배열에서 사면 몇 달은 더 빠지는 걸 견뎌야 하고(그래서 무섭고), 그걸 버티면 3년 뒤 결과가 가장 좋았습니다. 무한매수처럼 '빠질 때 나눠 사는' 방법이 이 성질을 이용합니다.<br>
   <span style="color:#8a95a5">계산: TQQQ 매일 종가로 20·60·120·200일 단순 이동평균, 200일선 기울기는 오늘 vs 20거래일 전. ⚠ 역배열은 110일(4개 해)뿐이고, 3년 뒤 손해였던 날은 모두 2019-11 ~ 2022-04 한 시기에 시작해서(2010~16년 시작은 어느 모양이든 손해 0%), 이 결과는 '그 한 번의 큰 하락장'에 많이 기대고 있습니다. 경향으로만 보세요.</span></div></div>`},
- r3tog(){const b=(v,l)=>`<button class="btn sm ${(LT.r3v||'real')===v?'':'light'}" data-act="lt:r3v:${v}">${l}</button>`;return `<div class="noprint" style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px">${b('real','실제 TQQQ (2010~)')}${b('long','나스닥100 전체 37년 (1986~, 가상 포함)')}</div>`},
+ r3tog(){return '';const b=(v,l)=>`<button class="btn sm ${(LT.r3v||'real')===v?'':'light'}" data-act="lt:r3v:${v}">${l}</button>`;return `<div class="noprint" style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px">${b('real','실제 TQQQ (2010~)')}${b('long','나스닥100 전체 37년 (1986~, 가상 포함)')}</div>`},
  r3boxL(){const L=LT_R3L,pc=x=>(x>=1?'+':'−')+Math.abs((x-1)*100).toFixed(x<0.01?2:0)+'%',cg=x=>((Math.pow(x,1/3)-1)*100).toFixed(1)+'%';
   const card=(ic,t,r,col,why)=>`<div style="flex:1 1 260px;border:1px solid var(--line,#dfe4ea);border-top:4px solid ${col};border-radius:10px;padding:10px 12px;background:#fff"><div style="font-weight:700">${ic} ${t}</div><div style="font-size:13px;color:#54627a;margin:2px 0 6px">${r[0]} 산 → ${r[1]} 판 (딱 3년)</div><div style="font-size:22px;font-weight:800;color:${col}">${pc(r[2])} <span style="font-size:14px;font-weight:600;color:#17202e">$1만 → ${LT.money(r[2])} · ${LT.won(r[2])}</span></div><div class="note" style="margin:4px 0 0">1년에 평균 ${cg(r[2])}씩 · ${why}</div></div>`;
   return `<div class="bub" style="margin:10px 0 12px;background:var(--soft)"><div style="font-weight:700;margin-bottom:6px">🔎 TQQQ를 딱 3년 들고 있었다면 — 1986-08부터 <b>${L.n.toLocaleString()}개 시작일</b>을 하나하나 다 따져 본 결과 (2010-02 전은 가상 TQQQ)</div>${LT.r3tog()}
    <div style="display:flex;gap:10px;flex-wrap:wrap">${card('🏆','가장 좋았던 3년',L.best,'#1a7f37','닷컴 버블이 부풀던 3년 — 1997년 봄에 사서 2000년 3월 거품 꼭대기 무렵에 판 셈 — 같은 3년 나스닥100은 +485%')}${card('📉','가장 나빴던 3년',L.worst,'#c62828','닷컴 거품 꼭대기 바로 그 주에 사서 2003년 3월 이라크전 직전 약세장에서 판 셈 — 같은 3년 나스닥100은 −79%, 3배짜리는 사실상 전부 사라짐')}</div>
    <div class="note" style="margin-top:8px;line-height:1.6">쉽게 말하면: 3년 들고 있었을 때 <b>가운데 성적은 ${pc(L.med)}</b>(×${L.med.toFixed(1)})이고, 3년 뒤 손해였던 시작일은 <b>${L.n.toLocaleString()}번 중 ${L.neg.toLocaleString()}번(${(L.neg/L.n*100).toFixed(1)}%)</b>, 반토막 이하는 <b>${L.l50.toLocaleString()}번(${(L.l50/L.n*100).toFixed(1)}%)</b>, 10배 이상은 ${L.x10}번(${(L.x10/L.n*100).toFixed(1)}%)이었습니다. 실제 TQQQ 시기(2010~)만 보면 손해 4.0% · 반토막 0번이었으니, <b>2010년 이후는 3배짜리에게 유난히 좋았던 시기</b>였다는 뜻입니다. 최고와 최악이 같은 거품(2000년 3월)을 사이에 두고 붙어 있는 것도 눈여겨볼 점 — <b>가장 크게 버는 자리 바로 옆이 가장 크게 잃는 자리</b>였습니다.<br>계산: 나스닥100 매일 종가로 만든 가상 TQQQ(하루 변동×3 + 배당 − 보수 0.95% − 빌린 돈 이자, 2010~2026년 실제 TQQQ와 매일 움직임 일치도 99.8%, 아래 🕰️ 상자). 그래프는 실제 TQQQ가 있는 2010년부터만 그려서 '이 3년 보기' 버튼은 없습니다. 1987년 블랙먼데이 같은 날은 실제 3배 상품이었다면 더 깨졌을 수도 있습니다.</div></div>`},
- r3box(){if(LT.r3v==='long')return LT.r3boxL();const R=LT.roll3(),pc=x=>(x>=1?'+':'−')+Math.abs((x-1)*100).toFixed(0)+'%',cg=x=>((Math.pow(x,1/3)-1)*100).toFixed(1)+'%';
+ r3box(){const R=LT.roll3(),pc=x=>(x>=1?'+':'−')+Math.abs((x-1)*100).toFixed(0)+'%',cg=x=>((Math.pow(x,1/3)-1)*100).toFixed(1)+'%';
   const card=(k,ic,t,r,col,why)=>`<div style="flex:1 1 260px;border:1px solid var(--line,#dfe4ea);border-top:4px solid ${col};border-radius:10px;padding:10px 12px;background:#fff"><div style="font-weight:700">${ic} ${t}</div><div style="font-size:13px;color:#54627a;margin:2px 0 6px">${r.s} 산 → ${r.e} 판 (딱 3년)</div><div style="font-size:22px;font-weight:800;color:${col}">${pc(r.x)} <span style="font-size:14px;font-weight:600;color:#17202e">$1만 → ${LT.money(r.x)} · ${LT.won(r.x)}</span></div><div class="note" style="margin:4px 0 8px">1년에 평균 ${cg(r.x)}씩 · ${why}</div><button class="btn sm ${LT.p===k?'':'light'}" data-act="lt:p:${k}">그래프·성적표로 이 3년 보기 →</button></div>`;
-  return `<div class="bub" style="margin:10px 0 12px;background:var(--soft)"><div style="font-weight:700;margin-bottom:6px">🔎 TQQQ를 딱 3년 들고 있었다면 — 2010-02-11부터 <b>${R.n.toLocaleString()}개 시작일</b>을 하나하나 다 따져 본 결과</div>
+  return `<div class="bub" style="margin:10px 0 12px;background:var(--soft)"><div style="font-weight:700;margin-bottom:6px">🔎 TQQQ를 딱 3년 들고 있다가 팔았다면 (💸 세금 뒤) — 2010-02-11부터 <b>${R.n.toLocaleString()}개 시작일</b>을 하나하나 다 따져 본 결과</div>
    ${LT.r3tog()}<div style="display:flex;gap:10px;flex-wrap:wrap">${card('b3','🏆','가장 좋았던 3년',R.best,'#1a7f37','2018년 말 급락 바닥에서 사서 2021년 말 꼭대기에서 판 셈 — 코로나 뒤 돈풀기 장')}${card('w3','📉','가장 나빴던 3년',R.worst,'#c62828','2022년 하락장 한가운데서 사서 2025년 관세 급락 바닥에서 판 셈 — 같은 3년 QLD(2배)는 거의 본전이었는데 TQQQ(3배)는 크게 손해: 오르내림이 클수록 3배짜리가 더 깎이는 ‘변동성 손실’')}</div>${(()=>{let C;try{C=LT.roll3c()}catch(e){return ''}const H=C.h2h,ys=Object.keys(H.by).sort();
    return `<div style="font-weight:700;margin:12px 0 6px">🔎 TECL도 똑같이 — ${C.from}부터 <b>${C.n.toLocaleString()}개 시작일</b></div><div style="display:flex;gap:10px;flex-wrap:wrap">${card('b3','🏆','TECL 가장 좋았던 3년',C.best,'#1a7f37','TQQQ 최고 3년과 <b>같은 기간</b> — 같은 기간 TQQQ는 '+pc(R.best.x)+', TECL은 반도체·애플·MS 몰빵이라 더 올랐음')}${card('w3','📉','TECL 가장 나빴던 3년',C.worst,'#c62828','이것도 TQQQ 최악 3년과 <b>같은 기간</b> — 같은 기간 TQQQ는 '+pc(R.worst.x)+' · 둘이 결국 같은 파도를 탄다는 뜻')}</div>
    <div class="note" style="margin-top:6px;line-height:1.6">TECL 3년 가운데 성적 <b>${pc(C.med.x)}</b>(×${C.med.x.toFixed(1)}) · 3년 뒤 손해 ${C.neg}번(${(C.neg/C.n*100).toFixed(1)}%) · 반토막 이하 ${C.lose50}번 · 10배 이상 ${C.x10}번<br>
@@ -1364,17 +1384,17 @@ let i1=-1;for(let i=W.length-1;i>=0;i--)if(W[i].d<=e){i1=i;break}if(i1<=i0)i1=Ma
    if(dist>0.01)tr=1;else if(dist<0)tr=0;if(vol>0.30)vo=0;else if(vol<0.20)vo=1;if(dist>0.15)ht=1;else if(dist<=0.075)ht=0;pos[i]=tr&&vo?(ht?0.5:1):0;info[i]={d:X.D[i],dist,vol,tr,vo,ht,pos:pos[i]}}
   LT._syk=LT._nxk;LT._syn=n;return LT._sy={pos,info,ix:X.ix}},
  sysNow(){const Y=LT.sys();for(let i=Y.info.length-1;i>=0;i--)if(Y.info[i])return Y.info[i];return null},
- sysRun(DD,a,b){const Y=LT.sys(),pz=d=>{const i=Y.ix.get(d);return i!=null&&Y.pos[i]!=null?Y.pos[i]:null};let w0=pz(DD[a].d);if(w0==null)w0=0;let sh=w0/DD[a].t,cash=1-w0,tgt=w0,prev=w0,tr=0;const v=[];
-  for(let k=a;k<=b;k++){const p=DD[k].t;if(k>a&&prev!=null&&prev!==tgt){const eq=cash+sh*p;sh=eq*prev/p;cash=eq-sh*p;tgt=prev;tr++}const z=pz(DD[k].d);if(z!=null)prev=z;v.push(cash+sh*p)}
-  return {vd:v,trades:tr,w:tgt}},
+ sysRun(DD,a,b){const Y=LT.sys(),pz=d=>{const i=Y.ix.get(d);return i!=null&&Y.pos[i]!=null?Y.pos[i]:null};let w0=pz(DD[a].d);if(w0==null)w0=0;let sh=w0/DD[a].t,cash=1-w0,tgt=w0,prev=w0,tr=0;const v=[],qd=[];
+  for(let k=a;k<=b;k++){const p=DD[k].t;if(k>a&&prev!=null&&prev!==tgt){const eq=cash+sh*p;sh=eq*prev/p;cash=eq-sh*p;tgt=prev;tr++}const z=pz(DD[k].d);if(z!=null)prev=z;v.push(cash+sh*p);qd.push(sh)}
+  return {vd:v,qd,trades:tr,w:tgt}},
  /* TQQQ 120일선 매수 신호: TQQQ 종가가 자기 120일 평균 아래면 '매수 신호' */
  m120Now(){const DD=LT.days(),i=DD.length-1;if(i<119)return null;let t=0;for(let k=i-119;k<=i;k++)t+=DD[k].t;const m=t/120;let run=0;for(let k=i;k>=119;k--){let u=0;for(let q=k-119;q<=k;q++)u+=DD[q].t;if(DD[k].t<u/120)run++;else break}return {d:DD[i].d,p:DD[i].t,m,dist:DD[i].t/m-1,on:DD[i].t<m,run}},
  /* 비교용: 1만 달러를 현금으로 들고 있다가 TQQQ가 처음 120일선 아래로 내려간 날 종가에 전부 사서 계속 보유 */
- m120Run(DD,a,b){const cs=[0];for(let k=0;k<=b;k++)cs.push(cs[k]+DD[k].t);let q=0,cash=1,when=null;const v=[];for(let k=a;k<=b;k++){const p=DD[k].t;if(!when&&k>=119&&p<(cs[k+1]-cs[k-119])/120){q=cash/p;cash=0;when=DD[k].d}v.push(cash+q*p)}return {vd:v,when}},
- pudRun(DD,a,b){const X=LT.nx(),ma=(i,k)=>i+1>=k?(X.cs[i+1]-X.cs[i+1-k])/k:null,LV=[[20,.2,2],[60,.5,3],[120,.5,5]];let cash=1,q=0,arm=[1,1,1],Q=[],full=null;const v=[];
+ m120Run(DD,a,b){const cs=[0];for(let k=0;k<=b;k++)cs.push(cs[k]+DD[k].t);let q=0,cash=1,when=null;const v=[],qd=[];for(let k=a;k<=b;k++){const p=DD[k].t;if(!when&&k>=119&&p<(cs[k+1]-cs[k-119])/120){q=cash/p;cash=0;when=DD[k].d}v.push(cash+q*p);qd.push(q)}return {vd:v,qd,when}},
+ pudRun(DD,a,b){const X=LT.nx(),ma=(i,k)=>i+1>=k?(X.cs[i+1]-X.cs[i+1-k])/k:null,LV=[[20,.2,2],[60,.5,3],[120,.5,5]];let cash=1,q=0,arm=[1,1,1],Q=[],full=null;const v=[],qd=[];
   for(let k=a;k<=b;k++){const p=DD[k].t,i=X.ix.get(DD[k].d);if(i!=null)LV.forEach(([m,f,nd],L)=>{const M=ma(i,m);if(M==null)return;const below=X.V[i]<M;if(below&&arm[L]){Q.push([cash*f,nd]);arm[L]=0}else if(!below)arm[L]=1});
-   let sp=0;Q=Q.map(([x,n])=>{const y=x/n;sp+=y;return [x-y,n-1]}).filter(z=>z[1]>0);sp=Math.min(sp,cash);q+=sp/p;cash-=sp;if(full==null&&cash<0.05)full=DD[k].d;v.push(cash+q*p)}
-  return {vd:v,full,cashEnd:cash/(cash+q*DD[b].t)}},
+   let sp=0;Q=Q.map(([x,n])=>{const y=x/n;sp+=y;return [x-y,n-1]}).filter(z=>z[1]>0);sp=Math.min(sp,cash);q+=sp/p;cash-=sp;if(full==null&&cash<0.05)full=DD[k].d;v.push(cash+q*p);qd.push(q)}
+  return {vd:v,qd,full,cashEnd:cash/(cash+q*DD[b].t)}},
  bt(i0,i1,da,db){const {W}=LT.data();const DD=LT.days();const dm=da!=null,key=dm?'d'+da+'-'+db:i0+'-'+i1;if(LT._bt[key])return LT._bt[key];
   const a=dm?da:DD.findIndex(x=>x.d>=W[i0].d);if(a<0)return null;let b=dm?db:a;if(!dm)while(b+1<DD.length&&DD[b+1].d<=W[i1].d)b++;
   const P=DD.slice(a,b+1).map(x=>x.t),n=P.length,C0=LT.BT_C0;if(n<2)return null;
@@ -1382,7 +1402,7 @@ let i1=-1;for(let i=W.length-1;i>=0;i--)if(W[i].d<=e){i1=i;break}if(i1<=i0)i1=Ma
   const ist={ticker:'TQQQ',N:40,seed:C0,bigPct:12,extra:5};
   const prev5=[];for(let k=5;k>=1;k--){const x=DD[a-k];prev5.push(x?x.t:null)}
   let c={mode:'normal',T:0,cash:C0,qty:0,avg:0,prevClose:P[0],last5:prev5.slice(1).concat([P[0]]),revDay:0,cycle:1,realized:0};
-  const iv=[1];let itr=0,icy=0,irev=0;
+  const iv=[1],iq=[0];let itr=0,icy=0,irev=0;
   for(let k=1;k<n;k++){const cl=P[k],o=IMB.orders(ist,c);
    let bq=0,ba=0;const main=o.buys.filter(b=>!b.aux);let mf=0;
    for(const b of o.buys.slice().sort((a,b)=>b.price-a.price)){if(cl<=b.price+1e-9){const cost=b.qty*cl;if(ba+cost>c.cash+1e-6)continue;bq+=b.qty;ba+=cost;if(!b.aux)mf++}}
@@ -1390,11 +1410,11 @@ let i1=-1;for(let i=W.length-1;i>=0;i--)if(W[i].d<=e){i1=i;break}if(i1<=i0)i1=Ma
    for(const s of o.sells){if(sq+s.qty>c.qty)continue;const hit=s.k==='MOC'||(s.k==='LOC'&&cl>=s.price-1e-9)||(s.k==='LIM'&&cl>=s.price-1e-9);if(!hit)continue;const px=s.k==='LIM'?s.price:cl;sq+=s.qty;sa+=s.qty*px;if(s.k==='LIM')lf=true;else qf=true}
    const buyEv=!main.length||!mf?'none':mf===main.length?'full':'half',sellEv=qf&&lf?'all':lf?'limit':qf?'quarter':'none';
    if(c.mode==='reverse')irev++;
-   const r=IMB.apply(ist,c,{bq,ba:Math.round(ba*100)/100,sq,sa:Math.round(sa*100)/100,close:cl,buyEv,sellEv});if(bq||sq)itr++;if(r.n.cycle!==c.cycle)icy++;c=r.n;iv.push((c.cash+c.qty*cl)/C0)}
+   const r=IMB.apply(ist,c,{bq,ba:Math.round(ba*100)/100,sq,sa:Math.round(sa*100)/100,close:cl,buyEv,sellEv});if(bq||sq)itr++;if(r.n.cycle!==c.cycle)icy++;c=r.n;iv.push((c.cash+c.qty*cl)/C0);iq.push(c.qty/C0)}
   /* ② VR 실력공식 · 거치식 (G 10, 밴드 ±15%, Pool 한도 50%, 시작 현금 13% — 3년 예측과 같은 설정), 10거래일마다 마감 */
   const vst={ticker:'TQQQ',type:'lump',G:10,band:15,formula:'pro',C:0,W:0,lim:{...LIM}};
   let qty=Math.floor(C0*0.87/P[0]),pool=C0-qty*P[0],V=qty*P[0]+pool/vst.G;
-  const vv=[1];let vtr=0,vcy=0,cs=0,L,bl,sl,bk,sk,bq=0,ba=0,sq=0,sa=0,q0=qty,cash=pool,minCash=1;
+  const vv=[1],vq=[qty/C0];let vtr=0,vcy=0,cs=0,L,bl,sl,bk,sk,bq=0,ba=0,sq=0,sa=0,q0=qty,cash=pool,minCash=1;
   const lines=()=>{L=VR.ladder(vst,{V,pool,qty});bl=[];L.buy.forEach(g=>{if(!g.over)for(let j=0;j<g.n;j++)bl.push(g.p)});sl=[];L.sell.forEach(g=>{for(let j=0;j<g.n;j++)sl.push(g.p)});bk=0;sk=0;bq=ba=sq=sa=0;q0=qty;cash=pool};
   lines();
   for(let k=1;k<n;k++){const cl=P[k];const t0=bq+sq;
@@ -1403,12 +1423,13 @@ let i1=-1;for(let i=W.length-1;i>=0;i--)if(W[i].d<=e){i1=i;break}if(i1<=i0)i1=Ma
    if(bq+sq>t0)vtr++;
    const hold=q0+bq-sq,tot=cash+hold*cl;minCash=Math.min(minCash,cash/tot);
    if(k-cs>=10){const r=VR.next(vst,{V,pool,qty:q0},{bq,ba:Math.round(ba*100)/100,sq,sa:Math.round(sa*100)/100,close:cl});V=r.V;pool=r.pool;qty=r.qty;cs=k;vcy++;lines()}
-   vv.push(tot/C0)}
+   vv.push(tot/C0);vq.push(hold/C0)}
   /* 고른 기간이 TQQQ 상장(2010-02-11) 전부터면: 그 전까지는 가상 TQQQ를 그냥 들고 있다가 상장일부터 전략을 쓴 것으로 이어 붙임 (그래야 같은 출발점에서 비교됨) */
   let kS=i0;while(kS<i1&&W[kS].d<DD[a].d)kS++;const s0=kS>i0&&W[i0].t>0?W[kS].t/W[i0].t:1;
   const map=v=>{if(dm)return v;const o=[];let q=0;for(let i=i0;i<=i1;i++){if(i<kS){o.push(W[i].t/W[i0].t);continue}while(q+1<n&&DD[a+q+1].d<=W[i].d)q++;o.push(v[q]*s0)}return o};
   const PU=LT.pudRun(DD,a,b),SY=LT.sysRun(DD,a,b),M1=LT.m120Run(DD,a,b);
-  const res={pre:kS>i0,d0:W[i0].d,from:DD[a].d,to:DD[b].d,days:n,m120:{v:map(M1.vd),vd:M1.vd,when:M1.when},sys:{v:map(SY.vd),vd:SY.vd,trades:SY.trades,w:SY.w},pud:{v:map(PU.vd),vd:PU.vd,full:PU.full,cashEnd:PU.cashEnd},imb:{v:map(iv),vd:iv,trades:itr,cycles:icy,rev:irev,end:c},vr:{v:map(vv),vd:vv,trades:vtr,cycles:vcy,minCash,cashEnd:cash/(cash+(q0+bq-sq)*P[n-1])}};
+  const dsd=DD.slice(a,b+1).map(x=>x.d),TX=(vd,q)=>LT.taxify(dsd,P,q,vd);M1.vd=TX(M1.vd,M1.qd);SY.vd=TX(SY.vd,SY.qd);PU.vd=TX(PU.vd,PU.qd);const ivt=TX(iv,iq),vvt=TX(vv,vq);
+  const res={pre:kS>i0,d0:W[i0].d,from:DD[a].d,to:DD[b].d,days:n,m120:{v:map(M1.vd),vd:M1.vd,when:M1.when},sys:{v:map(SY.vd),vd:SY.vd,trades:SY.trades,w:SY.w},pud:{v:map(PU.vd),vd:PU.vd,full:PU.full,cashEnd:PU.cashEnd},imb:{v:map(ivt),vd:ivt,trades:itr,cycles:icy,rev:irev,end:c},vr:{v:map(vvt),vd:vvt,trades:vtr,cycles:vcy,minCash,cashEnd:cash/(cash+(q0+bq-sq)*P[n-1])}};
   LT._bt[key]=res;return res},
  fx(){return S.fx&&S.fx.r>0?S.fx:LT_FX},
  won(v){const m=v*10000*LT.fx().r;if(m>=1e8){const e=m/1e8;return (e>=100?Math.round(e).toLocaleString('ko-KR'):e.toFixed(1).replace(/\.0$/,''))+'억원'}if(m<1e4)return Math.round(m).toLocaleString('ko-KR')+'원';return Math.round(m/1e4).toLocaleString('ko-KR')+'만원'},
@@ -1425,7 +1446,7 @@ let i1=-1;for(let i=W.length-1;i>=0;i--)if(W[i].d<=e){i1=i;break}if(i1<=i0)i1=Ma
   let S=[];const TK=Object.fromEntries(LT_TK.map(x=>[x.k,x]));
   /* 종목이 기간 중간에 상장했으면 그날부터 1만 달러로 시작 (앞은 빈 칸) */
   const add=(key,mode)=>{if(mode==='rule'&&TK[key].re)return;let j=0;while(j<n&&!(P[j][key]>0))j++;if(j>=n-1)return;const tk=TK[key];let v;
-   if(mode==='hold'){const b=P[j][key];v=P.map((w,i)=>i<j?null:w[key]/b)}else{const c=LT.curve(W,SW,i0+j,i1,key);v=P.map((w,i)=>i<j?null:c[i-j])}
+   {const c=LT.tkV(P,j,key,mode,W,SW,i0,i1,tk.re);v=P.map((w,i)=>i<j?null:c[i-j])}
    S.push({key,name:tk.nm,col:tk.col,mode,v,j})};
   const B=LT.bt(i0,i1);
   if(LT.m==='lao'){add('t','hold');add('t','rule');if(B){S.push({key:'t',name:'TQQQ',col:LT_SCOL.vr,mode:'vr',v:B.vr.v,j:0});S.push({key:'t',name:'TQQQ',col:LT_SCOL.imb,mode:'imb',v:B.imb.v,j:0})}}
@@ -1458,7 +1479,7 @@ let i1=-1;for(let i=W.length-1;i>=0;i--)if(W[i].d<=e){i1=i;break}if(i1<=i0)i1=Ma
   // 선택 구간 성적표 (항상 네 가지 모두)
   const all=[];{const keys=LT.m==='lao'?['t']:LT.sel;const mds=LT.m==='hold'?['hold']:LT.m==='rule'?['rule']:['hold','rule'];
    LT_TK.filter(x=>keys.includes(x.k)).forEach(x=>{let j=0;while(j<n&&!(P[j][x.k]>0))j++;if(j>=n-1){all.push({nm:x.nm,sym:x.sym,col:x.col,md:'hold',na:true});return}
-    mds.filter(md=>!(x.re&&md==='rule')).forEach(md=>{const v=md==='hold'?P.slice(j).map(w=>w[x.k]/P[j][x.k]):LT.curve(W,SW,i0+j,i1,x.k);all.push({nm:x.nm,sym:x.sym,col:x.col,re:x.re,md,from:j>0?P[j].d:null,...LT.stats(v,P[j].d,P[n-1].d)})})})}
+    mds.filter(md=>!(x.re&&md==='rule')).forEach(md=>{const v=LT.tkV(P,j,x.k,md,W,SW,i0,i1,x.re);all.push({nm:x.nm,sym:x.sym,col:x.col,re:x.re,md,from:j>0?P[j].d:null,...LT.stats(v,P[j].d,P[n-1].d)})})})}
   const stOn=k=>LT.m==='lao'||LT.st.includes(k);if(B&&stOn('vr'))all.push({nm:'TQQQ',sym:'',col:LT_SCOL.vr,md:'vr',...(B.pre?LT.stats(B.vr.v,B.d0,B.to):LT.stats(B.vr.vd,B.from,B.to)),info:`2주 마감 ${B.vr.cycles}번 · 사고판 날 ${B.vr.trades}일 · 끝날 현금 ${Math.round(B.vr.cashEnd*100)}%`});if(B&&stOn('imb'))all.push({nm:'TQQQ',sym:'',col:LT_SCOL.imb,md:'imb',...(B.pre?LT.stats(B.imb.v,B.d0,B.to):LT.stats(B.imb.vd,B.from,B.to)),info:`사이클 끝 ${B.imb.cycles}번 · 사고판 날 ${B.imb.trades}일 · 리버스 ${B.imb.rev}일 · 끝날 T ${(+B.imb.end.T).toFixed(1)}`});if(B&&stOn('pud'))all.push({nm:'TQQQ',sym:'',col:LT_SCOL.pud,md:'pud',...(B.pre?LT.stats(B.pud.v,B.d0,B.to):LT.stats(B.pud.vd,B.from,B.to)),info:`20·60·120일선 아래로 빠질 때 나눠 사기 · 현금 다 들어간 날 ${B.pud.full||'—'} · 끝날 현금 ${Math.round(B.pud.cashEnd*100)}%`});if(B&&stOn('sys'))all.push({nm:'TQQQ',sym:'',col:LT_SCOL.sys,md:'sys',...(B.pre?LT.stats(B.sys.v,B.d0,B.to):LT.stats(B.sys.vd,B.from,B.to)),info:`추세(200일선)·변동성(20일)·과열(+15%) 3규칙 · 비중 바꾼 날 ${B.sys.trades}번 · 끝날 비중 ${Math.round(B.sys.w*100)}%`});if(B&&stOn('m120'))all.push({nm:'TQQQ',sym:'',col:LT_SCOL.m120,md:'m120',...(B.pre?LT.stats(B.m120.v,B.d0,B.to):LT.stats(B.m120.vd,B.from,B.to)),info:`현금으로 기다리다 TQQQ가 120일선 아래로 처음 내려간 날(${B.m120.when||'이 기간엔 없음'}) 전부 사서 보유`})
   const trades=SW.filter(x=>x.d>P[0].d&&x.d<=P[n-1].d).length;const res=P[0].d>=D0?'일간 종가':P[n-1].d<D0?'주간 종가':'주간(2023-10 이전)+일간 종가';
   const pc=x=>(x>=0?'+':'−')+Math.abs(x*100).toFixed(1)+'%';
@@ -1523,13 +1544,13 @@ let i1=-1;for(let i=W.length-1;i>=0;i--)if(W[i].d<=e){i1=i;break}if(i1<=i0)i1=Ma
    <p class="note" style="margin:4px 0 0">${esc(T.label)} · 규칙 매매 ${T.trades}번 · 주식을 들고 있던 시간 ${T.inMkt}%${k==='A'?' · TQQQ* = 2010년 2월 이전은 가상 TQQQ':''}</p>`},
  /* 처음 열 때: 이 기간 금액 상위 3개(종목·전략 통틀어)만 켜 둠 — 종목 단추를 누르면 바로 더하거나 뺌 */
  initTop3(){if(LT._top3)return;LT._top3=1;try{const {W}=LT.data();const [i0,i1]=LT.range(W);const c=[];
-   LT_TKV().forEach(x=>{let j=i0;while(j<i1&&!(W[j][x.k]>0))j++;if(j<i1&&W[i1][x.k]>0)c.push({t:'k',k:x.k,v:W[i1][x.k]/W[j][x.k]})});
+   LT_TKV().forEach(x=>{let j=i0;while(j<i1&&!(W[j][x.k]>0))j++;if(j<i1&&W[i1][x.k]>0){const r=W[i1][x.k]/W[j][x.k];c.push({t:'k',k:x.k,v:x.re?r:LT.taxHold([r])[0]})}});
    const B=LT.bt(i0,i1);if(B){c.push({t:'s',k:'vr',v:B.vr.v[B.vr.v.length-1]});c.push({t:'s',k:'imb',v:B.imb.v[B.imb.v.length-1]});c.push({t:'s',k:'pud',v:B.pud.v[B.pud.v.length-1]});c.push({t:'s',k:'sys',v:B.sys.v[B.sys.v.length-1]});c.push({t:'s',k:'m120',v:B.m120.v[B.m120.v.length-1]})}
    const top=c.sort((a,b)=>b.v-a.v).slice(0,3);const ks=top.filter(x=>x.t==='k').map(x=>x.k);LT.sel=ks.length?LT_TK.map(x=>x.k).filter(k=>ks.includes(k)):['t'];LT.st=top.filter(x=>x.t==='s').map(x=>x.k)}catch(e){}},
  section(){LT.initTop3();const {W}=LT.data();const rg=LT.range(W);const B=(grp,v,l,cur)=>`<button class="btn sm ${cur===v?'':'light'}" data-act="lt:${grp}:${v}">${l}</button>`;
   const Y=LT_STAT.years;
   return `<div style="margin-top:16px;border-top:1px solid var(--line2);padding-top:14px">
-   <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px"><b style="font-size:16px">📈 1만 달러를 넣었다면? — TQQQ · QLD · 엔비디아 · TECL · 아파트 · 전략</b><span class="note">(${esc(W[0].d)} ~ ${esc(W[W.length-1].d)} · 최근 3년은 하루 단위, 그 전은 주 단위 · 로그 눈금)</span></div>
+   <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px"><b style="font-size:16px">📈 1만 달러를 넣었다면? (💸 세금 뒤 · 그날 다 팔면 손에 쥐는 돈) — TQQQ · QLD · 엔비디아 · TECL · 아파트 · 전략</b><span class="note">(${esc(W[0].d)} ~ ${esc(W[W.length-1].d)} · 최근 3년은 하루 단위, 그 전은 주 단위 · 로그 눈금)</span></div>
    <div class="noprint" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0"><span class="note" style="min-width:34px">종목</span>${LT_TKV().map((x,ix,A)=>{const on=LT.sel.includes(x.k);return (x.re&&!A[ix-1].re?'<span class="note" style="margin-left:6px">아파트</span>':x.kr&&!A[ix-1].kr?'<span class="note" style="margin-left:6px">국내</span>':'')+`<button class="btn sm ${on?'':'light'}" data-act="lt:tk:${x.k}" aria-pressed="${on}" title="${on?'그래프에서 빼기':'그래프에 넣기'}" style="display:inline-flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:2px;background:${x.col};display:inline-block;${on?'':'opacity:.45'}"></span>${x.nm}${x.sym!==x.nm?' <span style="opacity:.75;font-size:.9em">'+x.sym+'</span>':''}</button>`}).join('')}<button class="btn sm light" data-act="lt:tk:all">모두</button>${LT.m==='lao'?'':'<span class="note" style="margin-left:6px">전략</span>'+[['vr','VR 실력공식'],['imb','무한매수 V4'],['pud','웅덩이 매매'],['sys','시스템 3규칙'],['m120','120일선 아래 매수']].map(([k,l])=>{const on=LT.st.includes(k);return `<button class="btn sm ${on?'':'light'}" data-act="lt:st:${k}" aria-pressed="${on}" style="display:inline-flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:2px;display:inline-block;background:repeating-linear-gradient(45deg,${LT_SCOL[k]} 0 3px,transparent 3px 5px);outline:1px solid ${LT_SCOL[k]};${on?'':'opacity:.45'}"></span>${l} <span style="opacity:.75;font-size:.9em">TQQQ</span></button>`}).join('')}${LT.m==='lao'?'<span class="note">라오어 전략 비교는 TQQQ만 그립니다</span>':''}</div>
    <div class="noprint" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0"><span class="note" style="min-width:34px">기간</span>${['1m','3m','6m','ytd','1y','2y','3y','5y','10y','all'].map(k=>B('p',k,LT.PRESET[k][0],LT.p)).join('')}</div>
    <div class="noprint" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0"><span class="note" style="min-width:34px">사건</span>${['c20','c22','c25','b3','w3'].map(k=>B('p',k,LT.PRESET[k][0],LT.p)).join('')}
@@ -1807,7 +1828,7 @@ const AI={busy:false,text:'',err:'',q:'',hist:[],mode:null,KEY:'laoer_claude_api
   try{const R=LT.recNow();L.push(`단기 회복 신호: 20일선 대비 ${f(R.p/R.m20-1)}, 60일선 대비 ${f(R.p/R.m60-1)}, RSI(14) ${R.rsi.toFixed(1)}`)}catch(e){}
   return L.join('\n')},
  SYS:`너는 한국 개인 투자자를 돕는 설명가다. 초등학생도 이해할 만큼 쉬운 한국어로, 짧게(8줄 안팎) 답한다. 반드시 아래 '지금 숫자'와 '검증된 사실'만 근거로 삼고, 모르는 것은 모른다고 말한다. 투자 권유가 아니며 결정은 본인 몫이라는 말을 마지막에 한 줄로 붙인다.
-검증된 사실(이 계산표의 백테스트): ①나스닥100 200일선 규칙(−3% 아래 매도, +3% 위 매수)은 37년 가상 TQQQ에서 3년 뒤 반토막 확률을 16.9%→3.8%로 줄임 ②나스닥100이 200일선에서 ±1% 안이면 3년 손해 확률 13.8%, ±20% 밖이면 44% ③VIX는 3년 성적과 거의 무관 ④TQQQ 이평선 배열·120일선 아래 매수 신호는 2010년 이후엔 좋았지만 37년으로 보면 효과 없거나 반대 ⑤웅덩이 매매법은 결과가 '그냥 사기'와 거의 같고 파는 규칙이 없음 ⑥시스템 3규칙은 2010년 이후엔 그냥 보유보다 덜 벌었지만 최대 하락을 −80%→−55%로 줄였고, 1999년부터 보면 훨씬 나았음 ⑦TQQQ 3년 보유 손해 확률은 2010년 이후 4%, 37년 전체 23.5% ⑧검증 순위: 1위 TQQQ+시스템 3규칙(1999년~ 연 22.1%, 최대 하락 −55%), 2위 QLD+3규칙(연 16.0%, −40%), 3위 200일선+변동성+과열, 4위 200일선만(연 19.7%, −91%), QLD 보유, TQQQ 보유(1999년~ 연 3.6%, −100%). 판단은 3규칙을 1순위로, 웅덩이·120일선·회복 신호는 나눠 살 때 참고용.`,
+검증된 사실(이 계산표의 백테스트): ①나스닥100 200일선 규칙(−3% 아래 매도, +3% 위 매수)은 37년 가상 TQQQ에서 3년 뒤 반토막 확률을 16.9%→3.8%로 줄임 ②나스닥100이 200일선에서 ±1% 안이면 3년 손해 확률 13.8%, ±20% 밖이면 44% ③VIX는 3년 성적과 거의 무관 ④TQQQ 이평선 배열·120일선 아래 매수 신호는 2010년 이후엔 좋았지만 37년으로 보면 효과 없거나 반대 ⑤웅덩이 매매법은 결과가 '그냥 사기'와 거의 같고 파는 규칙이 없음 ⑥시스템 3규칙은 2010년 이후엔 그냥 보유보다 덜 벌었지만 최대 하락을 −80%→−55%로 줄였고, 1999년부터 보면 훨씬 나았음 ⑦TQQQ 3년 보유 손해 확률은 2010년 이후 4%, 37년 전체 23.5% ⑧세금 뒤 순위(2010년~, 한국 해외주식 양도세 22%·연 250만 원 공제, 1만 달러, 다 팔고 세금 낸 뒤): 1위 TQQQ 그냥 보유 약 253배, TQQQ50+TECL50 그냥 보유, 웅덩이·120일선(사실상 보유)도 상위 · TQQQ+시스템 3규칙은 세금 전 175배→세금 뒤 약 76배(자주 사고팔아 매년 세금) · 일반 계좌 수익 극대화는 '사서 그냥 두기'가 유리했고 3규칙은 최대 하락을 −80%→−55%로 줄이는 보험. 이 사용자는 세금 뒤 결과만 보기를 원하므로 수익 숫자는 세금 뒤 기준으로만 말한다.`,
  async ask(q){if(AI.busy)return;AI.q=q;AI.busy=true;AI.err='';AI.text='';render();const out=()=>document.getElementById('aiOut');
   const prompt=`지금 숫자:\n${AI.ctx()}\n\n질문: ${q}`,H=AI.hist.slice(-4).flatMap(h=>[{role:'user',content:h.q},{role:'assistant',content:h.a}]);
   try{const s=await AI.smp();
@@ -1849,7 +1870,7 @@ saveWork=function(){PWA.save();toast('✔ 이 기기에 저장했습니다')};
 {const _o=openFile;openFile=async function(f){const r=await _o(f);setTimeout(PWA.save,50);return r}}
 
 /* 🔄 새 버전 알림: GitHub에 새 계산표가 올라오면(최대 몇 분) 화면 위에 알려 주고, 누르면 캐시를 피해 새로 엶 */
-const APP_BUILD='20261028114309';
+const APP_BUILD='20261028115143';
 async function chkUpd(){try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();
  if(/^\d{14}$/.test(v)&&v>APP_BUILD&&!document.getElementById('updBar')){const b=document.createElement('div');b.id='updBar';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:80;background:#1f6feb;color:#fff;padding:10px 16px;border-radius:24px;box-shadow:0 4px 14px rgba(0,0,0,.25);font-weight:700;cursor:pointer;max-width:calc(100vw - 24px)';b.textContent='🔄 새 버전이 있어요 — 눌러서 바로 적용';b.onclick=()=>{try{PWA.save()}catch(e){}location.replace(location.pathname+'?v='+v)};document.body.appendChild(b)}}catch(e){}}
 setTimeout(chkUpd,1500);setInterval(chkUpd,10*60e3);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')chkUpd()});
