@@ -26,8 +26,9 @@ jobs:
                       u = f'https://{host}.finance.yahoo.com/v8/finance/chart/{s}?period1=0&period2={int(time.time())}&interval=1d'
                       R = json.load(urllib.request.urlopen(urllib.request.Request(u, headers=UA), timeout=60))['chart']['result'][0]
                       q = R['indicators']['quote'][0]
-                      rows = [(time.strftime('%Y-%m-%d', time.gmtime(t - 5 * 3600)), c) for t, c in zip(R['timestamp'], q['close']) if c]
-                      open(f'{s}.csv', 'w').write('date,close\n' + '\n'.join(f'{d},{c}' for d, c in rows))
+                      aj = R['indicators'].get('adjclose', [{}])[0].get('adjclose') or q['close']
+                      rows = [(time.strftime('%Y-%m-%d', time.gmtime(t - 5 * 3600)), c, a) for t, c, a in zip(R['timestamp'], q['close'], aj) if c and a]
+                      open(f'{s}.csv', 'w').write('date,close,adjclose\n' + '\n'.join(f'{d},{c},{a}' for d, c, a in rows))
                       print(s, len(rows), rows[0], rows[-1]); break
                   except Exception as e:
                       print('retry', s, host, e); time.sleep(5)
