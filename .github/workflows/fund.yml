@@ -33,7 +33,7 @@ jobs:
                   g = {}
                   for tax in ('us-gaap', 'ifrs-full'):
                       for k, v in F['facts'].get(tax, {}).items():
-                          if k in KEEP or tax == 'ifrs-full' and k in ('ProfitLoss','Equity','ProfitLossFromOperatingActivities','Revenue','Borrowings','CashAndCashEquivalents','CurrentBorrowings','NoncurrentBorrowings'):
+                          if k in KEEP or any(w in k for w in ('Debt','NotesPayable','Borrowing','SeniorNotes','InterestExpense')) or tax == 'ifrs-full' and k in ('ProfitLoss','Equity','ProfitLossFromOperatingActivities','Revenue','Borrowings','CashAndCashEquivalents','CurrentBorrowings','NoncurrentBorrowings'):
                               for u, arr in v['units'].items():
                                   g[tax + ':' + k] = [[x.get('start'), x['end'], x['val'], x['fy'], x['fp'], x['form'], x.get('filed')] for x in arr if x['form'] in ('10-K', '20-F', '40-F', '10-K/A')]
                   OUT[t] = {'name': F['entityName'], 'f': g}; print(t, len(g))
