@@ -974,8 +974,44 @@ const MKT={
    if(old&&L.date<old.date&&!confirm('불러온 파일('+L.date+')이 지금 데이터('+old.date+')보다 오래됐습니다. 그래도 바꿀까요?'))return;
    pushHx('시장 데이터 불러오기 전');S.mkt={csv:t,from:'불러온 파일 '+f.name,loadedAt:nowTs()};logEdit('시장 데이터 불러오기',old?old.date+' · '+old.verdict:'',L.date+' · '+L.verdict,'가져오기');mark();render();toast('📥 '+L.date+' 기준으로 다시 판정했습니다: '+L.verdict,4000)}catch(e){toast('⚠ '+e.message,5000)}};fi.click()}
 };
+/* 🧠 찰리 멍거 투자 원칙 체크리스트 — 『Poor Charlie's Almanack』의 멍거 체크리스트 10가지를 우리말로 풀어 정리 + 라오어 방식에 맞춘 오늘의 질문 · 날마다 체크(이 기기에만 저장) */
+const MUN={K:'laoer_munger_v1',
+ L:[
+  ['risk','⚠️','위험','원금이 영영 사라질 가능성부터 따졌나?',['모든 투자는 "얼마 벌까"보다 "얼마나 잃을 수 있나"부터','값과 가치 사이에 넉넉한 안전마진이 있을 때만','빚(레버리지)·믿기 어려운 사람·이해 못 하는 상품은 피하기','물가와 세금을 뺀 진짜 수익으로 생각하기'],'TQQQ가 −80% 빠져도 생활과 마음이 버틸 비중인가? 숫자는 세금 뒤로 봤나?'],
+  ['indep','🧭','독립','남이 맞다·틀리다 해서가 아니라 사실과 논리로 판단했나?',['다른 사람이 동의해도, 반대해도 내 판단이 맞고 틀린 것과는 상관없음','군중을 따라가면 결과도 군중 평균으로 돌아감','유명한 사람·영상·리딩방의 말은 근거를 직접 확인'],'오늘 판단이 유튜브·커뮤니티 때문인가, 내 규칙(200일선·무한매수·VR) 때문인가?'],
+  ['prep','📚','준비','오늘도 조금 더 배우고, "왜"를 이해하려 했나?',['꾸준히 읽고 배우는 습관이 가장 큰 무기','사실을 외우기보다 왜 그런지 원리를 이해','큰 생각의 틀(심리학·확률·경제)을 여러 개 갖추기'],'내가 쓰는 규칙이 왜 효과가 있는지 한 문장으로 설명할 수 있나?'],
+  ['humble','🙇','겸손','내가 잘 아는 범위 안에서만 움직였나?',['내 능력의 범위(아는 것과 모르는 것의 경계)를 정확히 알기','내 생각이 틀렸다는 증거를 일부러 찾아보기','"나는 안다"는 착각, 자기 합리화를 경계'],'잘 모르는 종목(예: 적자 바이오주)이나 상품에 손대려 하지 않나?'],
+  ['rigor','🔬','엄격한 분석','숫자와 체크리스트로 따지고, 거꾸로도 생각해 봤나?',['체크리스트로 빠뜨리는 것 줄이기','가격과 가치를 구분하기','거꾸로 생각: "어떻게 하면 확실히 망할까?"를 먼저 묻고 그걸 피하기','좋은 회사는 오래 돈을 잘 버는 회사(해자·자본이익률)'],'"이 방법으로 내가 크게 망하는 길"을 하나 적어 봤나? 그 길을 막는 규칙이 있나?'],
+  ['alloc','🧺','배분','가장 좋은 기회에 돈을 두고, 다른 선택지와 비교했나?',['돈은 최고의 기회에 모으고, 그다음 기회와 늘 비교(기회비용)','정말 좋은 기회는 드물다 — 올 때를 위해 아껴 두기','어중간한 아이디어에 돈을 흩뿌리지 않기'],'TQQQ·현금·다른 자산 비율이 계획대로인가? VR 현금(Pool)은 남겨 뒀나?'],
+  ['patience','🐢','인내','오늘 꼭 사고팔아야 했나? 아무것도 안 하는 것도 결정이다',['복리는 방해받지 않을 때 가장 크게 자람','불필요한 거래는 수수료·세금·실수만 늘림','기다리는 동안의 지루함을 견디는 것이 실력'],'오늘 주문이 규칙상 필요한 주문인가, 심심하거나 불안해서 낸 주문인가?'],
+  ['decide','⚡','결단','기회가 왔을 때 겁내지 않고 정한 대로 움직였나?',['준비가 되어 있으면, 좋은 기회엔 크게 망설이지 않기','남들이 두려워할 때가 기회인 경우가 많음','결정은 빠르게, 근거는 미리'],'폭락한 날에도 규칙이 "사라"면 샀나? 규칙이 "팔라"면 팔았나?'],
+  ['change','🔄','변화','틀렸던 생각을 인정하고 고칠 준비가 됐나?',['세상이 바뀌면 생각도 바꾸기','가장 아끼는 생각부터 의심해 보기','실수는 감추지 말고 배움으로'],'최근 실수를 세 줄 보고서(사실·평가·다음 행동 하나)로 남겼나?'],
+  ['focus','🎯','집중','단순하게, 중요한 것에만 집중했나?',['복잡하게 만들지 말고 단순하게','잘하는 것에 집중하고 나머지는 거절','작은 소음보다 큰 흐름(10년)을 보기'],'오늘 시세를 너무 자주 들여다보지 않았나? 10년 뒤에도 중요한 일인가?']],
+ Q:['거꾸로 생각하라. 늘 거꾸로.','좋은 기회는 드물다. 올 때 크게 잡아라.','돈은 사고팔 때가 아니라 기다릴 때 번다.','모르는 것은 하지 마라. 능력의 범위 안에 머물러라.','아주 똑똑해지려 애쓰기보다, 꾸준히 어리석지 않으려 애써라.','복리의 첫 번째 규칙: 쓸데없이 끊지 마라.','틀렸다는 걸 알았다면 빨리 바꿔라.','좋은 사업을 적당한 값에 사는 것이, 평범한 사업을 싸게 사는 것보다 낫다.','질투는 아무 재미도 없는 죄다 — 남의 수익과 비교하지 마라.','체크리스트는 똑똑한 사람의 실수를 막는다.'],
+ day(o=0){const d=new Date(Date.now()+o*864e5);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')},
+ get(){try{return JSON.parse(localStorage.getItem(MUN.K)||'{}')}catch(e){return {}}},
+ put(o){try{localStorage.setItem(MUN.K,JSON.stringify(o))}catch(e){}},
+ tog(k,on){const o=MUN.get(),t=MUN.day();o.d=o.d||{};const s=new Set(o.d[t]||[]);on?s.add(k):s.delete(k);o.d[t]=[...s];MUN.put(o);MUN.paint()},
+ note(v){const o=MUN.get(),t=MUN.day();o.n=o.n||{};o.n[t]=v;MUN.put(o)},
+ streak(o){let n=0;for(let i=0;i<4000;i++){const d=MUN.day(-i),c=(o.d&&o.d[d]||[]).length;if(c>=MUN.L.length)n++;else if(i===0)continue;else break}return n},
+ paint(){const el=document.getElementById('munBody');if(!el)return;const o=MUN.get(),t=MUN.day(),done=new Set(o.d&&o.d[t]||[]),N=MUN.L.length,c=done.size;
+  const h=document.getElementById('munHead');if(h)h.innerHTML=MUN.head(o,c,N);
+  MUN.L.forEach(([k])=>{const r=document.querySelector('[data-munk="'+k+'"]');if(r)r.style.opacity=done.has(k)?'.62':'1'})},
+ head(o,c,N){const pct=Math.round(c/N*100),st=MUN.streak(o);
+  const dots=Array.from({length:14},(_,i)=>{const d=MUN.day(i-13),n=(o.d&&o.d[d]||[]).length;const col=n>=N?'#1a9b5c':n>0?'#d9a21e':'#dfe4ea';return `<span title="${d} · ${n}/${N}" style="display:inline-block;width:12px;height:12px;border-radius:3px;background:${col};margin-right:3px"></span>`}).join('');
+  return `<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><div style="flex:1 1 200px;min-width:0"><div style="height:10px;background:#eef1f5;border-radius:6px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${c>=N?'#1a9b5c':'#b8892b'};transition:width .2s"></div></div><div class="note" style="margin-top:3px">오늘 ${c} / ${N} 확인${c>=N?' · ✅ 오늘 완료!':''} · 연속 완료 <b>${st}일</b></div></div><div title="최근 14일 (초록=다 함, 노랑=일부)">${dots}</div></div>`},
+ card(){const o=MUN.get(),t=MUN.day(),done=new Set(o.d&&o.d[t]||[]),N=MUN.L.length,c=done.size;const di=Math.floor(Date.now()/864e5);const q=MUN.Q[di%MUN.Q.length],foc=MUN.L[di%N];
+  const rows=MUN.L.map(([k,ic,nm,qq,pts,lao])=>`<div data-munk="${k}" style="border-top:1px solid var(--line,#e6e9ef);padding:8px 0;opacity:${done.has(k)?'.62':'1'}"><label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" ${done.has(k)?'checked':''} onchange="MUN.tog('${k}',this.checked)" style="width:20px;height:20px;margin-top:2px;flex:none"><span><b>${ic} ${nm}</b> — ${qq}<br><span class="note">📌 라오어 적용: ${lao}</span></span></label>
+   <details style="margin:4px 0 0 30px"><summary class="note" style="cursor:pointer">멍거의 원칙 보기</summary><ul class="note" style="margin:4px 0 0;padding-left:18px;line-height:1.7">${pts.map(p=>`<li>${p}</li>`).join('')}</ul></details></div>`).join('');
+  return `<details id="munCard" class="card" style="border:2px solid #b8892b;margin:10px 0"${c<N?' open':''}><summary style="cursor:pointer;list-style:none"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline"><b style="font-size:16px">🧠 오늘의 찰리 멍거 체크리스트 <span class="note" style="font-weight:400">${t}</span></b><span class="note">눌러서 접기/펴기</span></div>
+   <div id="munHead" style="margin-top:6px">${MUN.head(o,c,N)}</div></summary>
+   <div id="munBody" style="margin-top:8px">
+   <div class="bub" style="margin:0 0 6px;background:var(--soft,#f3f6fb)"><b>오늘의 한 마디:</b> “${q}” <span class="note">(멍거의 생각을 우리말로 풀어 씀)</span><br>🔦 <b>오늘 특히 볼 원칙:</b> ${foc[1]} ${foc[2]} — ${foc[3]}</div>
+   ${rows}
+   <div style="border-top:1px solid var(--line,#e6e9ef);padding-top:8px"><div class="note" style="margin-bottom:4px">✍️ 오늘 한 줄 메모 (거꾸로 생각: "오늘 내가 할 수 있는 가장 어리석은 행동은?")</div><input type="text" value="${String((o.n&&o.n[t])||'').replace(/"/g,'&quot;')}" oninput="MUN.note(this.value)" placeholder="예) 폭락 뉴스 보고 규칙 없이 다 파는 것" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #dfe4ea;border-radius:8px;font:inherit"></div>
+   <p class="note" style="margin:8px 0 0">출처: 『Poor Charlie's Almanack』에 실린 멍거의 투자 원칙 체크리스트(위험·독립·준비·겸손·엄격한 분석·배분·인내·결단·변화·집중)를 우리말로 풀어 정리하고, 라오어 투자에 맞는 질문을 붙였어요. 체크 기록은 이 기기(브라우저)에만 저장되고 자정이 지나면 새 날로 시작해요.</p></div></details>`}};
 {const _act=APP.act;APP.act=function(a,t){if(a==='mkt:load')return MKT.load();if(a==='mkt:reset'){pushHx('내장 데이터로 되돌리기 전');logEdit('시장 데이터','불러온 파일','내장 데이터','복원');S.mkt=null;mark();render();return}return _act(a,t)};
- const _home=APP.views.home;APP.views.home=function(){return (typeof LIVE!=='undefined'&&LIVE.tick?LIVE.tick():'')+MKT.card()+_home()};
+ const _home=APP.views.home;APP.views.home=function(){return (typeof LIVE!=='undefined'&&LIVE.tick?LIVE.tick():'')+MUN.card()+MKT.card()+_home()};
  const _csv=APP.csv;APP.csv=function(){let r=[];try{const L=MKT.now().L;r=[['[지금 매수 구간 판정]'],['기준일',L.date,'판정',L.verdict,'200일선 대비(%)',L.distPct,'규칙',L.state,'VIX',L.vix,'1년 고점 대비(%)',L.ddPct,'20일 변동성(%)',L.volPct],[]]}catch(e){}return r.concat(_csv())};}
 
 /* ===================== 첫 화면: TQQQ · QLD 전체 기간 그래프 (같은 200일선 신호) ===================== */
@@ -1885,7 +1921,7 @@ saveWork=function(){PWA.save();toast('✔ 이 기기에 저장했습니다')};
 {const _o=openFile;openFile=async function(f){const r=await _o(f);setTimeout(PWA.save,50);return r}}
 
 /* 🔄 새 버전 알림: GitHub에 새 계산표가 올라오면(최대 몇 분) 화면 위에 알려 주고, 누르면 캐시를 피해 새로 엶 */
-const APP_BUILD='20261029073137';
+const APP_BUILD='20261029125916';
 async function chkUpd(){try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();
  if(/^\d{14}$/.test(v)&&v>APP_BUILD&&!document.getElementById('updBar')){const b=document.createElement('div');b.id='updBar';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:80;background:#1f6feb;color:#fff;padding:10px 16px;border-radius:24px;box-shadow:0 4px 14px rgba(0,0,0,.25);font-weight:700;cursor:pointer;max-width:calc(100vw - 24px)';b.textContent='🔄 새 버전이 있어요 — 눌러서 바로 적용';b.onclick=()=>{try{PWA.save()}catch(e){}location.replace(location.pathname+'?v='+v)};document.body.appendChild(b)}}catch(e){}}
 setTimeout(chkUpd,1500);setInterval(chkUpd,10*60e3);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')chkUpd()});
