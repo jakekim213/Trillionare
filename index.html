@@ -1010,8 +1010,41 @@ const MUN={K:'laoer_munger_v1',
    ${rows}
    <div style="border-top:1px solid var(--line,#e6e9ef);padding-top:8px"><div class="note" style="margin-bottom:4px">✍️ 오늘 한 줄 메모 (거꾸로 생각: "오늘 내가 할 수 있는 가장 어리석은 행동은?")</div><input type="text" value="${String((o.n&&o.n[t])||'').replace(/"/g,'&quot;')}" oninput="MUN.note(this.value)" placeholder="예) 폭락 뉴스 보고 규칙 없이 다 파는 것" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #dfe4ea;border-radius:8px;font:inherit"></div>
    <p class="note" style="margin:8px 0 0">출처: 『Poor Charlie's Almanack』에 실린 멍거의 투자 원칙 체크리스트(위험·독립·준비·겸손·엄격한 분석·배분·인내·결단·변화·집중)를 우리말로 풀어 정리하고, 라오어 투자에 맞는 질문을 붙였어요. 체크 기록은 이 기기(브라우저)에만 저장되고 자정이 지나면 새 날로 시작해요.</p></div></details>`}};
+/* 🛡️ 설득 방어막 — 로버트 치알디니 『설득의 심리학(Influence)』 7원칙 + 멍거가 강조한 '대비' · 라오어 투자에 맞춰 풀고, 이 계산표에서 직접 검증한 숫자로 사례를 붙임 · 주문 전 점검 기록은 이 기기에만 */
+const PER={K:'laoer_persuade_v1',
+ L:[
+  ['recip','🎁','상호성','받으면 갚고 싶어진다','"무료 리딩·무료 자료·수익 인증"을 먼저 주고, 계좌 개설·유료방·특정 종목 매수를 부탁','받은 게 있으면 거절이 미안해져 판단 없이 따라감','공짜 정보엔 "이걸로 저 사람은 어떻게 돈을 버나?"부터 묻기 — 수수료·계좌·물량 넘기기','무료로 뭔가 받았다는 이유로 이 주문을 내는가?'],
+  ['commit','✍️','일관성(약속)','한번 말하거나 산 것은 계속 지키려 한다','"내가 산 주식은 옳다" → 손해 본 주식은 못 팔고 물타기, 번 주식은 빨리 팜','지니너스를 봄(4,000~6,000원)에 산 사람은 지금 −60~80%. "여기까지 왔는데"가 가장 비싼 말','⭐ 좋은 쪽으로 쓰기: 라오어 규칙(200일선·무한매수·VR)을 미리 글로 적고 그 약속을 지키기. 바꾸려면 세 줄 보고서로 이유를 남긴 뒤에만','이 주문은 내 "규칙"을 지키는 것인가, 내 "지난 선택"을 지키는 것인가?'],
+  ['social','👥','사회적 증거','남들이 하면 맞는 것 같다','조회수 많은 영상·커뮤니티 인기글·"다들 샀다"','📺 골짜기 20% 영상: "1998년 시작 최악 MDD −71%" → 이 계산표 검증은 <b>−95%</b>. 그리고 TQQQ만 산 쪽이 시작 연도 38번 중 <b>33번</b> 더 벌었음 (🏞️ 골짜기 검증 상자)','많이 본 것 ≠ 맞는 것. 숫자는 직접 다시 계산하거나, 계산된 근거가 있는 것만','많은 사람이 한다는 이유 말고, 내 숫자로 확인한 근거가 있나?'],
+  ['liking','😊','호감','좋아하는 사람 말은 더 믿는다','친근한 유튜버·말 잘하는 지인·나와 닮은 사람의 추천','사람이 좋다고 그 사람의 숫자가 맞는 건 아님','"누가" 말했는지 가리고 "무엇을" 말했는지만 남겨 다시 읽기','이 사람이 아니라 낯선 사람이 같은 말을 했어도 샀을까?'],
+  ['auth','🎓','권위','전문가·유명인 말은 의심 없이 따른다','"버핏이 산 주식", "○○ 교수 추천", 제복·직함·경력','버크셔 보유 종목과 겹치는 비중: TQQQ 14.1% · TECL 15.5% — 거의 애플 하나. 그리고 버핏·멍거는 빚 투자(레버리지)를 싫어함. "버핏 종목이 들어 있어서" 3배 ETF를 사는 건 앞뒤가 안 맞음','권위자의 "결론" 말고 "근거"를 빌리기. 멍거 추천 책도 이렇게 검증해서 쓰는 중','이 사람의 직함을 지워도 이 근거가 설득력이 있나?'],
+  ['scarce','⏳','희소성','곧 없어진다면 더 갖고 싶다 (잃는 건 더 아프다)','"상한가·오늘만·마감 임박·지금 아니면 늦는다" / 폭락 때 "다 잃기 전에 팔자"','지니너스: 2026-04-14 학회 기대감에 상한가(6,110원) → 10-28 <b>1,301원</b>(−79%). 반대로 VIX 40 이상 공포 10번 중 8번은 1년 뒤 TQQQ +54% 이상 (2001·2008은 예외)','급하다는 말이 나오면 24시간 미루기. 폭락 땐 감정이 아니라 규칙(200일선·VIX 꺾임)으로','놓칠까 봐(또는 잃을까 봐) 서두르는가? 내일 해도 되는 주문인가?'],
+  ['unity','🤝','일체감','"우리 편"이 하는 건 따라 한다','"우리 카페·우리 방·우리 라오어 식구"는 반대 의견을 배신처럼 느끼게 함','라오어 방식도 예외 없음: 이 계산표 검증으로 시스템 3규칙은 세금 뒤 2010~ 약 76배 vs 그냥 들고 있기 약 253배(약 30%)','우리 편 방법일수록 더 꼼꼼히 숫자로 확인. 내 편이 틀릴 수 있다는 걸 허락하기','내가 속한 모임의 생각이라서 확인 없이 받아들였나?'],
+  ['contrast','⚖️','대비 (멍거 강조)','앞에 본 것에 따라 크기가 달라 보인다','"원래 6,270원 → 지금 1,300원, 80% 세일!" / 300만원 VIP방 거절 뒤 "30만원 특가"','앞의 큰 숫자가 지금 숫자를 싸 보이게 함. 싼지 비싼지는 회사 가치(이익·현금)로 정해짐','"오늘 처음 본 사람이라면 이 값이 싸 보일까?"로 기준점을 지우기','과거 고점이나 첫 제안 때문에 싸 보이는 건 아닌가?']],
+ get(){try{return JSON.parse(localStorage.getItem(PER.K)||'{}')}catch(e){return {}}},
+ put(o){try{localStorage.setItem(PER.K,JSON.stringify(o))}catch(e){}},
+ sel:new Set(),
+ pick(k,b){PER.sel.has(k)?PER.sel.delete(k):PER.sel.add(k);b.style.background=PER.sel.has(k)?'#fde7c7':'';b.style.borderColor=PER.sel.has(k)?'#b8892b':'';PER.verdict()},
+ verdict(){const el=document.getElementById('perV');if(!el)return;const n=PER.sel.size;
+  el.innerHTML=n===0?'✅ 나를 미는 힘이 없어요. <b>규칙에 맞는 주문이면 진행</b>해도 좋아요.':n===1?'🟡 한 가지 힘이 나를 밀고 있어요. 아래 질문에 "예"라고 자신 있게 답할 수 없으면 <b>내일 다시 보기</b>.':'🔴 '+n+'가지 힘이 한꺼번에 밀고 있어요(멍거가 말한 "여러 심리가 겹칠 때 가장 위험"). <b>24시간 미루고 세 줄 보고서부터</b>.';
+  el.innerHTML+=n?'<ul class="note" style="margin:6px 0 0;padding-left:18px">'+PER.L.filter(r=>PER.sel.has(r[0])).map(r=>`<li>${r[1]} ${r[2]}: ${r[8]}</li>`).join('')+'</ul>':''},
+ save(){const o=PER.get();o.log=o.log||[];o.log.push({t:new Date().toISOString(),k:[...PER.sel]});o.log=o.log.slice(-200);PER.put(o);PER.sel.clear();const c=document.getElementById('perCard');if(c){const w=document.createElement('div');w.innerHTML=PER.card(true);c.replaceWith(w.firstElementChild)}},
+ stat(o){const L=o.log||[],c={};L.forEach(x=>x.k.forEach(k=>c[k]=(c[k]||0)+1));const top=Object.entries(c).sort((a,b)=>b[1]-a[1]);return {n:L.length,clean:L.filter(x=>!x.k.length).length,top}},
+ card(open){const o=PER.get(),S=PER.stat(o),nm=k=>{const r=PER.L.find(x=>x[0]===k);return r?r[1]+' '+r[2]:k};
+  const prof=S.n?`점검 ${S.n}번 · 아무 힘도 없던 주문 ${Math.round(S.clean/S.n*100)}%${S.top.length?` · 나를 가장 자주 흔든 힘: <b>${nm(S.top[0][0])}</b> (${S.top[0][1]}번)`:''}`:'아직 점검 기록이 없어요 — 주문 전에 한 번씩 눌러 보세요';
+  const rows=PER.L.map(([k,ic,nm,mean,how,ev,def,q])=>`<details style="border-top:1px solid var(--line,#e6e9ef);padding:7px 0"><summary style="cursor:pointer"><b>${ic} ${nm}</b> <span class="note">— ${mean}</span></summary>
+   <div class="note" style="margin:6px 0 0 4px;line-height:1.75"><b>시장에서 나를 노리는 모습</b>: ${how}<br><b>🔎 검증된 사례</b>: ${ev}<br><b>🛡️ 라오어 방어법</b>: ${def}<br><b>❓ 주문 전 질문</b>: ${q}</div></details>`).join('');
+  const btn=PER.L.map(([k,ic,nm])=>`<button type="button" onclick="PER.pick('${k}',this)" style="border:1px solid #dfe4ea;background:#fff;border-radius:999px;padding:5px 10px;margin:3px;cursor:pointer;font:inherit;font-size:14px">${ic} ${nm}</button>`).join('');
+  return `<details id="perCard" class="card" style="border:2px solid #6b7fb8;margin:10px 0"${open?' open':''}><summary style="cursor:pointer;list-style:none"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline"><b style="font-size:16px">🛡️ 주문 전 설득 방어막 <span class="note" style="font-weight:400">치알디니 『설득의 심리학』 × 라오어</span></b><span class="note">눌러서 펴기/접기</span></div><div class="note" style="margin-top:4px">${prof}</div></summary>
+  <div style="margin-top:8px"><div class="bub" style="margin:0 0 8px;background:var(--soft,#f3f6fb)"><b>왜 이 책?</b> 찰리 멍거는 이 책을 읽고 저자에게 감사 편지와 함께 <b>버크셔 주식 1주</b>를 보냈고, 1995년 강연 「인간 오판의 심리학」에서 직접 추천했어요. 책의 원칙들은 원래 "남을 설득하는 법"이지만, 투자자에겐 <b>"내가 언제 설득당하는지 알아채는 법"</b>이에요.</div>
+  <div style="font-weight:700;margin:4px 0">① 주문 버튼 누르기 전, 지금 나를 미는 힘을 모두 고르세요</div><div>${btn}</div>
+  <div id="perV" class="bub" style="margin:8px 0;background:#fffaf0">✅ 나를 미는 힘이 없어요. <b>규칙에 맞는 주문이면 진행</b>해도 좋아요.</div>
+  <button type="button" onclick="PER.save()" style="border:1px solid #6b7fb8;background:#6b7fb8;color:#fff;border-radius:8px;padding:6px 12px;cursor:pointer;font:inherit">이번 점검 기록하기</button> <span class="note">기록이 쌓이면 "나를 가장 자주 흔드는 힘"을 알려 줘요</span>
+  ${S.top.length?`<div class="note" style="margin-top:6px">${S.top.map(([k,c])=>`${nm(k)} ${c}번`).join(' · ')}</div>`:''}
+  <div style="font-weight:700;margin:14px 0 2px">② 8가지 힘 — 뜻 · 나를 노리는 모습 · 검증된 사례 · 방어법</div>${rows}
+  <p class="note" style="margin:8px 0 0">출처: 로버트 치알디니 『설득의 심리학(Influence)』 6원칙(상호성·일관성·사회적 증거·호감·권위·희소성) + 개정증보판(2021)에 더해진 7번째 원칙 일체감 + 멍거 강연에서 치알디니 사례로 든 '대비'. 원칙 설명은 우리말로 풀어 쓴 것이고, 사례 숫자는 이 계산표에서 직접 계산·확인한 값이에요.</p></div></details>`}};
 {const _act=APP.act;APP.act=function(a,t){if(a==='mkt:load')return MKT.load();if(a==='mkt:reset'){pushHx('내장 데이터로 되돌리기 전');logEdit('시장 데이터','불러온 파일','내장 데이터','복원');S.mkt=null;mark();render();return}return _act(a,t)};
- const _home=APP.views.home;APP.views.home=function(){return (typeof LIVE!=='undefined'&&LIVE.tick?LIVE.tick():'')+MUN.card()+MKT.card()+_home()};
+ const _home=APP.views.home;APP.views.home=function(){return (typeof LIVE!=='undefined'&&LIVE.tick?LIVE.tick():'')+MUN.card()+PER.card()+MKT.card()+_home()};
  const _csv=APP.csv;APP.csv=function(){let r=[];try{const L=MKT.now().L;r=[['[지금 매수 구간 판정]'],['기준일',L.date,'판정',L.verdict,'200일선 대비(%)',L.distPct,'규칙',L.state,'VIX',L.vix,'1년 고점 대비(%)',L.ddPct,'20일 변동성(%)',L.volPct],[]]}catch(e){}return r.concat(_csv())};}
 
 /* ===================== 첫 화면: TQQQ · QLD 전체 기간 그래프 (같은 200일선 신호) ===================== */
@@ -1921,7 +1954,7 @@ saveWork=function(){PWA.save();toast('✔ 이 기기에 저장했습니다')};
 {const _o=openFile;openFile=async function(f){const r=await _o(f);setTimeout(PWA.save,50);return r}}
 
 /* 🔄 새 버전 알림: GitHub에 새 계산표가 올라오면(최대 몇 분) 화면 위에 알려 주고, 누르면 캐시를 피해 새로 엶 */
-const APP_BUILD='20261029125916';
+const APP_BUILD='20261031162349';
 async function chkUpd(){try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();
  if(/^\d{14}$/.test(v)&&v>APP_BUILD&&!document.getElementById('updBar')){const b=document.createElement('div');b.id='updBar';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:80;background:#1f6feb;color:#fff;padding:10px 16px;border-radius:24px;box-shadow:0 4px 14px rgba(0,0,0,.25);font-weight:700;cursor:pointer;max-width:calc(100vw - 24px)';b.textContent='🔄 새 버전이 있어요 — 눌러서 바로 적용';b.onclick=()=>{try{PWA.save()}catch(e){}location.replace(location.pathname+'?v='+v)};document.body.appendChild(b)}}catch(e){}}
 setTimeout(chkUpd,1500);setInterval(chkUpd,10*60e3);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')chkUpd()});
