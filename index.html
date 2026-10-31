@@ -217,9 +217,11 @@ footer{font-size:12px;color:var(--jmute);border-top:1px solid var(--jsoft);backg
 <header class="jtop">
   <div class="brand"><span class="mark">라오어 계산표</span><span class="title">무한매수 V4.0 × VR 실력공식</span><span class="ver" title="화면 버전">v2026.10.22</span></div>
   <div class="ctrl"><span class="hide-s"><span class="badge" id="stBadge"></span></span>
+    <button class="btn" data-act="reload" title="새로고침 — 최신 시세 다시 받기 (아이폰 앱은 최신 버전으로 다시 열기)" aria-label="새로고침">🔄</button>
     <button class="btn gold" data-act="save" title="Ctrl+S · 지금 작업 파일에 덮어쓰기">💾 저장</button>
     <button class="btn hide-s" data-act="open" title="저장 파일 열기 (HTML · JSON)">📂 열기</button>
     <details class="more"><summary title="그 밖의 기능">⋯ 더보기</summary><div class="menu">
+      <button class="btn" data-act="reload">🔄 새로고침 (최신 시세·버전)</button>
       <button class="btn" data-act="open">📂 열기 (HTML · JSON)</button>
       <button class="btn" data-act="final" title="다른 이름으로 새 파일 저장 · 최종본 표시">🏁 최종 저장</button>
       <button class="btn" data-act="csv">📊 엑셀(CSV)로 내보내기</button>
@@ -1043,7 +1045,12 @@ const PER={K:'laoer_persuade_v1',
   ${S.top.length?`<div class="note" style="margin-top:6px">${S.top.map(([k,c])=>`${nm(k)} ${c}번`).join(' · ')}</div>`:''}
   <div style="font-weight:700;margin:14px 0 2px">② 8가지 힘 — 뜻 · 나를 노리는 모습 · 검증된 사례 · 방어법</div>${rows}
   <p class="note" style="margin:8px 0 0">출처: 로버트 치알디니 『설득의 심리학(Influence)』 6원칙(상호성·일관성·사회적 증거·호감·권위·희소성) + 개정증보판(2021)에 더해진 7번째 원칙 일체감 + 멍거 강연에서 치알디니 사례로 든 '대비'. 원칙 설명은 우리말로 풀어 쓴 것이고, 사례 숫자는 이 계산표에서 직접 계산·확인한 값이에요.</p></div></details>`}};
-{const _act=APP.act;APP.act=function(a,t){if(a==='mkt:load')return MKT.load();if(a==='mkt:reset'){pushHx('내장 데이터로 되돌리기 전');logEdit('시장 데이터','불러온 파일','내장 데이터','복원');S.mkt=null;mark();render();return}return _act(a,t)};
+{const _act=APP.act;APP.act=function(a,t){if(a==='reload'){
+  /* 아이폰 홈 화면 앱(PWA): 입력값 저장 후 캐시를 피해 최신 버전으로 다시 열기 · 파일·아티팩트: 작업 내용은 그대로 두고 시세만 다시 받기 */
+  if(typeof PWA!=='undefined'){try{PWA.save()}catch(e){}location.replace(location.pathname+'?v='+Date.now());return}
+  try{if(typeof LIVE!=='undefined'&&LIVE.refresh){LIVE.refresh(true);if(typeof toast==='function')toast('🔄 최신 시세를 다시 받는 중…');return}}catch(e){}
+  if(typeof DIRTY!=='undefined'&&DIRTY&&!confirm('저장하지 않은 내용이 있어요. 그래도 새로고침할까요?'))return;location.reload();return}
+ if(a==='mkt:load')return MKT.load();if(a==='mkt:reset'){pushHx('내장 데이터로 되돌리기 전');logEdit('시장 데이터','불러온 파일','내장 데이터','복원');S.mkt=null;mark();render();return}return _act(a,t)};
  const _home=APP.views.home;APP.views.home=function(){return (typeof LIVE!=='undefined'&&LIVE.tick?LIVE.tick():'')+MUN.card()+PER.card()+MKT.card()+_home()};
  const _csv=APP.csv;APP.csv=function(){let r=[];try{const L=MKT.now().L;r=[['[지금 매수 구간 판정]'],['기준일',L.date,'판정',L.verdict,'200일선 대비(%)',L.distPct,'규칙',L.state,'VIX',L.vix,'1년 고점 대비(%)',L.ddPct,'20일 변동성(%)',L.volPct],[]]}catch(e){}return r.concat(_csv())};}
 
@@ -1954,7 +1961,7 @@ saveWork=function(){PWA.save();toast('✔ 이 기기에 저장했습니다')};
 {const _o=openFile;openFile=async function(f){const r=await _o(f);setTimeout(PWA.save,50);return r}}
 
 /* 🔄 새 버전 알림: GitHub에 새 계산표가 올라오면(최대 몇 분) 화면 위에 알려 주고, 누르면 캐시를 피해 새로 엶 */
-const APP_BUILD='20261031162349';
+const APP_BUILD='20261031173046';
 async function chkUpd(){try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();
  if(/^\d{14}$/.test(v)&&v>APP_BUILD&&!document.getElementById('updBar')){const b=document.createElement('div');b.id='updBar';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:80;background:#1f6feb;color:#fff;padding:10px 16px;border-radius:24px;box-shadow:0 4px 14px rgba(0,0,0,.25);font-weight:700;cursor:pointer;max-width:calc(100vw - 24px)';b.textContent='🔄 새 버전이 있어요 — 눌러서 바로 적용';b.onclick=()=>{try{PWA.save()}catch(e){}location.replace(location.pathname+'?v='+v)};document.body.appendChild(b)}}catch(e){}}
 setTimeout(chkUpd,1500);setInterval(chkUpd,10*60e3);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')chkUpd()});
