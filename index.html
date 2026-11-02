@@ -1751,13 +1751,20 @@ const LIVE={st:'idle',err:null,at:null,tab:null,lastDate:null,intraday:false,
   if(G){LIVE.apply(G.spark,`GitHub 자동 수집 · ${Math.round((Date.now()/1000-G.at)/60)}분 전(중계가 막혀 이 값을 씀)`);return}
   LIVE.st='err';LIVE.err={code:'net',message:(last&&last.message)||'연결 실패'};render()},
  async refresh(){if(LIVE.st==='busy')return;if(!LIVE._rs){LIVE._rs=1;LIVE.restore();try{render()}catch(e){}}const mcp=(typeof claude!=='undefined'&&claude&&claude.use)?await claude.use('mcp').catch(()=>null):null;if(!mcp){if(typeof ART!=='undefined'){await LIVE.viaNet();if(LIVE.st==='err'){LIVE.st='nomcp';render()}return}return LIVE.viaNet()}
-  LIVE.st='busy';LIVE.err=null;render();
+  LIVE.st='busy';LIVE.err=null;LIVE.t0=Date.now();render();
+  /* 1) GitHub 자동 수집값이 12분 안이면 그걸로 끝 (브라우저 도구를 안 써도 됨) */
+  try{const G=await LIVE.ghJ('q.json',6000);if(G&&G.spark&&G.spark['^NDX']&&Date.now()/1000-G.at<12*60){LIVE.apply(G.spark,`GitHub 자동 수집 · ${Math.max(0,Math.round((Date.now()/1000-G.at)/60))}분 전`);return}}catch(e){}
+  /* 2) 데스크톱 앱 브라우저 — 단계마다 20초 제한 (예전엔 응답이 없으면 '받는 중'에서 영영 멈췄음) */
+  const wt=(p,ms)=>Promise.race([p,new Promise((_,j)=>setTimeout(()=>j(Object.assign(new Error('브라우저 응답 없음('+ms/1000+'초)'),{code:'timeout'})),ms))]);
   try{const S_='host:claude_browser',url=LIVE.url();
-   if(!LIVE.tab){const r=await mcp.callTool(S_,'preview_start',{url},{cache:false});const m=LIVE.text(r).match(/tabId\s+([^\s)]+)/);LIVE.tab=m?m[1]:null}
-   else await mcp.callTool(S_,'navigate',{url,tabId:LIVE.tab},{cache:false});
-   const r=await mcp.callTool(S_,'get_page_text',LIVE.tab?{tabId:LIVE.tab,max_chars:120000}:{max_chars:120000},{cache:false});
+   if(!LIVE.tab){const r=await wt(mcp.callTool(S_,'preview_start',{url},{cache:false}),20000);const m=LIVE.text(r).match(/tabId\s+([^\s)]+)/);LIVE.tab=m?m[1]:null}
+   else await wt(mcp.callTool(S_,'navigate',{url,tabId:LIVE.tab},{cache:false}),20000);
+   const r=await wt(mcp.callTool(S_,'get_page_text',LIVE.tab?{tabId:LIVE.tab,max_chars:120000}:{max_chars:120000},{cache:false}),20000);
    const t=LIVE.text(r),k=t.indexOf('{');if(k<0)throw new Error('시세 페이지를 읽지 못했습니다');LIVE.apply(JSON.parse(t.slice(k)),'데스크톱 앱 브라우저');
-  }catch(e){LIVE.st='err';LIVE.err=e;if(e&&e.code==='tool_error'&&LIVE.tab)LIVE.tab=null;render()}},
+  }catch(e){LIVE.tab=null;
+   /* 3) 브라우저 길이 막히면 인터넷 중계 길로 한 번 더 */
+   LIVE.st='idle';try{await LIVE.viaNet()}catch(_){}
+   if(LIVE.st!=='ok'){LIVE.st='err';LIVE.err=e;render()}}},
  /* 시세판: 나스닥 종합·나스닥100·S&P500·금·비트코인 — 마지막 값과 전날 종가 대비 */
  quotes(J){const q={};['^IXIC','^NDX','NQ=F','^GSPC','ES=F','GC=F','BTC-USD'].forEach(s=>{const o=J[s];if(!o||!o.close)return;const c=o.close.filter(x=>x!=null&&isFinite(x));if(c.length<2)return;const p=c[c.length-1],pv=o.chartPreviousClose&&c.length===1?o.chartPreviousClose:c[c.length-2];q[s]={p,ch:p/pv-1}});if(Object.keys(q).length){LIVE.Q=q;try{localStorage.setItem('laoer_q_v1',JSON.stringify({q,at:Date.now(),fx:S.fx&&S.fx.r}))}catch(e){}}},
  qboot(){try{const o=JSON.parse(localStorage.getItem('laoer_q_v1')||'null');if(o&&o.q){LIVE.Q=o.q;LIVE.qAt=o.at;if(o.fx&&!(S.fx&&S.fx.r))LIVE.qFx=o.fx}}catch(e){}},
@@ -1771,7 +1778,8 @@ const LIVE={st:'idle',err:null,at:null,tab:null,lastDate:null,intraday:false,
  open(){const t=LIVE.etNow(),wd=new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'})).getDay();return wd>0&&wd<6&&t.hm>=570&&t.hm<960},
  gap(){return (LIVE.open()?5:10)*60e3},
  auto(){if(LIVE._auto)return;LIVE._auto=1;const due=()=>!LIVE.at||Date.now()-LIVE.at.getTime()>=LIVE.gap();
-  setInterval(()=>{if(document.visibilityState!=='hidden'&&LIVE.st!=='busy'&&LIVE.st!=='nomcp'&&due())LIVE.refresh()},60e3);
+  setInterval(()=>{/* 안전장치: 90초 넘게 '받는 중'이면 풀고 다시 시도 */if(LIVE.st==='busy'&&LIVE.t0&&Date.now()-LIVE.t0>90e3){LIVE.st='err';LIVE.err={message:'응답이 너무 늦어 다시 시도합니다'};try{render()}catch(e){}}
+   if(document.visibilityState!=='hidden'&&LIVE.st!=='busy'&&due())LIVE.refresh()},60e3);
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&LIVE.st!=='busy'&&(!LIVE.at||Date.now()-LIVE.at.getTime()>5*60e3))LIVE.refresh()})},
  nextTxt(){if(!LIVE.at)return '';const n=new Date(LIVE.at.getTime()+LIVE.gap());return ` · 다음 자동 갱신 ${n.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})} (${LIVE.open()?'장중 5분마다':'장 마감 중 10분마다 (비트코인·금 때문)'})`},
  async saveCsv(){if(!S.mkt||!S.mkt.csv){toast('먼저 시세를 받아 주세요');return}const dl=(typeof claude!=='undefined'&&claude&&claude.use)?await claude.use('downloads').catch(()=>null):null;if(!dl){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+S.mkt.csv],{type:'text/csv'}));a.download='라오어_최신시세_'+(LIVE.lastDate||today())+'.csv';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);return}
@@ -1961,7 +1969,7 @@ saveWork=function(){PWA.save();toast('✔ 이 기기에 저장했습니다')};
 {const _o=openFile;openFile=async function(f){const r=await _o(f);setTimeout(PWA.save,50);return r}}
 
 /* 🔄 새 버전 알림: GitHub에 새 계산표가 올라오면(최대 몇 분) 화면 위에 알려 주고, 누르면 캐시를 피해 새로 엶 */
-const APP_BUILD='20261031173046';
+const APP_BUILD='20261102135543';
 async function chkUpd(){try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();
  if(/^\d{14}$/.test(v)&&v>APP_BUILD&&!document.getElementById('updBar')){const b=document.createElement('div');b.id='updBar';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:80;background:#1f6feb;color:#fff;padding:10px 16px;border-radius:24px;box-shadow:0 4px 14px rgba(0,0,0,.25);font-weight:700;cursor:pointer;max-width:calc(100vw - 24px)';b.textContent='🔄 새 버전이 있어요 — 눌러서 바로 적용';b.onclick=()=>{try{PWA.save()}catch(e){}location.replace(location.pathname+'?v='+v)};document.body.appendChild(b)}}catch(e){}}
 setTimeout(chkUpd,1500);setInterval(chkUpd,10*60e3);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')chkUpd()});
