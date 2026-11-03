@@ -1045,13 +1045,43 @@ const PER={K:'laoer_persuade_v1',
   ${S.top.length?`<div class="note" style="margin-top:6px">${S.top.map(([k,c])=>`${nm(k)} ${c}번`).join(' · ')}</div>`:''}
   <div style="font-weight:700;margin:14px 0 2px">② 8가지 힘 — 뜻 · 나를 노리는 모습 · 검증된 사례 · 방어법</div>${rows}
   <p class="note" style="margin:8px 0 0">출처: 로버트 치알디니 『설득의 심리학(Influence)』 6원칙(상호성·일관성·사회적 증거·호감·권위·희소성) + 개정증보판(2021)에 더해진 7번째 원칙 일체감 + 멍거 강연에서 치알디니 사례로 든 '대비'. 원칙 설명은 우리말로 풀어 쓴 것이고, 사례 숫자는 이 계산표에서 직접 계산·확인한 값이에요.</p></div></details>`}};
+/* 😱 나스닥100 공포·탐욕 지수 (라오어판) — GitHub가 15분마다 계산한 fg.json을 받아 표시 · 재료 6가지를 최근 2년 안에서의 등수(0~100)로 바꿔 평균 */
+const FG={K:'laoer_fg_v1',d:null,
+ NM:{추세:['📈 추세','나스닥100이 125일 평균보다 얼마나 위'],고점:['⛰️ 고점','52주 최고가에 얼마나 가까운지'],공포:['😨 공포(VXN)','VXN이 평소(50일 평균)보다 낮은지'],기술주공포:['💻 기술주 공포','VXN−VIX 차이가 작은지'],안전자산:['🛡️ 안전자산','최근 20일 주식(QQQ)이 채권(TLT)보다 셌는지'],과열:['🔥 과열(RSI)','RSI(14)가 높은지']},
+ lab(s){return s<10?['극단 공포','#b42318']:s<25?['공포','#e0602a']:s<45?['약한 공포','#d9a21e']:s<55?['중립','#8a95a5']:s<75?['탐욕','#4c9a2a']:s<90?['강한 탐욕','#1a7f37']:['극단 탐욕','#0b5d26']},
+ /* 2003~2026 검증 (6가지 재료가 모두 있는 기간 · TQQQ, 2010년 전은 나스닥100으로 계산한 가상 값) */
+ BT:[['극단 공포 0~10',56,15,48,10,'20번'],['공포 10~25',39,27,45,15,'32번'],['약한 공포 25~45',37,26,35,14,'27번'],['중립 45~55',39,26,36,21,'29번'],['탐욕 55~75',38,25,42,19,'20번'],['강한 탐욕 75~90',35,23,43,20,'38번'],['극단 탐욕 90~100',31,43,4,43,'10번']],
+ boot(){if(FG._b)return;FG._b=1;try{const o=JSON.parse(localStorage.getItem(FG.K)||'null');if(o&&o.v===1)FG.d=o}catch(e){}FG.load();setInterval(()=>{if(document.visibilityState!=='hidden')FG.load()},15*60e3)},
+ async load(){if(FG.busy||typeof LIVE==='undefined'||!LIVE.ghJ)return;FG.busy=1;try{const o=await LIVE.ghJ('fg.json',8000);if(o&&o.v===1&&o.s&&o.s.length){const ch=!FG.d||FG.d.at!==o.at;FG.d=o;try{localStorage.setItem(FG.K,JSON.stringify(o))}catch(e){}if(ch)try{render()}catch(e){}}}catch(e){FG.err=e&&e.message}finally{FG.busy=0}},
+ spark(){const o=FG.d,s=o.s,n=s.length,W=600,H=90,x=i=>i/(n-1)*W,y=v=>H-v/100*H;let p='';s.forEach((v,i)=>{if(v!=null)p+=(p?'L':'M')+x(i).toFixed(1)+','+y(v).toFixed(1)});
+  const band=(a,b,c)=>`<rect x="0" y="${y(b)}" width="${W}" height="${y(a)-y(b)}" fill="${c}" opacity=".09"/>`;
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:80px;display:block">${band(0,25,'#b42318')}${band(75,100,'#1a7f37')}<line x1="0" x2="${W}" y1="${y(50)}" y2="${y(50)}" stroke="#9aa3b0" stroke-dasharray="4 4"/><path d="${p}" fill="none" stroke="#2f6fed" stroke-width="2"/><circle cx="${x(n-1)}" cy="${y(s[n-1])}" r="4" fill="${FG.lab(s[n-1])[1]}"/></svg><div class="note" style="display:flex;justify-content:space-between"><span>${o.d[0]}</span><span>최근 1년 · 빨간 띠=공포(25 미만) · 초록 띠=탐욕(75 이상)</span><span>${o.d[n-1]}</span></div>`},
+ card(){FG.boot();const o=FG.d;if(!o)return `<div class="card noprint"><h3>😱 나스닥100 공포·탐욕 지수</h3><p class="note">인터넷에 연결되면 GitHub에서 계산한 값을 받아 보여 줘요${FG.err?' ('+FG.err+')':''}.</p></div>`;
+  const s=o.s[o.s.length-1],[L,C]=FG.lab(s),prev=o.s[o.s.length-6],dist=(o.ndx/o.ma200-1)*100,up=dist>0,age=Math.round((Date.now()/1000-o.at)/60);
+  const bucket=FG.BT[s<10?0:s<25?1:s<45?2:s<55?3:s<75?4:s<90?5:6];
+  const combo=s<10?(up?`<b>극단 공포 + 200일선 위</b>(지금 +${dist.toFixed(1)}%) → 2003년 이후 11번, 1년 뒤 손해 <b>0%</b>(가운데 +31%). 다만 1달 안에는 30%가 더 빠졌어요.`:`<b>극단 공포 + 200일선 아래</b>(지금 ${dist.toFixed(1)}%) → 1년 뒤 손해 19%(가운데 +52%)지만 <b>1달 안 손해 63%</b> — 바닥이 아직일 수 있어 아주 천천히 나눠 사기.`):s>=90?'<b>극단 탐욕</b> → 1년 뒤 손해 43%로 가장 나빴던 구간. 새로 크게 사지 않기.':`이 구간은 1년 뒤 손해 확률이 ${bucket[2]}%로 평소(약 25%)와 큰 차이가 없어요 — 라오어 규칙대로.`;
+  const parts=Object.keys(FG.NM).map(k=>{const v=o.p[k];return `<div style="display:grid;grid-template-columns:118px 1fr 34px;gap:6px;align-items:center;font-size:13px" title="${FG.NM[k][1]}"><span>${FG.NM[k][0]}</span><div style="height:9px;background:#eef1f5;border-radius:5px;overflow:hidden"><div style="width:${v??0}%;height:100%;background:${v==null?'#ccc':FG.lab(v)[1]}"></div></div><span class="note" style="text-align:right">${v??'–'}</span></div>`}).join('');
+  const bt=`<div class="tw"><table class="g"><thead><tr><th>구간</th><th class="n">1달 뒤 손해</th><th class="n">1년 뒤 손해</th><th class="n">1년 뒤 가운데</th><th class="n">3년 뒤 손해</th><th class="n">사건</th></tr></thead><tbody>${FG.BT.map(r=>`<tr${r===bucket?' style="background:#fffbe6;font-weight:700"':''}><td>${r[0]}</td><td class="n">${r[1]}%</td><td class="n">${r[2]}%</td><td class="n">+${r[3]}%</td><td class="n">${r[4]}%</td><td class="n">${r[5]}</td></tr>`).join('')}</tbody></table></div>`;
+  return `<div class="card noprint"><h3>😱 나스닥100 공포·탐욕 지수 <span class="note" style="font-weight:400;font-size:12px">라오어판 · ${o.d[o.d.length-1]} 기준 · ${age<1?'방금':age+'분 전'} 계산(15분마다)</span></h3>
+  <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap"><div style="text-align:center;min-width:120px"><div style="font-size:44px;font-weight:800;color:${C};line-height:1">${s.toFixed(0)}</div><div style="font-weight:700;color:${C}">${L}</div><div class="note">일주일 전 ${prev!=null?prev.toFixed(0):'–'}</div></div>
+   <div style="flex:1 1 260px;min-width:0"><div style="position:relative;height:14px;border-radius:7px;background:linear-gradient(90deg,#b42318,#e0602a 25%,#d9a21e 40%,#8a95a5 50%,#4c9a2a 65%,#1a7f37 80%,#0b5d26)"><div style="position:absolute;left:calc(${s}% - 7px);top:-4px;width:14px;height:22px;border-radius:4px;background:#fff;border:3px solid #17202e"></div></div><div class="note" style="display:flex;justify-content:space-between;margin-top:2px"><span>0 극단 공포</span><span>50</span><span>극단 탐욕 100</span></div>
+   <div style="margin-top:8px;display:flex;flex-direction:column;gap:4px">${parts}</div></div></div>
+  <div class="bub" style="margin:10px 0 6px;background:var(--soft)">${combo}</div>
+  ${FG.spark()}
+  <details style="margin-top:8px"><summary class="note" style="cursor:pointer">📊 검증 결과 보기 (2003~2026, TQQQ) · 만드는 법</summary>
+   ${bt}<ul class="note" style="margin:6px 0 0;padding-left:18px;line-height:1.7">
+   <li><b>쓸모 있는 건 '극단 공포(10 미만)' 하나</b>: 1년 뒤 손해 15%로 평소(약 25%)보다 낮고, 3년 뒤 손해도 10%로 가장 낮았어요. 그 밖의 구간은 서로 비슷 — 점수가 높고 낮음이 1년 수익을 고르게 맞히진 못해요(순위상관 0.01).</li>
+   <li><b>극단 공포가 바로 바닥은 아님</b>: 1달 뒤엔 56%가 더 빠져 있었어요. 2008·2022년처럼 극단 공포 뒤 −60~−87%까지 간 적도 있어요. → 한 번에 사지 말고 나눠서.</li>
+   <li><b>극단 탐욕(90 이상)</b>은 1년 뒤 손해 43%로 가장 나빴어요(10번뿐).</li>
+   <li>2003년 전(VXN·채권 자료 없이 일부 재료만): 닷컴 붕괴 때 극단 공포가 길게 이어져 3년 뒤 손해 56% — 큰 하락장에선 공포가 오래 갈 수 있어요.</li>
+   <li>만드는 법: 재료 6가지(추세·고점·VXN·VXN−VIX·주식 대 채권·RSI)를 각각 최근 2년 안에서 지금이 몇 등인지(0~100)로 바꿔 평균. CNN 공포탐욕지수와 같은 방식이지만 S&P500 대신 나스닥100·VXN을 쓰고, CNN에 없는 '기술주만 겁먹었나(VXN−VIX)'를 넣었어요. 투자 자문이 아니에요.</li></ul></details></div>`}};
 {const _act=APP.act;APP.act=function(a,t){if(a==='reload'){
   /* 아이폰 홈 화면 앱(PWA): 입력값 저장 후 캐시를 피해 최신 버전으로 다시 열기 · 파일·아티팩트: 작업 내용은 그대로 두고 시세만 다시 받기 */
   if(typeof PWA!=='undefined'){try{PWA.save()}catch(e){}location.replace(location.pathname+'?v='+Date.now());return}
-  try{if(typeof LIVE!=='undefined'&&LIVE.refresh){LIVE.refresh(true);if(typeof toast==='function')toast('🔄 최신 시세를 다시 받는 중…');return}}catch(e){}
+  try{if(typeof LIVE!=='undefined'&&LIVE.refresh){LIVE.refresh(true);try{FG.load()}catch(e){}if(typeof toast==='function')toast('🔄 최신 시세를 다시 받는 중…');return}}catch(e){}
   if(typeof DIRTY!=='undefined'&&DIRTY&&!confirm('저장하지 않은 내용이 있어요. 그래도 새로고침할까요?'))return;location.reload();return}
  if(a==='mkt:load')return MKT.load();if(a==='mkt:reset'){pushHx('내장 데이터로 되돌리기 전');logEdit('시장 데이터','불러온 파일','내장 데이터','복원');S.mkt=null;mark();render();return}return _act(a,t)};
- const _home=APP.views.home;APP.views.home=function(){return (typeof LIVE!=='undefined'&&LIVE.tick?LIVE.tick():'')+MUN.card()+PER.card()+MKT.card()+_home()};
+ const _home=APP.views.home;APP.views.home=function(){return (typeof LIVE!=='undefined'&&LIVE.tick?LIVE.tick():'')+FG.card()+MUN.card()+PER.card()+MKT.card()+_home()};
  const _csv=APP.csv;APP.csv=function(){let r=[];try{const L=MKT.now().L;r=[['[지금 매수 구간 판정]'],['기준일',L.date,'판정',L.verdict,'200일선 대비(%)',L.distPct,'규칙',L.state,'VIX',L.vix,'1년 고점 대비(%)',L.ddPct,'20일 변동성(%)',L.volPct],[]]}catch(e){}return r.concat(_csv())};}
 
 /* ===================== 첫 화면: TQQQ · QLD 전체 기간 그래프 (같은 200일선 신호) ===================== */
@@ -1969,7 +1999,7 @@ saveWork=function(){PWA.save();toast('✔ 이 기기에 저장했습니다')};
 {const _o=openFile;openFile=async function(f){const r=await _o(f);setTimeout(PWA.save,50);return r}}
 
 /* 🔄 새 버전 알림: GitHub에 새 계산표가 올라오면(최대 몇 분) 화면 위에 알려 주고, 누르면 캐시를 피해 새로 엶 */
-const APP_BUILD='20261102135543';
+const APP_BUILD='20261104063909';
 async function chkUpd(){try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();
  if(/^\d{14}$/.test(v)&&v>APP_BUILD&&!document.getElementById('updBar')){const b=document.createElement('div');b.id='updBar';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:80;background:#1f6feb;color:#fff;padding:10px 16px;border-radius:24px;box-shadow:0 4px 14px rgba(0,0,0,.25);font-weight:700;cursor:pointer;max-width:calc(100vw - 24px)';b.textContent='🔄 새 버전이 있어요 — 눌러서 바로 적용';b.onclick=()=>{try{PWA.save()}catch(e){}location.replace(location.pathname+'?v='+v)};document.body.appendChild(b)}}catch(e){}}
 setTimeout(chkUpd,1500);setInterval(chkUpd,10*60e3);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')chkUpd()});
