@@ -88,3 +88,44 @@ else:
     if not any(C[s] for s in C) and prev: C = prev.get('c', {})
     json.dump({'v': 7, 'at': now, 'c': C, 'h': H}, open(f'{OUT}/g.json', 'w'), separators=(',', ':'))
     print('g.json 새로 만듦', os.path.getsize(f'{OUT}/g.json') // 1024, 'KB')
+
+
+# ===== 나스닥100 공포·탐욕 지수 (라오어판) — 15분마다 새로 계산 (fg.json) =====
+try:
+    import sys; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import fg_calc, datetime as dt
+    pf = None
+    try: pf = json.load(open('prev_fg.json'))
+    except Exception: pass
+    if pf and pf.get('v') == 1 and now - pf.get('at', 0) < 15 * 60:
+        json.dump(pf, open(f'{OUT}/fg.json', 'w'), separators=(',', ':')); print('fg.json 이전 것 유지')
+    else:
+        S = {}
+        for sym in ('^NDX', '^VXN', '^VIX', 'QQQ', 'TLT'):
+            R = get(f'/v8/finance/chart/{urllib.parse.quote(sym, safe="")}?range=5y&interval=1d')['chart']['result'][0]
+            cl = R['indicators']['quote'][0]['close']; aj = (R['indicators'].get('adjclose') or [{}])[0].get('adjclose') or cl
+            v = aj if sym in ('QQQ', 'TLT') else cl
+            S[sym] = {dt.datetime.utcfromtimestamp(t - 5 * 3600).strftime('%Y-%m-%d'): x for t, x in zip(R['timestamp'], v) if x}
+            time.sleep(0.5)
+        D = sorted(S['^NDX'])
+        def col(sym):
+            o, last, gap = [], None, 0
+            for d in D:
+                x = S[sym].get(d)
+                if x is None and last is not None and gap < 3: x = last; gap += 1
+                elif x is not None: gap = 0
+                o.append(x); last = x if x is not None else last
+            return o
+        Nn = [S['^NDX'][d] for d in D]
+        sc, pc = fg_calc.calc(D, Nn, col('^VXN'), col('^VIX'), col('QQQ'), col('TLT'))
+        k = len(D) - 260
+        ma200 = sum(Nn[-200:]) / 200
+        out = {'v': 1, 'at': now, 'd': D[k:], 's': [None if x is None else round(x, 1) for x in sc[k:]],
+               'p': {n: (None if pc[n][-1] is None else round(pc[n][-1])) for n in fg_calc.NAMES},
+               'ndx': Nn[-1], 'ma200': round(ma200, 2), 'vxn': S['^VXN'].get(D[-1]), 'vix': S['^VIX'].get(D[-1])}
+        json.dump(out, open(f'{OUT}/fg.json', 'w'), separators=(',', ':')); print('fg.json 새로 계산', D[-1], out['s'][-1], out['p'])
+except Exception as e:
+    print('fg.json 실패', e)
+    try:
+        if pf: json.dump(pf, open(f'{OUT}/fg.json', 'w'), separators=(',', ':'))
+    except Exception: pass
