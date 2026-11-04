@@ -1061,8 +1061,45 @@ const FG={K:'laoer_fg_v1',d:null,
   <ul class="note" style="margin:6px 0 0;padding-left:18px;line-height:1.7"><li><b>길게 보면 "0에 가까울수록 안전"은 성립하지 않아요.</b> 극단 공포(10 미만)의 1년 뒤 손해 확률이 21~51%로 평소(약 26%)와 비슷하거나 더 나빴어요.</li>
   <li>이유는 <b>닷컴 붕괴</b>: 1992~2003년 극단 공포 10번 중 7번은 1년 뒤 +23~+451%였지만, <b>2000년 4월·9월, 2001년 2월 3번은 −87~−99%</b>. 거품이 꺼지는 긴 하락장에선 극단 공포가 몇 번이고 다시 왔고, 3배 레버리지는 거의 사라졌어요.</li>
   <li>→ 극단 공포는 "더 사도 되는 확실한 신호"가 아니라 <b>"계획한 분할 매수를 겁먹고 멈추지 않을 근거" 정도</b>로만 쓰고, 200일선 매도 규칙(3규칙)은 그대로 지키기.</li></ul>`},
- boot(){if(FG._b)return;FG._b=1;try{const o=JSON.parse(localStorage.getItem(FG.K)||'null');if(o&&o.v===1)FG.d=o}catch(e){}FG.load();setInterval(()=>{if(document.visibilityState!=='hidden')FG.load()},15*60e3)},
- async load(){if(FG.busy||typeof LIVE==='undefined'||!LIVE.ghJ)return;FG.busy=1;try{const o=await LIVE.ghJ('fg.json',8000);if(o&&o.v===1&&o.s&&o.s.length){const ch=!FG.d||FG.d.at!==o.at;FG.d=o;try{localStorage.setItem(FG.K,JSON.stringify(o))}catch(e){}if(ch)try{render()}catch(e){}}}catch(e){FG.err=e&&e.message}finally{FG.busy=0}},
+ /* 계산 (GitHub의 fg_calc.py와 같은 식 — 표준 라이브러리판과 소수점까지 같게 맞춤) */
+ NAMES:['추세','고점','공포','기술주공포','안전자산','과열'],
+ calc(N,VN,VX,Q,TL,L=504){const n=N.length,raw={};FG.NAMES.forEach(k=>raw[k]=new Array(n).fill(null));
+  const ma=(a,w,i)=>{if(i+1<w)return null;let t=0;for(let j=i+1-w;j<=i;j++){if(a[j]==null)return null;t+=a[j]}return t/w};
+  let up=null,dn=null;const rsi=new Array(n).fill(null);
+  for(let i=1;i<n;i++){const d=N[i]-N[i-1],u=Math.max(d,0),w=Math.max(-d,0);if(up==null){up=u;dn=w}else{up+=(u-up)/14;dn+=(w-dn)/14}rsi[i]=dn===0?100:100-100/(1+up/dn)}
+  for(let i=0;i<n;i++){const m=ma(N,125,i);if(m)raw['추세'][i]=N[i]/m-1;
+   if(i+1>=200){let h=-Infinity;for(let j=Math.max(0,i-251);j<=i;j++)h=Math.max(h,N[j]);raw['고점'][i]=N[i]/h-1}
+   if(VN[i]!=null){const m5=ma(VN,50,i);if(m5)raw['공포'][i]=-(VN[i]/m5);if(VX[i]!=null)raw['기술주공포'][i]=-(VN[i]-VX[i])}
+   if(i>=20&&Q[i]!=null&&Q[i-20]!=null&&TL[i]!=null&&TL[i-20]!=null)raw['안전자산'][i]=(Q[i]/Q[i-20]-1)-(TL[i]/TL[i-20]-1);
+   raw['과열'][i]=rsi[i]}
+  const pct={};FG.NAMES.forEach(k=>{const a=raw[k],o=new Array(n).fill(null);for(let i=0;i<n;i++){if(a[i]==null)continue;let c=0,le=0;for(let j=Math.max(0,i-L+1);j<=i;j++){if(a[j]==null)continue;c++;if(a[j]<=a[i])le++}if(c>=250)o[i]=le/c*100}pct[k]=o});
+  const sc=[];for(let i=0;i<n;i++){const v=FG.NAMES.map(k=>pct[k][i]).filter(x=>x!=null);sc.push(v.length?v.reduce((x,y)=>x+y,0)/v.length:null)}return {sc,pct}},
+ SY:['^NDX','^VXN','^VIX','QQQ','TLT'],HK:'laoer_fgh_v1',
+ /* Yahoo 일봉을 중계 길 여러 곳에 동시에 → 먼저 온 답 (각 12초 제한) */
+ async ychart(sym,rng){const u=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?range=${rng}&interval=1d`;
+  const one=async(k,h)=>{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),12000);try{const r=await fetch(LIVE.PROX[k](u.replace('query1',h)),{signal:ac.signal,credentials:'omit',referrerPolicy:'no-referrer'});const t=await r.text();if(!r.ok)throw new Error('HTTP '+r.status);let J=JSON.parse(t);if(J&&J.contents)J=JSON.parse(J.contents);const R=J.chart.result[0];if(!R.timestamp)throw new Error('빈 자료');return R}finally{clearTimeout(tm)}};
+  const jobs=[];LIVE.PROX.forEach((_,k)=>['query1','query2'].forEach(h=>jobs.push(one(k,h))));const R=await Promise.any(jobs);
+  const q=R.indicators.quote[0].close,aj=((R.indicators.adjclose||[])[0]||{}).adjclose||q,v=(sym==='QQQ'||sym==='TLT')?aj:q,o={};
+  R.timestamp.forEach((t,i)=>{if(v[i])o[new Date((t-5*3600)*1000).toISOString().slice(0,10)]=v[i]});return o},
+ async live(){let H=null;try{H=JSON.parse(localStorage.getItem(FG.HK)||'null')}catch(e){}
+  const full=!H||!H.S||Date.now()-H.at>20*3600e3;const rng=full?'5y':'5d';
+  const got=await Promise.all(FG.SY.map(s=>FG.ychart(s,rng)));
+  const S=full?{}:H.S;FG.SY.forEach((s,i)=>{S[s]=Object.assign(S[s]||{},got[i])});
+  if(full)H={at:Date.now(),S};else H.S=S;
+  // 5년 넘는 오래된 날은 버림
+  const cut=new Date(Date.now()-5.2*365*864e5).toISOString().slice(0,10);FG.SY.forEach(s=>{for(const d in S[s])if(d<cut)delete S[s][d]});
+  try{localStorage.setItem(FG.HK,JSON.stringify(H))}catch(e){}
+  const D=Object.keys(S['^NDX']).sort();if(D.length<760)throw new Error('나스닥100 일봉이 모자람 '+D.length);
+  const col=sym=>{const o=[];let last=null,gap=0;for(const d of D){let x=S[sym][d];if(x==null&&last!=null&&gap<3){x=last;gap++}else if(x!=null)gap=0;o.push(x==null?null:x);if(x!=null)last=x}return o};
+  const N=D.map(d=>S['^NDX'][d]),{sc,pct}=FG.calc(N,col('^VXN'),col('^VIX'),col('QQQ'),col('TLT'));const k=D.length-260,r1=x=>x==null?null:Math.round(x*10)/10;
+  const p={};FG.NAMES.forEach(nm=>{const v=pct[nm][D.length-1];p[nm]=v==null?null:Math.round(v)});
+  return {v:1,at:Math.floor(Date.now()/1000),d:D.slice(k),s:sc.slice(k).map(r1),p,ndx:N[N.length-1],ma200:Math.round(N.slice(-200).reduce((a,b)=>a+b,0)/200*100)/100,vxn:S['^VXN'][D[D.length-1]],vix:S['^VIX'][D[D.length-1]],src:'live'}},
+ boot(){if(FG._b)return;FG._b=1;try{const o=JSON.parse(localStorage.getItem(FG.K)||'null');if(o&&o.v===1)FG.d=o}catch(e){}FG.load();setInterval(()=>{if(document.visibilityState==='hidden')return;const g=(typeof LIVE!=='undefined'&&LIVE.open&&LIVE.open())?5:15;if(!FG.d||Date.now()/1000-FG.d.at>=g*60-5)FG.load()},60e3);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&(!FG.d||Date.now()/1000-FG.d.at>300))FG.load()})},
+ async load(){if(FG.busy||typeof LIVE==='undefined'||!LIVE.PROX)return;FG.busy=1;
+  const put=o=>{FG.d=o;try{localStorage.setItem(FG.K,JSON.stringify(o))}catch(e){}try{render()}catch(e){}};
+  try{put(await FG.live());FG.err=null}
+  catch(e){FG.err='직접 계산 실패 — GitHub 값 사용';try{const o=await LIVE.ghJ('fg.json',8000);if(o&&o.v===1&&o.s&&o.s.length&&(!FG.d||o.d[o.d.length-1]>FG.d.d[FG.d.d.length-1]||(o.d[o.d.length-1]===FG.d.d[FG.d.d.length-1]&&o.at>FG.d.at)))put(o)}catch(_){}}
+  finally{FG.busy=0}},
  spark(){const o=FG.d,s=o.s,n=s.length,W=600,H=90,x=i=>i/(n-1)*W,y=v=>H-v/100*H;let p='';s.forEach((v,i)=>{if(v!=null)p+=(p?'L':'M')+x(i).toFixed(1)+','+y(v).toFixed(1)});
   const band=(a,b,c)=>`<rect x="0" y="${y(b)}" width="${W}" height="${y(a)-y(b)}" fill="${c}" opacity=".09"/>`;
   return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:80px;display:block">${band(0,25,'#b42318')}${band(75,100,'#1a7f37')}<line x1="0" x2="${W}" y1="${y(50)}" y2="${y(50)}" stroke="#9aa3b0" stroke-dasharray="4 4"/><path d="${p}" fill="none" stroke="#2f6fed" stroke-width="2"/><circle cx="${x(n-1)}" cy="${y(s[n-1])}" r="4" fill="${FG.lab(s[n-1])[1]}"/></svg><div class="note" style="display:flex;justify-content:space-between"><span>${o.d[0]}</span><span>최근 1년 · 빨간 띠=공포(25 미만) · 초록 띠=탐욕(75 이상)</span><span>${o.d[n-1]}</span></div>`},
@@ -1072,7 +1109,7 @@ const FG={K:'laoer_fg_v1',d:null,
   const combo=s<10?(up?`<b>극단 공포 + 200일선 위</b>(지금 +${dist.toFixed(1)}%) → 2003년 이후 11번, 1년 뒤 손해 <b>0%</b>(가운데 +31%). ⚠️ 하지만 닷컴 붕괴가 들어간 1992년부터 보면 같은 조건에서도 1년 뒤 손해가 24~33%였어요 — 확실한 신호는 아니에요. 다만 <b>1달 뒤엔 10번 중 3번(30%)꼴로 산 값보다 낮았고</b>, 그때는 평균 −11%였어요(1달 안 최저점 가운데 −4%, 최악 −26%).`:`<b>극단 공포 + 200일선 아래</b>(지금 ${dist.toFixed(1)}%) → 1년 뒤 손해 19%(가운데 +52%)지만 <b>1달 뒤엔 10번 중 6번(63%)꼴로 산 값보다 낮았고</b>, 1달 안에 평균 −17%까지 더 빠졌어요(최악 −58%) — 바닥이 아직일 수 있어 아주 천천히 나눠 사기.`):s>=90?'<b>극단 탐욕</b> → 1년 뒤 손해 43%로 가장 나빴던 구간. 새로 크게 사지 않기.':`이 구간은 1년 뒤 손해 확률이 ${bucket[2]}%로 평소(약 25%)와 큰 차이가 없어요 — 라오어 규칙대로.`;
   const parts=Object.keys(FG.NM).map(k=>{const v=o.p[k];return `<div style="display:grid;grid-template-columns:118px 1fr 34px;gap:6px;align-items:center;font-size:13px" title="${FG.NM[k][1]}"><span>${FG.NM[k][0]}</span><div style="height:9px;background:#eef1f5;border-radius:5px;overflow:hidden"><div style="width:${v??0}%;height:100%;background:${v==null?'#ccc':FG.lab(v)[1]}"></div></div><span class="note" style="text-align:right">${v??'–'}</span></div>`}).join('');
   const bt=`<div class="tw"><table class="g"><thead><tr><th>구간</th><th class="n">1달 뒤 손해 확률</th><th class="n">1년 뒤 손해 확률</th><th class="n">1년 뒤 가운데</th><th class="n">3년 뒤 손해 확률</th><th class="n">사건</th></tr></thead><tbody>${FG.BT.map(r=>`<tr${r===bucket?' style="background:#fffbe6;font-weight:700"':''}><td>${r[0]}</td><td class="n">${r[1]}%</td><td class="n">${r[2]}%</td><td class="n">+${r[3]}%</td><td class="n">${r[4]}%</td><td class="n">${r[5]}</td></tr>`).join('')}</tbody></table></div>`;
-  return `<div class="card noprint"><h3>😱 나스닥100 공포·탐욕 지수 <span class="note" style="font-weight:400;font-size:12px">라오어판 · ${o.d[o.d.length-1]} 기준 · ${age<1?'방금':age<90?age+'분 전':Math.round(age/60)+'시간 전'} 계산 · GitHub가 자동 계산(보통 몇 시간 간격)</span></h3>
+  return `<div class="card noprint"><h3>😱 나스닥100 공포·탐욕 지수 <span class="note" style="font-weight:400;font-size:12px">라오어판 · ${o.d[o.d.length-1]} 기준 · ${age<1?'방금':age<90?age+'분 전':Math.round(age/60)+'시간 전'} 계산 · ${o.src==='live'?'이 화면에서 직접 계산(장중 5분·그 밖 15분마다)':'GitHub 계산값(직접 계산이 막혀 대신 씀)'}${FG.busy?' · ⏳ 새로 계산 중':''}</span></h3>
   <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap"><div style="text-align:center;min-width:120px"><div style="font-size:44px;font-weight:800;color:${C};line-height:1">${s.toFixed(0)}</div><div style="font-weight:700;color:${C}">${L}</div><div class="note">일주일 전 ${prev!=null?prev.toFixed(0):'–'}</div></div>
    <div style="flex:1 1 260px;min-width:0"><div style="position:relative;height:14px;border-radius:7px;background:linear-gradient(90deg,#b42318,#e0602a 25%,#d9a21e 40%,#8a95a5 50%,#4c9a2a 65%,#1a7f37 80%,#0b5d26)"><div style="position:absolute;left:calc(${s}% - 7px);top:-4px;width:14px;height:22px;border-radius:4px;background:#fff;border:3px solid #17202e"></div></div><div class="note" style="display:flex;justify-content:space-between;margin-top:2px"><span>0 극단 공포</span><span>50</span><span>극단 탐욕 100</span></div>
    <div style="margin-top:8px;display:flex;flex-direction:column;gap:4px">${parts}</div></div></div>
@@ -2009,7 +2046,7 @@ saveWork=function(){PWA.save();toast('✔ 이 기기에 저장했습니다')};
 {const _o=openFile;openFile=async function(f){const r=await _o(f);setTimeout(PWA.save,50);return r}}
 
 /* 🔄 새 버전 알림: GitHub에 새 계산표가 올라오면(최대 몇 분) 화면 위에 알려 주고, 누르면 캐시를 피해 새로 엶 */
-const APP_BUILD='20261104093421';
+const APP_BUILD='20261104093700';
 async function chkUpd(){try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();
  if(/^\d{14}$/.test(v)&&v>APP_BUILD&&!document.getElementById('updBar')){const b=document.createElement('div');b.id='updBar';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:80;background:#1f6feb;color:#fff;padding:10px 16px;border-radius:24px;box-shadow:0 4px 14px rgba(0,0,0,.25);font-weight:700;cursor:pointer;max-width:calc(100vw - 24px)';b.textContent='🔄 새 버전이 있어요 — 눌러서 바로 적용';b.onclick=()=>{try{PWA.save()}catch(e){}location.replace(location.pathname+'?v='+v)};document.body.appendChild(b)}}catch(e){}}
 setTimeout(chkUpd,1500);setInterval(chkUpd,10*60e3);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')chkUpd()});
