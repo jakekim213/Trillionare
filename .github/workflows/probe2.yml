@@ -1,0 +1,35 @@
+name: 중계 주소 시험 (수동)
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: 시험
+        run: |
+          mkdir out && cd out
+          python3 - <<'PY'
+          import json,urllib.request,urllib.parse,time
+          Y='https://query1.finance.yahoo.com/v8/finance/spark?symbols=NQ%3DF,%5ENDX&range=1d&interval=5m'
+          C=[('allorigins_raw','https://api.allorigins.win/raw?url='+urllib.parse.quote(Y,safe='')),('allorigins_get','https://api.allorigins.win/get?url='+urllib.parse.quote(Y,safe='')),
+             ('corsproxy','https://corsproxy.io/?url='+urllib.parse.quote(Y,safe='')),('codetabs','https://api.codetabs.com/v1/proxy?quest='+urllib.parse.quote(Y,safe='')),
+             ('corslol','https://api.cors.lol/?url='+urllib.parse.quote(Y,safe='')),('everyorigin','https://everyorigin.jwvbremen.nl/api/get?url='+urllib.parse.quote(Y,safe='')),
+             ('whatever','https://whateverorigin.org/get?url='+urllib.parse.quote(Y,safe='')),('thingproxy','https://thingproxy.freeboard.io/fetch/'+Y),
+             ('jina','https://r.jina.ai/'+Y),('corsx','https://cors-anywhere.com/'+Y),('cnbc','https://quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol?symbols=%40NQ.1%7C.NDX&requestMethod=itv&noform=1&partnerId=2&fund=1&exthrs=1&output=json&events=1'),
+             ('yahoo','https://query1.finance.yahoo.com/v8/finance/spark?symbols=NQ%3DF&range=1d&interval=5m'),('ghraw','https://raw.githubusercontent.com/jakekim213/Trillionare/data/q.json?t=1')]
+          R={}
+          for n,u in C:
+            t0=time.time()
+            try:
+              q=urllib.request.Request(u,headers={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/130.0 Safari/537.36','Origin':'https://jakekim213.github.io'})
+              r=urllib.request.urlopen(q,timeout=25);b=r.read()
+              R[n]={'st':r.status,'acao':r.headers.get('Access-Control-Allow-Origin'),'cc':r.headers.get('Cache-Control'),'age':r.headers.get('Age'),'xc':r.headers.get('X-Cache'),'len':len(b),'s':round(time.time()-t0,1),'head':b[:160].decode('utf8','replace')}
+            except Exception as e:
+              R[n]={'err':str(e)[:150],'s':round(time.time()-t0,1)}
+          json.dump(R,open('probe.json','w'),ensure_ascii=False,indent=1)
+          PY
+          git init -q -b probe && git config user.name "github-actions[bot]" && git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A && git commit -qm probe && git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" probe
