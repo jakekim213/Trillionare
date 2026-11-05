@@ -2084,7 +2084,7 @@ const QC={fine:matchMedia('(hover:hover) and (pointer:fine)').matches,cache:{},s
  view(){let S=QC.cache[QC.sym]&&QC.cache[QC.sym][QC.u];if(!S)return null;if(!S.o){const D=QC.cache[QC.sym],mk=QC.sym+'|'+QC.u+'|'+S.c.length+'|'+S.at+'|'+(D.d?D.d.at:0)+'|'+(QC.hr&&QC.hr[QC.sym]?1:0);if(!QC._sm||QC._sm.k!==mk)QC._sm={k:mk,x:QC.syn(QC.sym,QC.u)};if(QC._sm.x)S=QC._sm.x}const rg=QC.rg[QC.u],g=QC.RG[QC.u].find(r=>r[0]===rg)||QC.RG[QC.u][0];
   const n=S.c.length,cut=S.t[n-1]-g[2]*86400e3;let i0=0;while(i0<n-2&&S.t[i0]<cut)i0++;const sl=a=>a?a.slice(i0):null;
   return {syn:!!S.syn,o:sl(S.o),h:sl(S.h),l:sl(S.l),v:S.c.slice(i0),t:S.t.slice(i0),short:g[2]<1e9&&S.t[0]>cut+45*86400e3,
-   mas:QC.MA.map(([k,c])=>({k,c,v:QC.ma(S.c,k).slice(i0)})).filter(m=>m.v.some(x=>x!=null))}},
+   mas:QC.MA.map(([k,c])=>({k,c,v:QC.ma(S.c,k).slice(i0)})).concat(QC.u==='w'?[{k:40,c:'#e0218a',eq:1,v:QC.ma(S.c,40).slice(i0)}]:QC.u==='m'?[{k:10,c:'#e0218a',eq:1,v:QC.ma(S.c,10).slice(i0)}]:[]).filter(m=>m.v.some(x=>x!=null))}},
  logOn(){const v=QC.log;if(v!=null)return v;const rg=QC.rg[QC.u];return QC.u!=='d'&&(rg==='10y'||rg==='20y'||rg==='max')},
  fmt(x){return x>=1000?x.toLocaleString('en-US',{maximumFractionDigits:x>=1e4?0:1}):x.toLocaleString('en-US',{maximumFractionDigits:2})},
  draw(){const el=QC.el;if(!el)return;const cv=el.querySelector('canvas'),V=QC.view(),info=el.querySelector('.qcI');if(!cv)return;
@@ -2104,12 +2104,12 @@ const QC={fine:matchMedia('(hover:hover) and (pointer:fine)').matches,cache:{},s
   const candle=V.o&&bw>=1.5;
   if(candle){for(let i=0;i<n;i++){const up=V.v[i]>=V.o[i],c=up?UP:DN;x.strokeStyle=c;x.fillStyle=c;x.lineWidth=1;x.beginPath();x.moveTo(X(i),Y(V.h[i]));x.lineTo(X(i),Y(V.l[i]));x.stroke();
     const y1=Y(Math.max(V.o[i],V.v[i])),y2=Y(Math.min(V.o[i],V.v[i])),w=Math.max(1,bw*.7);x.fillRect(X(i)-w/2,y1,w,Math.max(1,y2-y1))}}
-  V.mas.forEach(m=>line(m.v,m.c,1.2));if(!candle)line(V.v,ink,1.8);
+  V.mas.forEach(m=>{if(m.eq){x.setLineDash([6,4]);line(m.v,m.c,2.2);x.setLineDash([])}else line(m.v,m.c,1.2)});if(!candle)line(V.v,ink,1.8);
   const h=QC.hv==null?n-1:Math.max(0,Math.min(n-1,QC.hv));if(QC.hv!=null){x.strokeStyle=ink;x.globalAlpha=.4;x.lineWidth=1;x.beginPath();x.moveTo(X(h),T);x.lineTo(X(h),T+ph);x.stroke();x.globalAlpha=1;if(!candle){x.fillStyle=ink;x.beginPath();x.arc(X(h),Y(V.v[h]),3.5,0,7);x.fill()}}
   QC.geo={L,bw,n};const p=V.v[h],d=new Date(V.t[h]),un=QC.U[QC.u],pc=(u,v)=>{const r=u/v-1;return `<span class="${r>=0?'pos':'neg'}">${r>=9?(u/v).toLocaleString('en-US',{maximumFractionDigits:u/v>=100?0:1})+'배':(r>=0?'+':'')+(r*100).toFixed(1)+'%'}</span>`};
   const pk=Math.max(...(V.h||V.v).slice(0,h+1)),ds=`${d.getFullYear()}.${d.getMonth()+1}${QC.u==='m'?'':'.'+d.getDate()}`;
   info.innerHTML=`<b>${ds}${QC.u==='w'?' 주':QC.u==='m'?' 월':''}</b>${V.o?` · 시가 ${QC.fmt(V.o[h])} · 고가 ${QC.fmt(V.h[h])} · 저가 ${QC.fmt(V.l[h])} · 종가 <b>${QC.fmt(p)}</b>`:` · 종가 <b>${QC.fmt(p)}</b>`}${h>0?' · '+({d:'전일',w:'전주',m:'전월'}[QC.u])+' 대비 '+pc(p,V.v[h-1]):''}<br>이 기간 처음보다 ${pc(p,V.v[0])} · 이 기간 최고점보다 ${pc(p,pk)}${V.short?' <span class="note">(받은 자료가 이 기간보다 짧음)</span>':''}${V.syn?' <span class="note">(종가로 만든 봉: 시가=앞 봉 종가, 꼬리=그 사이 종가의 최고·최저'+(QC.u==='d'?'(최근 1년은 1시간 종가)':'')+')</span>':''}${!V.o?' <span class="note">(봉 자료를 못 받아 종가 선으로 표시)</span>':!candle?' <span class="note">(봉이 너무 많아 선으로 — 짧은 기간을 누르면 봉으로)</span>':''}<br>`+
-   V.mas.map(m=>{const y=m.v[h];return `<span style="white-space:nowrap"><span style="display:inline-block;width:14px;height:3px;background:${m.c};vertical-align:middle"></span> ${m.k}${un[1]}선 ${y==null?'—':QC.fmt(y)+' ('+(p>=y?'위 ':'아래 ')+pc(p,y)+')'}</span>`}).join(' · ')},
+   V.mas.map(m=>{const y=m.v[h];return `<span style="white-space:nowrap"><span style="display:inline-block;width:14px;height:3px;background:${m.c};vertical-align:middle${m.eq?';background:repeating-linear-gradient(90deg,'+m.c+' 0 5px,transparent 5px 8px)':''}"></span> ${m.eq?'<b>':''}${m.k}${un[1]}선${m.eq?' = 200일선 환산</b>':''} ${y==null?'—':QC.fmt(y)+' ('+(p>=y?'위 ':'아래 ')+pc(p,y)+')'}</span>`}).join(' · ')},
  html(){const b=(k,l,on)=>`<button class="btn sm ${on?'gold':'light'}" data-qc="${k}">${l}</button>`;
   return `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><b style="font-size:16px">📊 ${esc(QC.lab)}</b><span style="display:inline-flex;gap:3px;margin-left:8px">${Object.keys(QC.U).map(u=>b('u:'+u,QC.U[u][0],u===QC.u)).join('')}</span><span style="flex:1"></span><button class="btn sm light" data-qc="x">✕ 닫기</button></div>
   <div style="display:flex;gap:4px;flex-wrap:wrap;margin:6px 0">${QC.RG[QC.u].map(r=>b('r:'+r[0],r[1],r[0]===QC.rg[QC.u])).join('')}${b('log',QC.logOn()?'비율 눈금 ✓':'비율 눈금',false)}</div>
@@ -2194,7 +2194,7 @@ saveWork=function(){PWA.save();toast('✔ 이 기기에 저장했습니다')};
 {const _o=openFile;openFile=async function(f){const r=await _o(f);setTimeout(PWA.save,50);return r}}
 
 /* 🔄 새 버전 알림: GitHub에 새 계산표가 올라오면(최대 몇 분) 화면 위에 알려 주고, 누르면 캐시를 피해 새로 엶 */
-const APP_BUILD='20261105113300';
+const APP_BUILD='20261105114000';
 async function chkUpd(){try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();
  if(/^\d{14}$/.test(v)&&v>APP_BUILD&&!document.getElementById('updBar')){const b=document.createElement('div');b.id='updBar';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:80;background:#1f6feb;color:#fff;padding:10px 16px;border-radius:24px;box-shadow:0 4px 14px rgba(0,0,0,.25);font-weight:700;cursor:pointer;max-width:calc(100vw - 24px)';b.textContent='🔄 새 버전이 있어요 — 눌러서 바로 적용';b.onclick=()=>{try{PWA.save()}catch(e){}location.replace(location.pathname+'?v='+v)};document.body.appendChild(b)}}catch(e){}}
 setTimeout(chkUpd,1500);setInterval(chkUpd,10*60e3);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')chkUpd()});
@@ -2203,7 +2203,7 @@ boot();PWA.load();LIVE.refresh();LIVE.auto();
 {const _r=render;render=function(){_r();if(!DIRTY){const b=document.getElementById('stBadge');if(b&&!/저장됨/.test(b.textContent)){b.className='badge final';b.textContent='✔ 이 기기에 저장됨'}}}}
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261105113300';
+const FILE_BUILD='20261105114000';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
