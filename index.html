@@ -1926,7 +1926,13 @@ const LIVE={st:'idle',err:null,at:null,tab:null,lastDate:null,intraday:false,
  keep(){try{localStorage.setItem('laoer_mkt_v1',JSON.stringify({mkt:S.mkt,fx:S.fx,last:LIVE.lastDate,at:Date.now()}))}catch(e){}},
  restore(){try{const o=JSON.parse(localStorage.getItem('laoer_mkt_v1')||'null');if(!o||!o.mkt||!o.mkt.csv)return;const cur=S.mkt&&S.mkt.csv?S.mkt.csv.trim().split('\n').pop().slice(0,10):'';const sv=o.mkt.csv.trim().split('\n').pop().slice(0,10);if(sv>cur){S.mkt=Object.assign({},o.mkt,{from:'이 기기에 보관한 마지막 시세'});if(o.fx&&!(S.fx&&S.fx.r))S.fx=o.fx;LT._bt={}}}catch(e){}},
  /* 받은 spark JSON을 계산표에 넣기 (두 길 공통) */
- apply(J,via){const by=LIVE.rows(J);LIVE.quotes(J);{const f=J['KRW=X'];const c=f&&f.close?f.close.filter(x=>x>0):[];if(c.length)S.fx={r:c[c.length-1],at:nowTs()}}
+ /* Yahoo 일봉의 '오늘 종가'가 비어(None) 올 때(장 마감 뒤 몇 시간) → 하루치 5분 자료의 마지막 정규장 값으로 채우고 다시 넣기 */
+ async fill(J){const N=Object.keys(J).filter(s=>{const o=J[s];return o&&o.close&&o.close.length&&o.close[o.close.length-1]==null});if(!N.length||!LIVE.PROX)return false;let ch=false;const et=x=>new Date(x*1000-5*3600e3).toISOString().slice(0,10);
+  for(let i=0;i<N.length;i+=20){const g=N.slice(i,i+20),u='https://query1.finance.yahoo.com/v8/finance/spark?symbols='+g.map(encodeURIComponent).join(',')+'&range=1d&interval=5m';
+   const tr=async k=>{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),12000);try{const r=await fetch(LIVE.PROX[k](u),{signal:ac.signal,credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)throw 0;const F=LIVE.unwrap(await r.text());if(!g.some(s=>F[s]&&F[s].timestamp))throw 0;return F}finally{clearTimeout(tm)}};
+   try{const F=await Promise.any(LIVE.PROX.map((_,k)=>tr(k)));for(const s of g){const f=F[s],o=J[s];if(!f||!f.timestamp)continue;let k=f.close.length-1;while(k>=0&&!(f.close[k]>0))k--;if(k>=0&&et(f.timestamp[k])===et(o.timestamp[o.timestamp.length-1])){o.close[o.close.length-1]=f.close[k];ch=true}}}catch(e){}}
+  return ch},
+ apply(J,via){LIVE._fs=LIVE._fs||new WeakSet();if(!LIVE._fs.has(J)){LIVE._fs.add(J);LIVE.fill(J).then(ch=>{if(ch)try{LIVE.apply(J,via)}catch(e){}}).catch(()=>{})}const by=LIVE.rows(J);LIVE.quotes(J);{const f=J['KRW=X'];const c=f&&f.close?f.close.filter(x=>x>0):[];if(c.length)S.fx={r:c[c.length-1],at:nowTs()}}
    const ds=Object.keys(by).filter(d=>by[d]['^NDX']!=null&&by[d].TQQQ!=null).sort(),last=ds[ds.length-1],et=LIVE.etNow();LIVE.lastDate=last;LIVE.intraday=last===et.d&&et.hm<16*60;LIVE.via=via;
    const csv=LIVE.csv(by);S.mkt={csv,from:LIVE.intraday?'실시간(장중 값 포함)':'실시간 Yahoo 종가',loadedAt:nowTs()};LIVE.keep();
    LIVE.st='ok';LIVE.at=new Date();LT._bt={};render();if(typeof ART!=='undefined')ART.soon()},
@@ -2182,7 +2188,7 @@ saveWork=function(){PWA.save();toast('✔ 이 기기에 저장했습니다')};
 {const _o=openFile;openFile=async function(f){const r=await _o(f);setTimeout(PWA.save,50);return r}}
 
 /* 🔄 새 버전 알림: GitHub에 새 계산표가 올라오면(최대 몇 분) 화면 위에 알려 주고, 누르면 캐시를 피해 새로 엶 */
-const APP_BUILD='20261105110652';
+const APP_BUILD='20261105111757';
 async function chkUpd(){try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();
  if(/^\d{14}$/.test(v)&&v>APP_BUILD&&!document.getElementById('updBar')){const b=document.createElement('div');b.id='updBar';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:80;background:#1f6feb;color:#fff;padding:10px 16px;border-radius:24px;box-shadow:0 4px 14px rgba(0,0,0,.25);font-weight:700;cursor:pointer;max-width:calc(100vw - 24px)';b.textContent='🔄 새 버전이 있어요 — 눌러서 바로 적용';b.onclick=()=>{try{PWA.save()}catch(e){}location.replace(location.pathname+'?v='+v)};document.body.appendChild(b)}}catch(e){}}
 setTimeout(chkUpd,1500);setInterval(chkUpd,10*60e3);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')chkUpd()});
@@ -2191,7 +2197,7 @@ boot();PWA.load();LIVE.refresh();LIVE.auto();
 {const _r=render;render=function(){_r();if(!DIRTY){const b=document.getElementById('stBadge');if(b&&!/저장됨/.test(b.textContent)){b.className='badge final';b.textContent='✔ 이 기기에 저장됨'}}}}
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261105110652';
+const FILE_BUILD='20261105111757';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
