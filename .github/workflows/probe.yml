@@ -1,0 +1,33 @@
+name: 주소 시험 (수동)
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: '받을 주소'
+        default: 'https://query1.finance.yahoo.com/v8/finance/spark?symbols=%5ENDX&range=5y&interval=1d'
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: 받기
+        env:
+          U: ${{ github.event.inputs.url }}
+        run: |
+          mkdir out && cd out
+          python3 - <<'PY'
+          import os,json,urllib.request
+          UA={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/130.0 Safari/537.36'}
+          try:
+            b=urllib.request.urlopen(urllib.request.Request(os.environ['U'],headers=UA),timeout=60).read()
+            J=json.loads(b);o={'size':len(b)}
+            for k,v in J.items():
+              if isinstance(v,dict) and 'timestamp' in v:o[k]={'n':len(v['timestamp']),'first':v['timestamp'][0],'last':v['timestamp'][-1],'keys':list(v.keys())[:8],'close_last':v.get('close',[None])[-1]}
+              else:o[k]=str(v)[:300]
+          except Exception as e:o={'err':str(e)}
+          json.dump(o,open('probe.json','w'));print(o)
+          PY
+          git init -q -b probe && git config user.name "github-actions[bot]" && git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A && git commit -qm probe && git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" probe
