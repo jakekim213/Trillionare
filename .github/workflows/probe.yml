@@ -21,7 +21,7 @@ jobs:
           import os,json,urllib.request
           UA={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/130.0 Safari/537.36'}
           try:
-            b=urllib.request.urlopen(urllib.request.Request(os.environ['U'],headers=UA),timeout=60).read()
+            b=urllib.request.urlopen(urllib.request.Request(os.environ['U'],headers=UA),timeout=60).read();open('raw.json','wb').write(b)
             J=json.loads(b);o={'size':len(b)}
             for k,v in J.items():
               if isinstance(v,dict) and 'timestamp' in v:o[k]={'n':len(v['timestamp']),'first':v['timestamp'][0],'last':v['timestamp'][-1],'keys':list(v.keys())[:8],'close_last':v.get('close',[None])[-1]}
