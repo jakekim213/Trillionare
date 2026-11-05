@@ -2134,7 +2134,7 @@ const AI={busy:false,text:'',err:'',q:'',hist:[],mode:null,KEY:'laoer_claude_api
   try{const R=LT.recNow();L.push(`단기 회복 신호: 20일선 대비 ${f(R.p/R.m20-1)}, 60일선 대비 ${f(R.p/R.m60-1)}, RSI(14) ${R.rsi.toFixed(1)}`)}catch(e){}
   return L.join('\n')},
  SYS:`너는 한국 개인 투자자를 돕는 설명가다. 초등학생도 이해할 만큼 쉬운 한국어로, 짧게(8줄 안팎) 답한다. 반드시 아래 '지금 숫자'와 '검증된 사실'만 근거로 삼고, 모르는 것은 모른다고 말한다. 투자 권유가 아니며 결정은 본인 몫이라는 말을 마지막에 한 줄로 붙인다.
-검증된 사실(이 계산표의 백테스트): ①나스닥100 200일선 규칙(−3% 아래 매도, +3% 위 매수)은 37년 가상 TQQQ에서 3년 뒤 반토막 확률을 16.9%→3.8%로 줄임 ②나스닥100이 200일선에서 ±1% 안이면 3년 손해 확률 13.8%, ±20% 밖이면 44% ③VIX는 3년 성적과 거의 무관 ④TQQQ 이평선 배열·120일선 아래 매수 신호는 2010년 이후엔 좋았지만 37년으로 보면 효과 없거나 반대 ⑤웅덩이 매매법은 결과가 '그냥 사기'와 거의 같고 파는 규칙이 없음 ⑥시스템 3규칙은 2010년 이후엔 그냥 보유보다 덜 벌었지만 최대 하락을 −80%→−55%로 줄였고, 1999년부터 보면 훨씬 나았음 ⑦TQQQ 3년 보유 손해 확률은 2010년 이후 4%, 37년 전체 23.5% ⑧세금 뒤 순위(2010년~, 한국 해외주식 양도세 22%·연 250만 원 공제, 1만 달러, 다 팔고 세금 낸 뒤): 1위 TQQQ 그냥 보유 약 253배, TQQQ50+TECL50 그냥 보유, 웅덩이·120일선(사실상 보유)도 상위 · TQQQ+시스템 3규칙은 세금 전 175배→세금 뒤 약 76배(자주 사고팔아 매년 세금) · 일반 계좌 수익 극대화는 '사서 그냥 두기'가 유리했고 3규칙은 최대 하락을 −80%→−55%로 줄이는 보험. 이 사용자는 세금 뒤 결과만 보기를 원하므로 수익 숫자는 세금 뒤 기준으로만 말한다.`,
+검증된 사실(이 계산표의 백테스트): ①나스닥100 200일선 규칙(−3% 아래 매도, +3% 위 매수)은 37년 가상 TQQQ에서 3년 뒤 반토막 확률을 16.9%→3.8%로 줄임 ②나스닥100이 200일선에서 ±1% 안이면 3년 손해 확률 13.8%, ±20% 밖이면 44% ③VIX는 3년 성적과 거의 무관 ④TQQQ 이평선 배열·120일선 아래 매수 신호는 2010년 이후엔 좋았지만 37년으로 보면 효과 없거나 반대 ⑤웅덩이 매매법은 결과가 '그냥 사기'와 거의 같고 파는 규칙이 없음 ⑥시스템 3규칙은 2010년 이후엔 그냥 보유보다 덜 벌었지만 최대 하락을 −80%→−55%로 줄였고, 1999년부터 보면 훨씬 나았음 ⑦TQQQ 3년 보유 손해 확률은 2010년 이후 4%, 37년 전체 23.5% ⑧세금 뒤 순위(2010년~, 한국 해외주식 양도세 22%·연 250만 원 공제, 1만 달러, 다 팔고 세금 낸 뒤): 1위 TQQQ 그냥 보유 약 253배, 웅덩이·120일선(사실상 보유)도 상위 · TQQQ+시스템 3규칙은 세금 전 175배→세금 뒤 약 76배(자주 사고팔아 매년 세금) · 일반 계좌 수익 극대화는 '사서 그냥 두기'가 유리했고 3규칙은 최대 하락을 −80%→−55%로 줄이는 보험. 이 사용자는 세금 뒤 결과만 보기를 원하므로 수익 숫자는 세금 뒤 기준으로만 말한다.`,
  async ask(q){if(AI.busy)return;AI.q=q;AI.busy=true;AI.err='';AI.text='';render();const out=()=>document.getElementById('aiOut');
   const prompt=`지금 숫자:\n${AI.ctx()}\n\n질문: ${q}`,H=AI.hist.slice(-4).flatMap(h=>[{role:'user',content:h.q},{role:'assistant',content:h.a}]);
   try{const s=await AI.smp();
@@ -2176,7 +2176,7 @@ saveWork=function(){PWA.save();toast('✔ 이 기기에 저장했습니다')};
 {const _o=openFile;openFile=async function(f){const r=await _o(f);setTimeout(PWA.save,50);return r}}
 
 /* 🔄 새 버전 알림: GitHub에 새 계산표가 올라오면(최대 몇 분) 화면 위에 알려 주고, 누르면 캐시를 피해 새로 엶 */
-const APP_BUILD='20261105110015';
+const APP_BUILD='20261105110223';
 async function chkUpd(){try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();
  if(/^\d{14}$/.test(v)&&v>APP_BUILD&&!document.getElementById('updBar')){const b=document.createElement('div');b.id='updBar';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:80;background:#1f6feb;color:#fff;padding:10px 16px;border-radius:24px;box-shadow:0 4px 14px rgba(0,0,0,.25);font-weight:700;cursor:pointer;max-width:calc(100vw - 24px)';b.textContent='🔄 새 버전이 있어요 — 눌러서 바로 적용';b.onclick=()=>{try{PWA.save()}catch(e){}location.replace(location.pathname+'?v='+v)};document.body.appendChild(b)}}catch(e){}}
 setTimeout(chkUpd,1500);setInterval(chkUpd,10*60e3);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')chkUpd()});
@@ -2185,7 +2185,7 @@ boot();PWA.load();LIVE.refresh();LIVE.auto();
 {const _r=render;render=function(){_r();if(!DIRTY){const b=document.getElementById('stBadge');if(b&&!/저장됨/.test(b.textContent)){b.className='badge final';b.textContent='✔ 이 기기에 저장됨'}}}}
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261105110015';
+const FILE_BUILD='20261105110223';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
