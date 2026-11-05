@@ -9,7 +9,7 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob: 'self'; manifest-src 'self'; connect-src https://raw.githubusercontent.com https://query1.finance.yahoo.com https://query2.finance.yahoo.com https://api.allorigins.win https://corsproxy.io https://api.codetabs.com https://api.anthropic.com; form-action 'none'; frame-src 'none'; object-src 'none'; base-uri 'none';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob: 'self'; manifest-src 'self'; connect-src https://raw.githubusercontent.com https://query1.finance.yahoo.com https://query2.finance.yahoo.com https://api.allorigins.win https://corsproxy.io https://api.codetabs.com https://r.jina.ai https://quote.cnbc.com https://api.anthropic.com; form-action 'none'; frame-src 'none'; object-src 'none'; base-uri 'none';">
 <meta name="referrer" content="no-referrer">
 <title>라오어 투자 계산표</title>
 <style>
@@ -245,7 +245,7 @@ footer{font-size:12px;color:var(--jmute);border-top:1px solid var(--jsoft);backg
 const SRC0='<!DOCTYPE html>\n'+document.documentElement.outerHTML.replace(/\x3cscript type="application\/json" id="savedData">[\s\S]*?<\/script>/,'');
 /* ===== 오프라인 보안: 외부 통신 API 원천 차단 ===== */
 (()=>{const blk=()=>{throw new Error('오프라인 보안 모드: 외부 통신 차단')};
-  try{{const _f=window.fetch.bind(window),ok=['https://raw.githubusercontent.com/jakekim213/Trillionare/data/','https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt','https://raw.githubusercontent.com/jakekim213/Trillionare/main/laoer_pc.html','https://query1.finance.yahoo.com/v8/finance/spark?','https://query2.finance.yahoo.com/v8/finance/spark?','https://query1.finance.yahoo.com/v8/finance/chart/','https://query2.finance.yahoo.com/v8/finance/chart/','https://api.allorigins.win/raw?url=https%3A%2F%2Fquery2.finance.yahoo.com','https://corsproxy.io/?url=https%3A%2F%2Fquery2.finance.yahoo.com','https://api.codetabs.com/v1/proxy?quest=https%3A%2F%2Fquery2.finance.yahoo.com','https://api.allorigins.win/raw?url=https%3A%2F%2Fquery1.finance.yahoo.com','https://corsproxy.io/?url=https%3A%2F%2Fquery1.finance.yahoo.com','https://api.codetabs.com/v1/proxy?quest=https%3A%2F%2Fquery1.finance.yahoo.com','https://api.allorigins.win/get?url=https%3A%2F%2Fquery1.finance.yahoo.com','https://api.allorigins.win/get?url=https%3A%2F%2Fquery2.finance.yahoo.com'];window.fetch=(u,o)=>{const s=String(u);if(s==='https://api.anthropic.com/v1/messages'&&o&&o.method==='POST')return _f(s,{method:'POST',headers:o.headers,body:o.body,credentials:'omit',referrerPolicy:'no-referrer',signal:o.signal});if(!ok.some(p=>s.startsWith(p))||(o&&o.method&&o.method!=='GET'))return Promise.reject(new Error('오프라인 보안 모드: 시세·Claude 주소 말고는 외부 통신 차단'));return _f(s,{method:'GET',credentials:'omit',referrerPolicy:'no-referrer',signal:o&&o.signal})}};window.XMLHttpRequest=function(){blk()};window.WebSocket=function(){blk()};window.EventSource=function(){blk()};
+  try{{const _f=window.fetch.bind(window),ok=['https://raw.githubusercontent.com/jakekim213/Trillionare/data/','https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt','https://raw.githubusercontent.com/jakekim213/Trillionare/main/laoer_pc.html','https://query1.finance.yahoo.com/v8/finance/spark?','https://query2.finance.yahoo.com/v8/finance/spark?','https://query1.finance.yahoo.com/v8/finance/chart/','https://query2.finance.yahoo.com/v8/finance/chart/','https://api.allorigins.win/raw?url=https%3A%2F%2Fquery2.finance.yahoo.com','https://corsproxy.io/?url=https%3A%2F%2Fquery2.finance.yahoo.com','https://api.codetabs.com/v1/proxy?quest=https%3A%2F%2Fquery2.finance.yahoo.com','https://api.allorigins.win/raw?url=https%3A%2F%2Fquery1.finance.yahoo.com','https://corsproxy.io/?url=https%3A%2F%2Fquery1.finance.yahoo.com','https://api.codetabs.com/v1/proxy?quest=https%3A%2F%2Fquery1.finance.yahoo.com','https://api.allorigins.win/get?url=https%3A%2F%2Fquery1.finance.yahoo.com','https://api.allorigins.win/get?url=https%3A%2F%2Fquery2.finance.yahoo.com','https://r.jina.ai/https://query1.finance.yahoo.com/v8/finance/','https://r.jina.ai/https://query2.finance.yahoo.com/v8/finance/','https://quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol?'];window.fetch=(u,o)=>{const s=String(u);if(s==='https://api.anthropic.com/v1/messages'&&o&&o.method==='POST')return _f(s,{method:'POST',headers:o.headers,body:o.body,credentials:'omit',referrerPolicy:'no-referrer',signal:o.signal});if(!ok.some(p=>s.startsWith(p))||(o&&o.method&&o.method!=='GET'))return Promise.reject(new Error('오프라인 보안 모드: 시세·Claude 주소 말고는 외부 통신 차단'));return _f(s,{method:'GET',credentials:'omit',referrerPolicy:'no-referrer',signal:o&&o.signal})}};window.XMLHttpRequest=function(){blk()};window.WebSocket=function(){blk()};window.EventSource=function(){blk()};
     if(navigator.sendBeacon)navigator.sendBeacon=()=>false;window.open=()=>null}catch(e){}})();
 
 /* ===== 공통 유틸 ===== */
@@ -1121,7 +1121,9 @@ const FG={K:'laoer_fg_v1',d:null,
   FG.SY.forEach(sym=>{const x=J[sym]||{},c=x.close||[],m={};(x.timestamp||[]).forEach((t,i)=>{if(c[i]!=null&&c[i]>0)m[new Date((t-5*3600)*1000).toISOString().slice(0,10)]=c[i]});o[sym]=m});return o},
  async live(){let H=null;try{H=JSON.parse(localStorage.getItem(FG.HK)||'null')}catch(e){}
   const full=!H||!H.S||Date.now()-H.at>20*3600e3;const rng=full?'5y':'5d';
-  const got=await FG.sparkGet(rng);
+  /* 중계가 다 막히면(이미 5년치가 있을 때) CNBC에서 오늘 값만 받아 이어 붙임 */
+  const got=await FG.sparkGet(rng).catch(async e=>{if(full||typeof LIVE==='undefined'||!LIVE.cnbc)throw e;const M={'^NDX':'.NDX','^VXN':'.VXN','^VIX':'.VIX','QQQ':'QQQ','TLT':'TLT'},C=await LIVE.cnbc(Object.values(M)),o={};
+   for(const s in M){const q=C[M[s]];o[s]={};if(q)o[s][new Date((q.t-5*3600)*1000).toISOString().slice(0,10)]=q.p}if(!o['^NDX']||!Object.keys(o['^NDX']).length)throw e;return o});
   const S=full?{}:H.S;FG.SY.forEach(s=>{S[s]=Object.assign(S[s]||{},got[s])});
   if(full)H={at:Date.now(),S};else H.S=S;
   // 5년 넘는 오래된 날은 버림
@@ -1204,7 +1206,11 @@ const CMP={H0:{"v":1,"asof":"2026-11-03","w":[["NVDA","NVIDIA CORP",8.163],["AAP
    /* ① GitHub 자동 수집(보유 내역 + 마지막으로 모은 등락) — 빠르게 먼저 */
    try{const h=await LIVE.ghJ('hold.json',8000);if(h&&h.v===1&&h.w&&h.w.length>50&&(!CMP.h||h.asof>=CMP.h.asof))CMP.h=h}catch(e){}
    try{const c=await LIVE.ghJ('cq.json',8000);if(c&&c.q){const q={};for(const s in c.q)q[s]=[c.q[s][0],c.q[s][1],c.q[s][2]];if(CMP.put(q,c.x||{},'GitHub 자동 수집'))rr()}}catch(e){}
-   /* ② 직접(중계) — 정규장 20종목씩 + 시간외 상위 12종목 */
+   /* ② CNBC(중계 없이 바로) — 50종목씩 · 정규장 + 장 전·장 뒤 거래 모두 */
+   {const S=CMP.H().w.map(w=>w[0]),q={},x={};let n=0;
+    for(let i=0;i<S.length;i+=50){try{const C=await LIVE.cnbc(S.slice(i,i+50),12000);for(const s of S.slice(i,i+50)){const o=C[s];if(!o)continue;q[s]=[o.p,o.pc,o.t];n++;if(o.x)x[s]=[o.x.p,o.x.t]}}catch(e){}}
+    if(n>=50){CMP.put(q,x,'CNBC 직접');CMP.err=0;return}}
+   /* ③ CNBC가 안 되면 Yahoo(중계) — 정규장 20종목씩 + 시간외 상위 12종목 */
    const S=CMP.H().w.map(w=>w[0]),Y='https://query1.finance.yahoo.com/v8/finance/',jobs=[],q={},x={};let okN=0;
    for(let i=0;i<S.length;i+=20){const g=S.slice(i,i+20);jobs.push(()=>CMP.one(Y+'spark?symbols='+g.map(encodeURIComponent).join(',')+'&range=1d&interval=5m',J=>J&&g.some(s=>J[s]&&J[s].timestamp)).then(J=>{okN++;for(const s of g){const o=J[s];if(!o||!o.timestamp)continue;let k=o.close.length-1;while(k>=0&&!(o.close[k]>0))k--;const pc=o.chartPreviousClose||o.previousClose;if(k>=0&&pc)q[s]=[o.close[k],pc,o.timestamp[k]]}}))}
    for(const g of [S.slice(0,6),S.slice(6,12)])jobs.push(()=>CMP.one(Y+'chart/'+encodeURIComponent(g[0])+'?range=1d&interval=5m&includePrePost=true&comparisons='+g.slice(1).map(encodeURIComponent).join(','),J=>J&&J.chart&&J.chart.result&&J.chart.result[0]&&J.chart.result[0].timestamp).then(J=>{const R=J.chart.result[0],T=R.timestamp,se=[[g[0],R.indicators.quote[0].close]].concat((R.comparisons||[]).map(c=>[c.symbol,c.close]));for(const [s,C] of se){let k=C.length-1;while(k>=0&&!(C[k]>0))k--;if(k>=0)x[s]=[C[k],T[k]]}}));
@@ -1212,9 +1218,9 @@ const CMP={H0:{"v":1,"asof":"2026-11-03","w":[["NVDA","NVIDIA CORP",8.163],["AAP
    if(okN&&CMP.put(q,x,(CMP.k?LIVE.NM[CMP.k]+' 중계':'Yahoo 직접')+' · 직접 받음')){CMP.err=0;rr()}else if(!okN)CMP.err=1;
   }finally{CMP.busy=0;rr()}},
  /* 계산: 기여도(%p) = 비중 × 등락률 · 합계 = 구성종목으로 계산한 나스닥100 등락 */
- calc(){const H=CMP.H(),L=[];let est=0,cw=0,xs=0,xw=0;
-  for(const [s,d,w] of H.w){const z=CMP.q[s];if(!z)continue;const r=z[0]/z[1]-1,c=w*r;est+=c;cw+=w;const e=CMP.x[s];let xr=null;if(e&&e[1]>z[2]+60){xr=e[0]/z[0]-1;xs+=w*xr;xw+=w}L.push({s,n:CMP.nm(s,d),w,r,c,xr,p:z[0]})}
-  return {L,est:est,cw,xr:xw?xs/xw:null,xw,asof:H.asof,mix:H.mix}},
+ calc(){const H=CMP.H(),L=[];let est=0,cw=0,xs=0,xw=0,xn=0;
+  for(const [s,d,w] of H.w){const z=CMP.q[s];if(!z)continue;const r=z[0]/z[1]-1,c=w*r;est+=c;cw+=w;const e=CMP.x[s];let xr=null;if(e&&e[1]>z[2]+60){xr=e[0]/z[0]-1;xs+=w*xr;xw+=w;xn++}L.push({s,n:CMP.nm(s,d),w,r,c,xr,p:z[0]})}
+  return {L,est:est,cw,xr:xw?xs/xw:null,xw,xn,asof:H.asof,mix:H.mix}},
  tile(o){const v=o.r*100,a=Math.min(1,Math.abs(v)/3),bg=v>=0?`rgba(26,127,55,${.12+a*.78})`:`rgba(198,40,40,${.12+a*.78})`,fg=a>.55?'#fff':'#17202e';
   return `<div title="${o.n} (${o.s}) · 비중 ${o.w.toFixed(2)}% · ${v>0?'+':''}${v.toFixed(2)}%${o.xr!=null?' · 시간외 '+(o.xr>0?'+':'')+(o.xr*100).toFixed(2)+'%':''} · 나스닥100 기여 ${(o.c>0?'+':'')+o.c.toFixed(3)}%p" style="flex:${Math.max(.35,o.w).toFixed(2)} 1 ${Math.max(46,Math.sqrt(o.w)*48).toFixed(0)}px;background:${bg};color:${fg};border-radius:6px;padding:5px 6px;min-width:0;overflow:hidden;line-height:1.25"><div style="font-weight:800;font-size:${o.w>4?14:12}px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${o.w>1.2?o.n:o.s}</div><div style="font-size:12px;font-variant-numeric:tabular-nums">${v>0?'+':''}${v.toFixed(1)}%${o.xr!=null&&Math.abs(o.xr)>=0.001?`<span style="opacity:.85"> · 외${o.xr>0?'+':''}${(o.xr*100).toFixed(1)}</span>`:''}</div></div>`},
  card(){CMP.boot();const C=CMP.calc(),L=C.L;if(L.length<20)return `<div class="card noprint" id="cmpCard"><h3>🧩 TQQQ 속 종목 지금 등락</h3><p class="note">${CMP.busy?'구성종목 시세 받는 중…':'아직 구성종목 시세를 못 받았어요 — 인터넷에 연결되면 저절로 받아요'}</p></div>`;
@@ -1228,7 +1234,7 @@ const CMP={H0:{"v":1,"asof":"2026-11-03","w":[["NVDA","NVIDIA CORP",8.163],["AAP
   const brd=L.filter(o=>o.r>0).length;
   const li=(o)=>`<div style="display:flex;justify-content:space-between;gap:6px;font-size:13px"><span>${o.n} <span class="note">${o.w.toFixed(1)}%</span></span><span style="font-variant-numeric:tabular-nums">${pc(o.r)} → <b>${f(o.c,2)}%p</b></span></div>`;
   const tiles=L.slice().sort((a,b)=>b.w-a.w).slice(0,CMP.all?L.length:30).map(CMP.tile).join('');
-  const xline=C.xr!=null?`<div class="kpi" style="padding:10px 12px"><div class="note">🌙 ${ss==='pre'?'장 전 거래':'장 마감 뒤 거래'} (상위 12종목 · 비중 ${C.xw.toFixed(0)}%)</div><div style="font-size:20px;font-weight:800">${pc(C.xr)}</div><div class="note" style="font-size:12px">장 마감 값 대비 · 나스닥100 선물은 ${nq==null?'—':pc(nq)} (전날 정산가 대비)</div></div>`:'';
+  const xline=C.xr!=null?`<div class="kpi" style="padding:10px 12px"><div class="note">🌙 ${ss==='pre'?'장 전 거래':'장 마감 뒤 거래'} (${C.xn}종목 · 비중 ${C.xw.toFixed(0)}%)</div><div style="font-size:20px;font-weight:800">${pc(C.xr)}</div><div class="note" style="font-size:12px">장 마감 값 대비 · 나스닥100 선물은 ${nq==null?'—':pc(nq)} (전날 정산가 대비)</div></div>`:'';
   const rows=L.slice().sort(CMP.sort==='c'?(a,b)=>Math.abs(b.c)-Math.abs(a.c):CMP.sort==='r'?(a,b)=>b.r-a.r:(a,b)=>b.w-a.w).map((o,i)=>`<tr><td>${i+1}</td><td>${o.n} <span class="note">${o.s}</span></td><td style="text-align:right">${o.w.toFixed(2)}%</td><td style="text-align:right">${pc(o.r)}</td><td style="text-align:right">${o.xr==null?'<span class="note">—</span>':pc(o.xr)}</td><td style="text-align:right">${f(o.c,3)}%p</td><td style="text-align:right">${f(o.c*3,2)}%p</td></tr>`).join('');
   const sb=(k,l)=>`<button type="button" onclick="CMP.sort='${k}';const el=document.getElementById('cmpCard');if(el){el.outerHTML=CMP.card();document.querySelector('#cmpCard details').open=true}" style="border:1px solid ${CMP.sort===k?'#17202e':'#dfe4ea'};background:${CMP.sort===k?'#17202e':'#fff'};color:${CMP.sort===k?'#fff':'#17202e'};border-radius:14px;padding:1px 9px;font:inherit;font-size:12px;cursor:pointer">${l}</button>`;
   return `<div class="card noprint" id="cmpCard"><h3>🧩 TQQQ 속 종목 지금 등락 <span class="note" style="font-weight:400;font-size:12px">${stale?`<b class="neg">⚠ ${hm} 값 (${age}분 전) — 실시간 길이 막혀 옛 값, 다시 시도 중</b>`:`<b>${hm}</b> 마지막 체결`} · ${ss==='closed'?'<b>지금은 미국 주식 거래 시간이 아니라 값이 멈춰 있어요</b> (시간외 거래는 뉴욕 오후 8시 = 한국 오전 10시(서머타임 9시)에 끝나고, 장 전 거래는 한국 오후 6시(서머타임 5시)에 시작) — 밤사이 분위기는 위 <b>나스닥100 선물</b>로 보세요':ss==='pre'?'장 전 거래 중':ss==='post'?'장 마감 뒤 거래 중':'정규장 진행 중'} · ${ss==='reg'?'2분':ss==='closed'?'15분':'5분'}마다 새로 받음 · ${esc(CMP.via||'')}${CMP.err?' (직접 받기 실패 → GitHub 값)':''}${CMP.busy?' · ⏳ 받는 중':''}</span></h3>
@@ -1242,7 +1248,7 @@ const CMP={H0:{"v":1,"asof":"2026-11-03","w":[["NVDA","NVIDIA CORP",8.163],["AAP
   <div style="margin-top:6px"><button type="button" class="btn sm" onclick="CMP.all=!CMP.all;const el=document.getElementById('cmpCard');if(el)el.outerHTML=CMP.card()">${CMP.all?'큰 30종목만 보기':'100종목 모두 보기'}</button> <span class="note">칸 크기 = 비중 · 초록 = 오름, 빨강 = 내림(진할수록 많이) · "외" = 시간외 · 칸에 마우스를 올리면 자세히</span></div>
   <details style="margin-top:8px"><summary style="cursor:pointer;font-weight:700">📋 전체 표 (비중·등락·시간외·기여도)</summary><div style="margin:6px 0">${sb('c','기여 큰 순')} ${sb('r','등락률 순')} ${sb('w','비중 순')}</div>
    <div style="overflow-x:auto"><table class="g" style="font-size:12.5px;width:100%"><thead><tr><th>#</th><th>종목</th><th>비중</th><th>등락</th><th>시간외</th><th>나스닥100 기여</th><th>TQQQ 기여</th></tr></thead><tbody>${rows}</tbody></table></div></details>
-  <div class="note" style="font-size:11.5px;margin-top:6px">종목·비중: ProShares가 매일 공개하는 TQQQ 실제 보유 내역(${esc(C.asof)} 기준). TQQQ는 <b>주식을 직접 ${C.mix.stock}%만 들고</b> 나머지는 <b>은행 ${C.mix.nb}곳과 맺은 스왑 ${C.mix.swap}%</b>·나스닥100 선물 ${C.mix.fut}%로 3배를 만듦 — 그래서 종목 비중은 직접 든 주식 기준(= 나스닥100 비중과 거의 같음). 기여도 = 비중 × 등락률, TQQQ 기여 = 그 3배(하루 기준). 시간외 = 미국 장 마감 뒤(오후 4~8시)·장 전(오전 4시~) 거래, 큰 12종목만.</div></div>`}};
+  <div class="note" style="font-size:11.5px;margin-top:6px">종목·비중: ProShares가 매일 공개하는 TQQQ 실제 보유 내역(${esc(C.asof)} 기준). TQQQ는 <b>주식을 직접 ${C.mix.stock}%만 들고</b> 나머지는 <b>은행 ${C.mix.nb}곳과 맺은 스왑 ${C.mix.swap}%</b>·나스닥100 선물 ${C.mix.fut}%로 3배를 만듦 — 그래서 종목 비중은 직접 든 주식 기준(= 나스닥100 비중과 거의 같음). 기여도 = 비중 × 등락률, TQQQ 기여 = 그 3배(하루 기준). 시간외 = 미국 장 마감 뒤(오후 4~8시)·장 전(오전 4시~) 거래(CNBC로 받으면 전 종목, Yahoo로 받으면 큰 12종목).</div></div>`}};
 {const mv=ev=>{if(ev.target.closest&&ev.target.closest('#mkSvg'))MKT.tip(ev)};document.addEventListener('mousemove',mv);document.addEventListener('touchstart',mv,{passive:true});document.addEventListener('touchmove',mv,{passive:true});document.addEventListener('click',mv);
  document.addEventListener('mouseout',ev=>{if(ev.target.closest&&ev.target.closest('#mkSvg')&&!(ev.relatedTarget&&ev.relatedTarget.closest&&ev.relatedTarget.closest('#mkSvg'))){const t=document.getElementById('mkTip');if(t)t.style.display='none';const l=document.getElementById('mkX');if(l)l.setAttribute('opacity','0')}})}
 {const _act=APP.act;APP.act=function(a,t){if(a==='reload'){
@@ -1956,8 +1962,8 @@ const LIVE={st:'idle',err:null,at:null,tab:null,lastDate:null,intraday:false,
   const kd=Object.keys(by).sort(),kr=(d,s)=>{let v=null;for(const x of kd){if(x>d)break;if(by[x][s]!=null)v=by[x][s]}return v};
   Object.keys(by).forEach(d=>{const b=by[d];if(b['^NDX']==null||b.TQQQ==null)return;m.set(d,{ndx:r2(b['^NDX']),tqqq:r2(b.TQQQ),vix:b['^VIX']==null?(m.get(d)||{}).vix||'':r2(b['^VIX']),qld:r2(b.QLD),nvda:r2(b.NVDA),pltr:r2(b.PLTR),meta:r2(b.META),tsla:r2(b.TSLA),tecl:r2(b.TECL),spxl:r2(b.SPXL),qqq:r2(b.QQQ),skhynix:r2(kr(d,'000660.KS')),samsung:r2(kr(d,'005930.KS')),semco:r2(kr(d,'009150.KS'))})});
   const ds=[...m.keys()].sort();return 'date,ndx,tqqq,vix,qld,nvda,pltr,meta,tsla,skhynix,samsung,semco,tecl,spxl,qqq\n'+ds.map(d=>{const o=m.get(d);return [d,o.ndx,o.tqqq,o.vix,o.qld||'',o.nvda||'',o.pltr||'',o.meta||'',o.tsla||'',o.skhynix||'',o.samsung||'',o.semco||'',o.tecl||'',o.spxl||'',o.qqq||''].join(',')}).join('\n')},
- PROX:[u=>u,u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u),u=>'https://corsproxy.io/?url='+encodeURIComponent(u),u=>'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(u),u=>'https://api.allorigins.win/get?url='+encodeURIComponent(u)],
- NM:['Yahoo 직접','allorigins','corsproxy','codetabs','allorigins(get)'],
+ PROX:[u=>u,u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u),u=>'https://corsproxy.io/?url='+encodeURIComponent(u),u=>'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(u),u=>'https://api.allorigins.win/get?url='+encodeURIComponent(u),u=>'https://r.jina.ai/'+u],
+ NM:['Yahoo 직접','allorigins','corsproxy','codetabs','allorigins(get)','jina'],
  /* 받은 글 → JSON (allorigins get 은 {contents:'…'} 로 한 번 더 싸서 줌) */
  unwrap(t){const J=JSON.parse(t.slice(t.indexOf('{')));return J&&typeof J.contents==='string'?JSON.parse(J.contents.slice(J.contents.indexOf('{'))):J},
  /* 마지막으로 받은 시세를 이 기기에 보관 → 다음에 열면 내장(오래된) 자료 대신 이걸로 판정 */
@@ -2011,7 +2017,19 @@ const LIVE={st:'idle',err:null,at:null,tab:null,lastDate:null,intraday:false,
  qset(F,via){const q={};let T=0;for(const s in F){const o=F[s];if(o&&o.p&&o.pc){q[s]={p:o.p,ch:o.p/o.pc-1,t:o.t*1000};T=Math.max(T,o.t*1000)}}if(!T)return false;
   if(LIVE.qT&&T<LIVE.qT)return false;LIVE.Q=Object.assign({},LIVE.Q,q);LIVE.qT=T;LIVE.qVia=via;LIVE.qGot=Date.now();
   try{localStorage.setItem('laoer_q_v1',JSON.stringify({q:LIVE.Q,at:Date.now(),qT:T,via,fx:S.fx&&S.fx.r}))}catch(e){}try{render()}catch(e){}return true},
- async qfast(){if(LIVE._qf)return;LIVE._qf=1;try{const url='https://query1.finance.yahoo.com/v8/finance/spark?symbols='+LIVE.QF.map(encodeURIComponent).join(',')+'&range=1d&interval=5m';
+ /* CNBC 시세 주소: 중계 없이 브라우저에서 바로 받을 수 있음(CORS 허용) · 지수·선물·금·비트코인·미국 주식(장 전·장 뒤 거래 포함) */
+ CN:{'^IXIC':'.IXIC','^NDX':'.NDX','NQ=F':'@ND.1','^GSPC':'.SPX','ES=F':'@SP.1','GC=F':'@GC.1','BTC-USD':'BTC.CM=','^VXN':'.VXN','^VIX':'.VIX'},
+ async cnbc(syms,ms){const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),ms||10000);try{
+  const r=await fetch('https://quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol?symbols='+syms.map(encodeURIComponent).join('%7C')+'&requestMethod=itv&noform=1&partnerId=2&fund=1&exthrs=1&output=json&events=1',{signal:ac.signal,credentials:'omit',referrerPolicy:'no-referrer'});
+  if(!r.ok)throw new Error('HTTP '+r.status);const J=await r.json(),L=(J&&J.FormattedQuoteResult&&J.FormattedQuoteResult.FormattedQuote)||[],num=s=>s==null?NaN:parseFloat(String(s).replace(/[,%]/g,'')),
+   tt=(s,hm)=>{if(!s)return 0;s=String(s);if(s.length===10)return Math.floor(Date.parse(s+'T'+hm+':00-05:00')/1000);return Math.floor(Date.parse(s.replace(/([+-]\d\d)(\d\d)$/,'$1:$2'))/1000)},o={};
+  for(const q of L){if(q.code!=0&&q.code!=='0')continue;const p=num(q.last),c=num(q.change);if(!(p>0)||!isFinite(c))continue;const ss=LIVE.sess?LIVE.sess():'closed',live=ss==='reg'&&String(q.last_time||'').length===10,ts=live?Math.floor(Date.now()/1000):tt(q.last_time,'16:00');
+   const e=q.ExtendedMktQuote,ep=e?num(e.last):NaN,xs=e&&ep>0?{p:ep,type:e.type,t:((ss==='pre'&&e.type==='PRE_MKT')||(ss==='post'&&e.type==='POST_MKT'))?Math.floor(Date.now()/1000):tt(e.last_time,e.type==='PRE_MKT'?'09:29':'20:00')}:null;
+   o[q.symbol]={p,pc:p-c,t:ts,x:xs}}
+  return o}finally{clearTimeout(tm)}},
+ async qfast(){if(LIVE._qf)return;LIVE._qf=1;try{
+  try{const C=await LIVE.cnbc(Object.keys(LIVE.CN).map(s=>LIVE.CN[s])),F={};for(const s in LIVE.CN){const o=C[LIVE.CN[s]];if(o&&!/^\^V/.test(s))F[s]={p:o.p,pc:o.pc,t:o.t}}if(Object.keys(F).length>=5){LIVE.qset(F,'CNBC 직접');LIVE.qErr=0;const v=C['.VXN'],x=C['.VIX'];if(v)LIVE.vxnNow=v.p;if(x)LIVE.vixNow=x.p;return}}catch(e){}
+const url='https://query1.finance.yahoo.com/v8/finance/spark?symbols='+LIVE.QF.map(encodeURIComponent).join(',')+'&range=1d&interval=5m';
   const ok=J=>J&&J['NQ=F']&&J['NQ=F'].timestamp,conv=J=>{const F={};for(const s of LIVE.QF){const o=J[s];if(!o||!o.timestamp)continue;let i=o.close.length-1;while(i>=0&&!(o.close[i]>0))i--;const pc=o.chartPreviousClose||o.previousClose;if(i>=0&&pc)F[s]={p:o.close[i],pc,t:o.timestamp[i]}}return F};
   const one=async(k,h)=>{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),12000);try{const r=await fetch(LIVE.PROX[k](url.replace('query1',h)),{signal:ac.signal,credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)throw 0;const J=LIVE.unwrap(await r.text());if(!ok(J))throw 0;return [J,k]}finally{clearTimeout(tm)}};
   const jobs=[];LIVE.PROX.forEach((_,k)=>['query1','query2'].forEach(h=>jobs.push(one(k,h))));
@@ -2228,7 +2246,7 @@ saveWork=function(){PWA.save();toast('✔ 이 기기에 저장했습니다')};
 {const _o=openFile;openFile=async function(f){const r=await _o(f);setTimeout(PWA.save,50);return r}}
 
 /* 🔄 새 버전 알림: GitHub에 새 계산표가 올라오면(최대 몇 분) 화면 위에 알려 주고, 누르면 캐시를 피해 새로 엶 */
-const APP_BUILD='20261105115916';
+const APP_BUILD='20261105145347';
 async function chkUpd(){try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();
  if(/^\d{14}$/.test(v)&&v>APP_BUILD&&!document.getElementById('updBar')){const b=document.createElement('div');b.id='updBar';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:80;background:#1f6feb;color:#fff;padding:10px 16px;border-radius:24px;box-shadow:0 4px 14px rgba(0,0,0,.25);font-weight:700;cursor:pointer;max-width:calc(100vw - 24px)';b.textContent='🔄 새 버전이 있어요 — 눌러서 바로 적용';b.onclick=()=>{try{PWA.save()}catch(e){}location.replace(location.pathname+'?v='+v)};document.body.appendChild(b)}}catch(e){}}
 setTimeout(chkUpd,1500);setInterval(chkUpd,10*60e3);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')chkUpd()});
@@ -2237,7 +2255,7 @@ boot();PWA.load();LIVE.refresh();LIVE.auto();
 {const _r=render;render=function(){_r();if(!DIRTY){const b=document.getElementById('stBadge');if(b&&!/저장됨/.test(b.textContent)){b.className='badge final';b.textContent='✔ 이 기기에 저장됨'}}}}
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261105115916';
+const FILE_BUILD='20261105145347';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
