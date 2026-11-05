@@ -20,7 +20,11 @@ def get(path):
     raise last
 
 def spark(syms, rng, iv):
-    return get('/v8/finance/spark?symbols=' + ','.join(urllib.parse.quote(s, safe='') for s in syms) + f'&range={rng}&interval={iv}')
+    # Yahoo spark는 한 번에 20종목까지 → 20개씩 나눠 받아 합침
+    out = {}
+    for i in range(0, len(syms), 20):
+        out.update(get('/v8/finance/spark?symbols=' + ','.join(urllib.parse.quote(s, safe='') for s in syms[i:i + 20]) + f'&range={rng}&interval={iv}'))
+    return out
 
 def ohlc(sym, rng, iv):
     # range=max 는 Yahoo가 3개월 단위로 뭉쳐 버림 → 전체 기간은 period1=0(1970년)부터 직접 지정해야 진짜 주봉·월봉이 옴
