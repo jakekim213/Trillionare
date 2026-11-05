@@ -139,3 +139,25 @@ except Exception as e:
     try:
         if pf: json.dump(pf, open(f'{OUT}/fg.json', 'w'), separators=(',', ':'))
     except Exception: pass
+
+
+# ===== TQQQ 구성종목: 보유 내역(하루 1번 바뀜 → 6시간마다) + 지금 등락(매번) =====
+try:
+    import sys; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import hold
+    ph = None
+    try: ph = json.load(open('prev_hold.json'))
+    except Exception: pass
+    H = ph
+    if not ph or now - ph.get('at', 0) > 6 * 3600:
+        try:
+            H = hold.parse(hold.raw('https://accounts.profunds.com/etfdata/ByFund/TQQQ-psdlyhld.csv').decode('utf-8', 'replace')); H['at'] = now
+            print('hold.json 새로', H['asof'], len(H['w']))
+        except Exception as e: print('보유 내역 실패', e)
+    if H:
+        json.dump(H, open(f'{OUT}/hold.json', 'w'), separators=(',', ':'), ensure_ascii=False)
+        q, x = hold.quotes(get, [w[0] for w in H['w']])
+        json.dump({'at': now, 'q': q, 'x': x}, open(f'{OUT}/cq.json', 'w'), separators=(',', ':'))
+        print('cq.json', len(q), len(x))
+except Exception as e:
+    print('구성종목 실패', e)
