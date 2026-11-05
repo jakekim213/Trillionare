@@ -47,6 +47,18 @@ def ohlc(sym, rng, iv):
 now = int(time.time())
 J = spark(SYMS, '3mo', '1d')
 if not J.get('^NDX') or not J.get('TQQQ'): raise SystemExit('나스닥100/TQQQ 시세 없음')
+# Yahoo 일봉은 장 마감 뒤 몇 시간 동안 '오늘' 종가가 비어(None) 오는 때가 있음(주식·ETF) → 하루치 5분 자료의 마지막 정규장 값으로 채움
+try:
+    NUL = [s for s, o in J.items() if o.get('close') and o['close'][-1] is None]
+    for i in range(0, len(NUL), 20):
+        F = spark(NUL[i:i + 20], '1d', '5m')
+        for s in NUL[i:i + 20]:
+            o, f = J[s], F.get(s) or {}
+            c = [(tt, x) for tt, x in zip(f.get('timestamp') or [], f.get('close') or []) if x]
+            if c and time.strftime('%Y-%m-%d', time.gmtime(c[-1][0] - 5 * 3600)) == time.strftime('%Y-%m-%d', time.gmtime(o['timestamp'][-1] - 5 * 3600)):
+                o['close'][-1] = c[-1][1]
+    if NUL: print('빈 종가 채움', NUL)
+except Exception as e: print('빈 종가 채우기 실패', e)
 # 시세판용 '지금 값': 하루치 5분 종가의 마지막 점 ÷ 직전 거래일 정산가(chartPreviousClose)
 # (3개월 일봉은 선물·금의 '방금 끝난 날' 봉이 빠지는 때가 있어 등락률이 틀어짐 → 따로 받음)
 QF = {}
