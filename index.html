@@ -1286,7 +1286,7 @@ const LT_FX={r:1323.83,at:'2026-10-23 11:57'};
 /* 비교 종목: 색은 검증한 범주 팔레트 순서대로 고정 (종목이 빠져도 다른 종목 색은 그대로) */
 const LT_TK=[{k:'t',sym:'TQQQ',nm:'TQQQ',col:'#2a78d6'},{k:'q',sym:'QLD',nm:'QLD',col:'#eb6834'},{k:'x',sym:'SPXL',nm:'S&P500 3배',col:'#b03a2e'},{k:'n',sym:'NVDA',nm:'엔비디아',col:'#1baf7a'},{k:'p',sym:'PLTR',nm:'팔란티어',col:'#eda100'},{k:'m',sym:'META',nm:'메타',col:'#e87ba4'},{k:'z',sym:'TSLA',nm:'테슬라',col:'#008300'},{k:'c',sym:'TECL',nm:'TECL',col:'#00a3b4'},{k:'h',sym:'000660',nm:'SK하이닉스',col:'#6250d6',kr:1},{k:'e',sym:'005930',nm:'삼성전자',col:'#e34948',kr:1},{k:'g',sym:'009150',nm:'삼성전기',col:'#7a3e9d',kr:1},{k:'a',sym:'구서동 84㎡',nm:'롯데캐슬골드',col:'#9a6b2f',kr:1,re:1},{k:'r',sym:'장전동 84㎡',nm:'래미안장전',col:'#c9a227',kr:1,re:1},{k:'u',sym:'해운대 우동 160㎡',nm:'두산위브더제니스',col:'#3d7ea6',kr:1,re:1},{k:'s',sym:'서울 압구정 165㎡',nm:'압구정현대',col:'#8e44ad',kr:1,re:1}];
 /* 비교 그래프에 보이는 종목 (팔란티어·메타·테슬라·국내 주식·금정구 아파트는 사용자 요청으로 뺌 — 자료는 다른 분석 상자용으로 남김) */
-const LT_SH=['t','q','n','c','u','s'],LT_TKV=()=>LT_TK.filter(x=>LT_SH.includes(x.k));
+const LT_SH=['t','q','n','u','s'],LT_TKV=()=>LT_TK.filter(x=>LT_SH.includes(x.k));
 // 금정구 아파트 연도별 평균 매매 실거래가(억 원, 전용 84~85㎡ · dapt.kr이 국토부 실거래가를 모은 값 · 2026은 1~10월) — 해마다 7월 1일 값으로 보고 그 사이를 매끈하게 이음
 const LT_RE={a:[[2006,2.38],[2007,2.48],[2008,2.53],[2009,2.6],[2010,2.73],[2011,3.09],[2012,3.2],[2013,3.21],[2014,3.34],[2015,3.73],[2016,3.97],[2017,4.41],[2018,4.19],[2019,4.15],[2020,4.65],[2021,6.49],[2022,6.06],[2023,5.04],[2024,5.02],[2025,4.99],[2026,5.19]],u:[[2011,10.21],[2012,10.92],[2013,11.74],[2014,12.25],[2015,11.68],[2016,11.17],[2017,12.26],[2018,12.09],[2019,11.77],[2020,14.96],[2021,23.75],[2023,27.82],[2024,23],[2025,25.22],[2026,29.76]],s:[[2006,17.29],[2007,23.02],[2008,22.96],[2009,22.32],[2010,20.11],[2011,21.33],[2012,17.11],[2013,17.26],[2014,19.22],[2015,20.91],[2016,21.2],[2017,26.9],[2018,31.2],[2019,35.9],[2020,35.66],[2021,53.7],[2023,50],[2024,64.25],[2025,80.33],[2026,84.5]],r:[[2017,6.26],[2018,6.42],[2019,6.58],[2020,8.75],[2021,10.97],[2022,8.76],[2023,8.37],[2024,8.34],[2025,8.73],[2026,9.18]]};
 const LT_SCOL={vr:'#008300',imb:'#6250d6',pud:'#e67e22',sys:'#c0392b',m120:'#16a085'};
@@ -1329,7 +1329,7 @@ const LT={
   /* 주간·신호 TQQQ(LT_W·LT_SW)는 이미 Yahoo 수정주가(분배금 재투자) 기준이라 배율을 곱하지 않음.
      (예전엔 여기서 LT_TQF를 또 곱해 2023-10 이전 값이 최대 2% 작아졌고, 자료를 새로 고칠 때마다 한 번 더 곱해져 수익률이 계속 부풀려졌음)
      LT_TQF는 종가 기준인 2010~ 일간 TQQQ(LT_TD)에만 씀 */
-  LT._bt={};LT._dk=ek;{const k=W.findIndex(w=>w.d>='2008-12-17');if(k>0)W=W.slice(k)}
+  LT._bt={};LT._dk=ek;{const k=W.findIndex(w=>w.d>='2010-02-11');if(k>0)W=W.slice(k)}
   /* 아파트 값: 연평균(7월 1일 기준점) 사이를 로그로 이음 · 마지막 점 뒤는 그대로 */
   Object.keys(LT_RE).forEach(key=>{const pts=LT_RE[key].map(([y,v])=>[Date.UTC(y,y===2026?5:6,1),Math.log(v)]);W.forEach(w=>{const t=Date.parse(w.d+'T00:00:00Z');if(t<pts[0][0]){w[key]=null;return}let i=0;while(i+1<pts.length&&pts[i+1][0]<=t)i++;if(i+1>=pts.length){w[key]=Math.exp(pts[i][1]);return}const a=pts[i],b=pts[i+1];w[key]=Math.exp(a[1]+(b[1]-a[1])*(t-a[0])/(b[0]-a[0]))})});
   return LT._d={W,SW,D0:B.D0,ext}},
@@ -1366,13 +1366,13 @@ const LT={
  curve(W,SW,i0,i1,key){const s=W[i0].d;const xp=x=>x[key]!=null?x[key]:key==='c'?LT.tcAt(x.d):key==='x'?LT.tcAt(x.d,1):null;let st=0;for(const x of SW)if(x.d<=s)st=x.pos;let bank=1,entry=W[i0][key],j=SW.findIndex(x=>x.d>s);if(j<0)j=SW.length;
   const out=[],qq=[];for(let i=i0;i<=i1;i++){while(j<SW.length&&SW[j].d<=W[i].d){const x=SW[j];if(x.pos===0&&st===1){bank*=xp(x)/entry;st=0}else if(x.pos===1&&st===0){entry=xp(x);st=1}j++}
    out.push(st===1?bank*W[i][key]/entry:bank);qq.push(st===1?bank/entry:0)}out.q=qq;return out},
- PRESET:{'1m':['최근 1개월'],'3m':['3개월'],'6m':['6개월'],'ytd':['올해'],'1y':['1년'],'2y':['2년'],'3y':['3년'],'5y':['5년'],'10y':['10년'],'all':['전체 (TECL 상장 2008-12-17~)'],
+ PRESET:{'1m':['최근 1개월'],'3m':['3개월'],'6m':['6개월'],'ytd':['올해'],'1y':['1년'],'2y':['2년'],'3y':['3년'],'5y':['5년'],'10y':['10년'],'all':['전체 (TQQQ 상장 2010-02-11~)'],
   'c20':['2020 코로나','2020-01-02','2020-12-31'],'c22':['2022 긴 하락장','2021-11-01','2023-12-29'],'c25':['2025 관세 급락','2025-01-02','2025-09-30'],'b3':['🏆 TQQQ 최고 3년'],'w3':['📉 TQQQ 최악 3년']},
  range(W){const last=W[W.length-1].d,first=W[0].d;const back=(y,mo)=>{const t=new Date(last+'T00:00:00Z');if(y)t.setUTCFullYear(t.getUTCFullYear()-y);if(mo)t.setUTCMonth(t.getUTCMonth()-mo);return t.toISOString().slice(0,10)};
   let s=first,e=last;const p=LT.p,P=LT.PRESET[p];
   if(p==='custom'){s=LT.from||first;e=LT.to||last}else if(p==='b3'||p==='w3'){const r=LT.roll3()[p==='b3'?'best':'worst'];s=r.s;e=r.e}else if(P&&P[1]){s=P[1];e=P[2]}
-  else s={'1m':back(0,1),'3m':back(0,3),'6m':back(0,6),'ytd':last.slice(0,4)+'-01-01','1y':back(1),'2y':back(2),'3y':back(3),'5y':back(5),'10y':back(10),'all':'2008-12-17','syn':first}[p]||first;
-  if(s>e)[s,e]=[e,s];
+  else s={'1m':back(0,1),'3m':back(0,3),'6m':back(0,6),'ytd':last.slice(0,4)+'-01-01','1y':back(1),'2y':back(2),'3y':back(3),'5y':back(5),'10y':back(10),'all':'2010-02-11','syn':first}[p]||first;
+  if(s>e)[s,e]=[e,s];if(s<'2010-02-11')s='2010-02-11';if(e<s)e=s;
   let i0=W.findIndex(w=>w.d>=s);if(i0<0)i0=W.length-2;if(p==='custom'&&W[i0].d>s&&i0>0)i0--; // 직접 고른 날이 휴장일·주간 자료 사이면: 그 전 마지막 종가를 기준(그날 아침에 샀다고 보는 것과 같음)
 let i1=-1;for(let i=W.length-1;i>=0;i--)if(W[i].d<=e){i1=i;break}if(i1<=i0)i1=Math.min(W.length-1,i0+1);if(p==='ytd'&&i0>0&&W[i0].d.slice(0,4)===last.slice(0,4))i0--; // 올해: 작년 마지막 거래일 종가 기준
   return[i0,i1]},
@@ -1833,7 +1833,7 @@ let i1=-1;for(let i=W.length-1;i>=0;i--)if(W[i].d<=e){i1=i;break}if(i1<=i0)i1=Ma
  section(){LT.initTop3();const {W}=LT.data();const rg=LT.range(W);const B=(grp,v,l,cur)=>`<button class="btn sm ${cur===v?'':'light'}" data-act="lt:${grp}:${v}">${l}</button>`;
   const Y=LT_STAT.years;
   return `<div style="margin-top:16px;border-top:1px solid var(--line2);padding-top:14px">
-   <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px"><b style="font-size:16px">📈 1만 달러를 넣었다면? (💸 세금 뒤 · 그날 다 팔면 손에 쥐는 돈) — TQQQ · QLD · 엔비디아 · TECL · 아파트 · 전략</b><span class="note">(${esc(W[0].d)} ~ ${esc(W[W.length-1].d)} · 최근 3년은 하루 단위, 그 전은 주 단위 · 로그 눈금)</span></div>
+   <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px"><b style="font-size:16px">📈 1만 달러를 넣었다면? (💸 세금 뒤 · 그날 다 팔면 손에 쥐는 돈) — TQQQ · QLD · 엔비디아 · 아파트 · 전략</b><span class="note">(${esc(W[0].d)} ~ ${esc(W[W.length-1].d)} · 최근 3년은 하루 단위, 그 전은 주 단위 · 로그 눈금)</span></div>
    <div class="noprint" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0"><span class="note" style="min-width:34px">종목</span>${LT_TKV().map((x,ix,A)=>{const on=LT.sel.includes(x.k);return (x.re&&!A[ix-1].re?'<span class="note" style="margin-left:6px">아파트</span>':x.kr&&!A[ix-1].kr?'<span class="note" style="margin-left:6px">국내</span>':'')+`<button class="btn sm ${on?'':'light'}" data-act="lt:tk:${x.k}" aria-pressed="${on}" title="${on?'그래프에서 빼기':'그래프에 넣기'}" style="display:inline-flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:2px;background:${x.col};display:inline-block;${on?'':'opacity:.45'}"></span>${x.nm}${x.sym!==x.nm?' <span style="opacity:.75;font-size:.9em">'+x.sym+'</span>':''}</button>`}).join('')}<button class="btn sm light" data-act="lt:tk:all">모두</button>${LT.m==='lao'?'':'<span class="note" style="margin-left:6px">전략</span>'+[['vr','VR 실력공식'],['imb','무한매수 V4'],['pud','웅덩이 매매'],['sys','시스템 3규칙'],['m120','120일선 아래 매수']].map(([k,l])=>{const on=LT.st.includes(k);return `<button class="btn sm ${on?'':'light'}" data-act="lt:st:${k}" aria-pressed="${on}" style="display:inline-flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:2px;display:inline-block;background:repeating-linear-gradient(45deg,${LT_SCOL[k]} 0 3px,transparent 3px 5px);outline:1px solid ${LT_SCOL[k]};${on?'':'opacity:.45'}"></span>${l} <span style="opacity:.75;font-size:.9em">TQQQ</span></button>`}).join('')}${LT.m==='lao'?'<span class="note">라오어 전략 비교는 TQQQ만 그립니다</span>':''}</div>
    <div class="noprint" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0"><span class="note" style="min-width:34px">기간</span>${['1m','3m','6m','ytd','1y','2y','3y','5y','10y','all'].map(k=>B('p',k,LT.PRESET[k][0],LT.p)).join('')}</div>
    <div class="noprint" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0"><span class="note" style="min-width:34px">사건</span>${['c20','c22','c25','b3','w3'].map(k=>B('p',k,LT.PRESET[k][0],LT.p)).join('')}
@@ -2180,7 +2180,7 @@ saveWork=function(){PWA.save();toast('✔ 이 기기에 저장했습니다')};
 {const _o=openFile;openFile=async function(f){const r=await _o(f);setTimeout(PWA.save,50);return r}}
 
 /* 🔄 새 버전 알림: GitHub에 새 계산표가 올라오면(최대 몇 분) 화면 위에 알려 주고, 누르면 캐시를 피해 새로 엶 */
-const APP_BUILD='20261105105024';
+const APP_BUILD='20261105105834';
 async function chkUpd(){try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();
  if(/^\d{14}$/.test(v)&&v>APP_BUILD&&!document.getElementById('updBar')){const b=document.createElement('div');b.id='updBar';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:80;background:#1f6feb;color:#fff;padding:10px 16px;border-radius:24px;box-shadow:0 4px 14px rgba(0,0,0,.25);font-weight:700;cursor:pointer;max-width:calc(100vw - 24px)';b.textContent='🔄 새 버전이 있어요 — 눌러서 바로 적용';b.onclick=()=>{try{PWA.save()}catch(e){}location.replace(location.pathname+'?v='+v)};document.body.appendChild(b)}}catch(e){}}
 setTimeout(chkUpd,1500);setInterval(chkUpd,10*60e3);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')chkUpd()});
@@ -2189,7 +2189,7 @@ boot();PWA.load();LIVE.refresh();LIVE.auto();
 {const _r=render;render=function(){_r();if(!DIRTY){const b=document.getElementById('stBadge');if(b&&!/저장됨/.test(b.textContent)){b.className='badge final';b.textContent='✔ 이 기기에 저장됨'}}}}
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261105105024';
+const FILE_BUILD='20261105105834';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
