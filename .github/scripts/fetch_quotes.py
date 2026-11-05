@@ -47,7 +47,17 @@ def ohlc(sym, rng, iv):
 now = int(time.time())
 J = spark(SYMS, '3mo', '1d')
 if not J.get('^NDX') or not J.get('TQQQ'): raise SystemExit('나스닥100/TQQQ 시세 없음')
-json.dump({'at': now, 'spark': J}, open(f'{OUT}/q.json', 'w'), separators=(',', ':'))
+# 시세판용 '지금 값': 하루치 5분 종가의 마지막 점 ÷ 직전 거래일 정산가(chartPreviousClose)
+# (3개월 일봉은 선물·금의 '방금 끝난 날' 봉이 빠지는 때가 있어 등락률이 틀어짐 → 따로 받음)
+QF = {}
+try:
+    F = spark(G5, '1d', '5m')
+    for s in G5:
+        o = F.get(s) or {}; c = [(t, x) for t, x in zip(o.get('timestamp') or [], o.get('close') or []) if x]
+        pc = o.get('chartPreviousClose') or o.get('previousClose')
+        if c and pc: QF[s] = {'p': c[-1][1], 'pc': pc, 't': c[-1][0]}
+except Exception as e: print('qf 실패', e)
+json.dump({'at': now, 'spark': J, 'qf': QF}, open(f'{OUT}/q.json', 'w'), separators=(',', ':'))
 print('q.json ok', len(json.dumps(J)) // 1024, 'KB')
 
 prev = None
