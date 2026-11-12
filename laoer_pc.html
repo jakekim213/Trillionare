@@ -1267,7 +1267,7 @@ const CMP={H0:{"v":1,"asof":"2026-11-03","w":[["NVDA","NVIDIA CORP",8.163],["AAP
   try{if(typeof LIVE!=='undefined'&&LIVE.refresh){LIVE.refresh(true);try{FG.load()}catch(e){}if(typeof toast==='function')toast('🔄 최신 시세를 다시 받는 중…');return}}catch(e){}
   if(typeof DIRTY!=='undefined'&&DIRTY&&!confirm('저장하지 않은 내용이 있어요. 그래도 새로고침할까요?'))return;location.reload();return}
  if(a==='mkt:load')return MKT.load();if(a==='mkt:reset'){pushHx('내장 데이터로 되돌리기 전');logEdit('시장 데이터','불러온 파일','내장 데이터','복원');S.mkt=null;mark();render();return}return _act(a,t)};
- const _home=APP.views.home;APP.views.home=function(){return (typeof LIVE!=='undefined'&&LIVE.tick?LIVE.tick():'')+CMP.card()+FG.card()+(typeof MARKS!=='undefined'?MARKS.card():'')+MUN.card()+PER.card()+MKT.card()+_home()};
+ const _home=APP.views.home;APP.views.home=function(){return (typeof LIVE!=='undefined'&&LIVE.tick?LIVE.tick():'')+CMP.card()+FG.card()+(typeof MARKS!=='undefined'?MARKS.card():'')+MUN.card()+(typeof MKS!=='undefined'?MKS.card():'')+MKT.card()+_home()};
  const _csv=APP.csv;APP.csv=function(){let r=[];try{const L=MKT.now().L;r=[['[지금 매수 구간 판정]'],['기준일',L.date,'판정',L.verdict,'200일선 대비(%)',L.distPct,'규칙',L.state,'VIX',L.vix,'1년 고점 대비(%)',L.ddPct,'20일 변동성(%)',L.volPct],[]]}catch(e){}return r.concat(_csv())};}
 
 /* ───────── 🌡️ 하워드 막스 시장 온도계 ─────────
@@ -1389,6 +1389,59 @@ const MARKS={D:{"end":"2026-11-12","Q":{"dist":[-0.23885,-0.2013,-0.1821,-0.1697
   </details>
   <div class="note" style="margin-top:8px">재료 기준일 ${MARKS.D.end}${age!=null&&age<24*60?' · 나스닥 지금 값 '+age+'분 전':''}${n.crLive?' · 회사채 지금 값 반영':''} · 막스 책 문장을 그대로 옮기지 않고 생각만 쉬운 말로 풀었어요</div>
  </div>`}
+};
+/* 200일선 규칙 상태(±3% 완충): 넣어 둔 나스닥100 일봉 + 지금 값으로 차례대로 따라감 */
+MARKS.rule=function(n){const N=MARKS.D.N.map(x=>x[1]);let st=1,last=null;for(let i=199;i<N.length;i++){let s=0;for(let j=i-199;j<=i;j++)s+=N[j];const m=s/200;if(N[i]<m*0.97){if(st)last=MARKS.D.N[i][0];st=0}else if(N[i]>m*1.03){if(!st)last=MARKS.D.N[i][0];st=1}}
+ const d=n.raw.dist;if(d<-0.03)st=0;else if(d>0.03)st=1;return {on:st,since:last,dist:d}};
+/* 🧭 하워드 막스식 주문 전 판단 — 막스 메모·책의 생각을 쉬운 말로 풀고(원문 인용 아님), 이 계산표에서 직접 계산한 숫자로 사례를 붙임 · 점검 기록은 이 기기에만 */
+const MKS={K:'laoer_marksjudge_v1',sel:new Set(),ord:null,
+ L:[
+  ['l2','🧠','2단계 생각','"좋은 회사니까 산다"는 누구나 하는 1단계 생각. "그 좋은 점을 남들도 다 알아서 이미 값에 들어갔나?"까지 가야 2단계','AI 호재는 모두가 알아요. 그래서 S&amp;P500 CAPE가 40(1871년 이후 상위 1.4%)까지 올라 있어요 — 좋은 소식이 이미 값에 많이 들어간 상태','내가 아는 좋은 소식을 남들도 다 아는가? 그렇다면 그건 이미 값에 들어가 있지 않나?'],
+  ['pv','🏷️','가격 ↔ 가치','좋은 자산도 너무 비싸게 사면 나쁜 투자, 나쁜 자산도 충분히 싸면 좋은 투자','CAPE 35 이상에서 산 S&amp;P500은 10년 뒤 82%가 손해(1998~2000년 한 번), 15 미만은 0%. 같은 시장도 산 값이 결과를 갈랐어요','이 값이 싼지 비싼지를 "무엇으로" 판단했나? (차트 모양 말고 이익 대비 가격으로)'],
+  ['pd','🎢','시계추','시장 분위기는 가운데 머무는 일이 드물고 "너무 들뜸 ↔ 너무 겁먹음"을 오간다. 지금 어디쯤인지 아는 게 출발점','위 🌡️ 온도계: 지금 칸에서 TQQQ 1년 뒤 손해 확률이 자동으로 나와요. 같은 공포 점수도 비쌀 때는 47%, 쌀 때는 20%','지금 추가 어느 쪽 끝에 가까운지 확인하고 주문하는가?'],
+  ['rk','⚠️','위험 = 되돌릴 수 없는 손실','위험은 "출렁임"이 아니라 "영영 못 찾는 손실"의 가능성. 그리고 사람들이 위험이 없다고 믿을 때 위험이 가장 크다','−50%는 +100%, −80%는 +400%가 나야 원금. 가상 TQQQ를 1993년부터 그냥 들고 있었다면 닷컴 붕괴로 <b>−99.97%</b> — 사실상 0','이 주문이 틀리면 다시 회복할 수 없는 손실이 날 수 있나?'],
+  ['pr','🔮','예측 말고 대비','내일·다음 달은 아무도 못 맞힌다. 대신 어떤 일이 와도 버틸 준비를 해 둔다','기분 온도로 1년 뒤를 맞힌 정도: 상관 −0.05(거의 0). 막스 온도계조차 "언제"는 못 맞혀요. 그래서 200일선 규칙·현금 비중 같은 "준비"가 필요','이 주문의 이유가 "오를 것 같아서(예측)"인가, "규칙·비중 계획(대비)"인가?'],
+  ['dl','🛡️','지는 걸 피하는 게 먼저','큰 손실 몇 번을 피하는 것만으로도 오래 가면 이긴다. 공격보다 수비가 복리를 지킨다','200일선 규칙 + 온도계 다이얼: 1993~ 최대 하락 −94% → −75%, 연평균은 21.1% → 20.9%로 거의 같음','이번 주문으로 "크게 지는 경우"를 줄였나, 늘렸나?'],
+  ['ct','🔄','근거 있는 반대로','남들이 겁먹을 때 사고 들뜰 때 조심 — 단, 반대로 하는 근거가 "가격"이어야 한다','가격표가 쌀 때 극단 공포 → TQQQ 1년 뒤 손해 6%. 가격표가 비쌀 때 극단 공포 → 64%. "남들이 판다"만으로는 근거가 안 돼요','남들과 반대로 하는 근거가 가격표인가, 그냥 반대로 하고 싶은 기분인가?'],
+  ['lv','💳','빚(레버리지) 조심','빚은 좋을 때 더 좋게, 나쁠 때 끝장나게 만든다. 막스가 가장 경계하는 건 비싼 시장에서의 빚','TQQQ는 그 자체가 3배 빚. 비싼 시장 + 200일선 아래에서 TQQQ 1년 뒤 손해 68~82%','이 돈은 −80%가 나도 생활이 흔들리지 않는 돈인가?'],
+  ['pt','⏳','인내 · 기회는 드물다','좋은 기회는 자주 오지 않는다. 기다릴 줄 알면 기회가 왔을 때 돈이 남아 있다','"싸고 차가움" 칸은 1993년 이후 날의 27%뿐이지만, 그때 TQQQ 1년 뒤 손해 19%, 나스닥 3년 연평균 +19%','꼭 오늘이어야 하는가? 기다리면 잃는 게 무엇인가?']],
+ get(){try{return JSON.parse(localStorage.getItem(MKS.K)||'{}')||{}}catch(e){return {}}},
+ put(o){try{localStorage.setItem(MKS.K,JSON.stringify(o))}catch(e){}},
+ pick(k,b){MKS.sel.has(k)?MKS.sel.delete(k):MKS.sel.add(k);b.style.background=MKS.sel.has(k)?'#fde7c7':'#fff';b.style.borderColor=MKS.sel.has(k)?'#b8892b':'#dfe4ea';MKS.verdict()},
+ setOrd(k){MKS.ord=k;document.querySelectorAll('[data-mko]').forEach(b=>{const on=b.dataset.mko===k;b.style.background=on?'#17202e':'#fff';b.style.color=on?'#fff':'#17202e'});MKS.verdict()},
+ state(){const n=MARKS.now();const q=(n.T>=50?'1':'0')+(n.cape>=30?'1':'0');return {n,q,c:MARKS.CELL[q],r:MARKS.rule(n)}},
+ verdict(){const el=document.getElementById('mksV');if(!el)return;const {q,c,r}=MKS.state(),k=MKS.sel.size,o=MKS.ord;
+  if(!o){el.innerHTML='먼저 위에서 <b>무슨 주문인지</b> 고르세요.';return}
+  let lv,tx;const def=q==='01'||q==='11',off=!r.on;
+  if(o==='buy'){if(off&&def){lv=2;tx=`지금은 ${c[0]} ${c[1]}(${c[3]}) + 200일선 규칙 <b>꺼짐</b>. 막스 기준과 내 규칙이 모두 "수비"예요. 더 사는 건 반대 방향 — 하려면 계획 비중의 ${c[5]}% 안에서, 아주 나눠서.`}
+   else if(def||off){lv=1;tx=`${def?`지금은 ${c[0]} ${c[1]}(${c[3]})이라`:'200일선 규칙이 꺼져 있어'} 공격할 때가 아니에요. 사더라도 평소보다 작게(다이얼 ${def?c[5]:50}%).`}
+   else{lv=0;tx=`${c[0]} ${c[1]}(${c[3]}) + 200일선 켜짐 — 막스 기준으로 공격해도 되는 쪽이에요.`}}
+  else if(o==='plan'){lv=off?1:0;tx=off?'정해 둔 규칙대로라면 200일선이 꺼진 지금은 새 매수를 쉬는 때예요. 무한매수 등 다른 규칙을 쓰고 있다면 1회 금액을 줄여서.':`정해 둔 계획대로의 주문 — 막스가 말한 "대비"에 해당해요. ${def?`다만 지금 칸이 ${c[3]}이라 1회 금액은 ${c[5]}% 수준으로.`:''}`}
+  else{if(off){lv=0;tx='200일선 규칙이 꺼져 있어요. 규칙에 따른 매도·비중 줄이기라면 막스의 "지는 걸 피하기"와 같은 방향이에요.'}
+   else if(q==='01'){lv=0;tx=`${c[0]} ${c[1]} 칸이라 비중을 줄이는 건 막스 기준에 맞아요. 다만 전부 파는 것보다 다이얼(${c[5]}%)만큼 줄이기.`}
+   else{lv=1;tx='200일선 위이고 위험한 칸도 아니에요. 공포나 탐욕 "기분"만 보고 파는 거라면 다시 생각 — 비쌀 때의 탐욕도 1년 뒤 손해 26%뿐이었어요.'}}
+  if(k>=3)lv=2;else if(k>=1)lv=Math.max(lv,1);
+  el.style.background=['#e8f5ec','#fffaf0','#fdecea'][lv];
+  el.innerHTML=['✅ <b>진행해도 좋아요</b>','🟡 <b>한 번 더 생각</b>','🔴 <b>24시간 미루기</b>'][lv]+' — '+tx+(k?`<br>자신 있게 답하지 못한 질문 ${k}개${k>=3?' (3개 이상이면 막스식으론 "아직 내가 모르는 게 많은 주문")':''}:<ul class="note" style="margin:4px 0 0;padding-left:18px">${MKS.L.filter(x=>MKS.sel.has(x[0])).map(x=>`<li>${x[1]} ${x[2]}: ${x[5]}</li>`).join('')}</ul>`:'')},
+ save(){if(!MKS.ord){MKS.verdict();return}const o=MKS.get(),{q}=MKS.state();o.log=o.log||[];o.log.push({t:new Date().toISOString(),o:MKS.ord,q,k:[...MKS.sel]});o.log=o.log.slice(-200);MKS.put(o);MKS.sel.clear();MKS.ord=null;const c=document.getElementById('mksCard');if(c){const w=document.createElement('div');w.innerHTML=MKS.card(true);c.replaceWith(w.firstElementChild)}},
+ card(open){const o=MKS.get(),L=o.log||[],{n,q,c,r}=MKS.state(),nm={buy:'더 사기',plan:'계획대로',sell:'줄이기·팔기'};
+  const cnt={};L.forEach(x=>x.k.forEach(k=>cnt[k]=(cnt[k]||0)+1));const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0];
+  const against=L.filter(x=>x.o==='buy'&&(x.q==='01'||x.q==='11')).length;
+  const prof=L.length?`점검 ${L.length}번${against?` · 수비 칸에서 "더 사기" ${against}번`:''}${top?` · 가장 자주 걸린 질문: <b>${(MKS.L.find(x=>x[0]===top[0])||[])[2]}</b>`:''}`:'주문 전에 펴서 3가지만 고르면 막스식 판정이 나와요';
+  const rows=MKS.L.map(([k,ic,nm2,idea,ev,qq])=>`<details style="border-top:1px solid var(--line,#e6e9ef);padding:7px 0"><summary style="cursor:pointer"><b>${ic} ${nm2}</b></summary><div class="note" style="margin:6px 0 0 4px;line-height:1.75"><b>막스의 생각</b>: ${idea}<br><b>🔎 이 계산표의 숫자</b>: ${ev}<br><b>❓ 주문 전 질문</b>: ${qq}</div></details>`).join('');
+  const ob=(k,l)=>`<button type="button" data-mko="${k}" onclick="MKS.setOrd('${k}')" style="border:1px solid #17202e;background:#fff;color:#17202e;border-radius:999px;padding:6px 12px;margin:3px;cursor:pointer;font:inherit;font-size:14px">${l}</button>`;
+  const qb=MKS.L.map(([k,ic,nm2])=>`<button type="button" onclick="MKS.pick('${k}',this)" style="border:1px solid #dfe4ea;background:#fff;border-radius:999px;padding:5px 10px;margin:3px;cursor:pointer;font:inherit;font-size:14px">${ic} ${nm2}</button>`).join('');
+  const rs=r.on?'<b style="color:#1a7f37">켜짐</b>':'<b style="color:#b42318">꺼짐</b>';
+  return `<details id="mksCard" class="card" style="border:2px solid ${c[4]};margin:10px 0"${open?' open':''}><summary style="cursor:pointer;list-style:none"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline"><b style="font-size:16px">🧭 주문 전 하워드 막스 판단 <span class="note" style="font-weight:400">시계추 · 가격↔가치 · 위험 관리 × 라오어</span></b><span class="note">눌러서 펴기/접기</span></div>
+  <div style="margin-top:4px;font-size:13.5px">지금: <b style="color:${c[4]}">${c[0]} ${c[1]} → ${c[3]}</b> · 기분 온도 ${Math.round(n.T)} · CAPE ${n.cape.toFixed(1)} · 200일선 규칙 ${rs} <span class="note">(나스닥100 200일선 ${(r.dist*100>=0?'+':'')+(r.dist*100).toFixed(1)}%${r.since?' · '+r.since+'부터':''})</span></div><div class="note" style="margin-top:2px">${prof}</div></summary>
+  <div style="margin-top:8px"><div class="bub" style="margin:0 0 8px;background:var(--soft,#f3f6fb)"><b>왜 막스?</b> 오크트리를 세운 하워드 막스는 고객에게 보내는 <b>"메모"</b>로 유명해요. 버핏이 "메일함에 막스 메모가 오면 가장 먼저 연다"고 했을 정도. 그의 핵심은 <b>"앞날은 못 맞혀도, 지금 시장이 어디쯤인지는 알 수 있고 그에 맞춰 공격·수비를 조절하라"</b>예요. 아래는 그 생각을 쉬운 말로 풀어 이 계산표의 숫자를 붙인 거예요(책 문장을 그대로 옮긴 건 아니에요).</div>
+  <div style="font-weight:700;margin:4px 0">① 무슨 주문인가요?</div><div>${ob('buy','🟢 더 사기 (평소보다 많이)')}${ob('plan','⚪ 정해 둔 계획대로')}${ob('sell','🔴 줄이기·팔기')}</div>
+  <div style="font-weight:700;margin:8px 0 4px">② 아래 질문 중 <u>자신 있게 "예/아니오"로 답하지 못하는 것</u>을 모두 고르세요 <span class="note" style="font-weight:400">(펴 보면 질문이 있어요)</span></div><div>${qb}</div>
+  <div id="mksV" class="bub" style="margin:8px 0;background:#fffaf0">먼저 위에서 <b>무슨 주문인지</b> 고르세요.</div>
+  <button type="button" class="btn sm" onclick="MKS.save()">📝 이 점검 기록하기</button> <span class="note">기록은 이 기기에만 저장돼요 · 지금 칸·200일선 상태는 🌡️ 온도계와 같은 값으로 자동 판단</span>
+  <div style="font-weight:700;margin:12px 0 2px">③ 막스의 9가지 생각 × 라오어 <span class="note" style="font-weight:400">(눌러서 자세히)</span></div>${rows}
+  ${L.length?`<details style="margin-top:8px"><summary class="note" style="cursor:pointer">📒 최근 점검 기록 ${Math.min(10,L.length)}개</summary><div class="tw"><table class="g"><thead><tr><th>때</th><th>주문</th><th>그때 칸</th><th class="n">걸린 질문</th></tr></thead><tbody>${L.slice(-10).reverse().map(x=>`<tr><td>${x.t.slice(0,16).replace('T',' ')}</td><td>${nm[x.o]||x.o}</td><td>${(MARKS.CELL[x.q]||[''])[0]} ${(MARKS.CELL[x.q]||['',''])[1]}</td><td class="n">${x.k.length}</td></tr>`).join('')}</tbody></table></div></details>`:''}
+  <p class="note" style="margin:8px 0 0">투자 권유가 아니라, 주문 전에 내 판단을 한 번 더 점검하는 도구예요.</p></div></details>`}
 };
 
 /* ===================== 첫 화면: TQQQ · QLD 전체 기간 그래프 (같은 200일선 신호) ===================== */
@@ -2404,7 +2457,7 @@ setTimeout(()=>{if(typeof ART==='undefined')return;const f=document.createElemen
 boot();LIVE.refresh();LIVE.auto();
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261113074559';
+const FILE_BUILD='20261113075024';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
