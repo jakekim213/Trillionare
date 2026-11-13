@@ -700,7 +700,7 @@ const CMP={H0:{"v":1,"asof":"2026-11-03","w":[["NVDA","NVIDIA CORP",8.163],["AAP
   try{if(typeof LIVE!=='undefined'&&LIVE.refresh){LIVE.refresh(true);try{FG.load()}catch(e){}if(typeof toast==='function')toast('🔄 최신 시세를 다시 받는 중…');return}}catch(e){}
   if(typeof DIRTY!=='undefined'&&DIRTY&&!confirm('저장하지 않은 내용이 있어요. 그래도 새로고침할까요?'))return;location.reload();return}
  if(a==='mkt:load')return MKT.load();if(a==='mkt:reset'){pushHx('내장 데이터로 되돌리기 전');logEdit('시장 데이터','불러온 파일','내장 데이터','복원');S.mkt=null;mark();render();return}return _act(a,t)};
- const _home=APP.views.home;APP.views.home=function(){return (typeof MARKS!=='undefined'&&MARKS.dec?MARKS.dec():'')+(typeof LIVE!=='undefined'&&LIVE.tick?LIVE.tick():'')+CMP.card()+(typeof MARKS!=='undefined'?MARKS.card():FG.card())+(typeof MKS!=='undefined'?MKS.card():'')+MKT.card()+_home()};
+ const _home=APP.views.home;APP.views.home=function(){return (typeof MARKS!=='undefined'&&MARKS.dec?MARKS.dec():'')+(typeof LIVE!=='undefined'&&LIVE.tick?LIVE.tick():'')+CMP.card()+(typeof MARKS!=='undefined'?MARKS.card():FG.card())+(typeof MKS!=='undefined'?MKS.card():'')+MKT.card()+(typeof MARKS!=='undefined'&&MARKS.more?MARKS.more():'')+_home()};
  const _csv=APP.csv;APP.csv=function(){let r=[];try{const L=MKT.now().L;r=[['[지금 매수 구간 판정]'],['기준일',L.date,'판정',L.verdict,'200일선 대비(%)',L.distPct,'규칙',L.state,'VIX',L.vix,'1년 고점 대비(%)',L.ddPct,'20일 변동성(%)',L.volPct],[]]}catch(e){}return r.concat(_csv())};}
 
 /* ───────── 🌡️ 하워드 막스 시장 온도계 ─────────
@@ -1007,6 +1007,43 @@ MARKS.buyBox=function(n,r){const D=MARKS.D,c=n.cape,pe=n.pe,spx=D.spx*c/D.cape,n
  <div class="note" style="margin-bottom:6px">지금: 나스닥100 <b>${k(nd)}</b> · S&amp;P500 약 <b>${k(spx)}</b> · CAPE <b>${c.toFixed(1)}</b> · PER <b>${pe.toFixed(1)}</b> — 아래 조건 중 <b>먼저 닿는 것</b>부터 실행</div>
  <div style="border:1px solid #e6e9ef;border-radius:8px;overflow:hidden">${tr}</div>
  <div class="note" style="margin-top:6px;line-height:1.6">두 가지 길: ① <b>오르면</b> 200일선 매수선에서 비중만큼 들어가기 ② <b>떨어지면</b> CAPE 35·32·28에서 나눠 사기. CAPE·PER 가격은 회사 이익이 지금 그대로일 때 값이라, 이익이 늘면 같은 CAPE·PER라도 가격이 해마다 조금씩 올라가요. 나스닥100 가격은 S&amp;P500과 같은 비율로 움직인다고 본 대략값.</div></div>`};
+/* 📚 더 알아보기 — 대화에서 나온 분석 모음 (연도별 CAPE·PER, 10년 단위 평균은 파일 속 월 기록으로 직접 계산 → 자동 수집으로 계속 갱신) */
+MARKS.HI=[['2018-01',33.3,2696],['2021-01',34.5,3701],['2021-11',38.6,4614],['2022-01',36.9,4797],['2024-07',35.5,5475],['2025-01',37.1,5869]];
+MARKS.more=function(){const D=MARKS.D,CV=D.CV,PE=D.PEH,y0=+D.CS.slice(0,4),m0=+D.CS.slice(5,7)-1;
+ const ym=i=>{const k=m0+i;return [y0+Math.floor(k/12),k%12+1]};
+ /* 연도별 (2010-02~) */
+ const Y={};for(let i=0;i<CV.length;i++){const [y,m]=ym(i);if(y<2010||(y===2010&&m<2))continue;const kp=(y-1990)*12+(m-1),p=PE[kp];(Y[y]=Y[y]||{c:[],p:[]}).c.push(CV[i]);if(p!=null)Y[y].p.push(p)}
+ const av=a=>a.reduce((x,y)=>x+y,0)/a.length,f1=x=>x.toFixed(1);
+ let allC=[],allP=[];const yr=Object.keys(Y).map(Number).sort();yr.forEach(y=>{allC=allC.concat(Y[y].c);allP=allP.concat(Y[y].p)});
+ const yrows=yr.map(y=>{const c=Y[y].c,p=Y[y].p;return `<tr><td>${y}${c.length<12?` <span class="note">(${c.length}달)</span>`:''}</td><td class="n"><b>${f1(av(c))}</b> <span class="note">${f1(Math.min(...c))}~${f1(Math.max(...c))}</span></td><td class="n"><b>${p.length?f1(av(p)):'-'}</b> ${p.length?`<span class="note">${f1(Math.min(...p))}~${f1(Math.max(...p))}</span>`:''}</td><td class="n">${p.length?f1(av(c)-av(p)):'-'}</td></tr>`}).join('');
+ /* 10년 단위 */
+ const DEC={};for(let i=0;i<CV.length;i++){const [y]=ym(i);if(y<1880)continue;const d=Math.floor(y/10)*10;(DEC[d]=DEC[d]||[]).push(CV[i])}
+ const dmax=Math.max(...Object.values(DEC).map(av));
+ const drows=Object.keys(DEC).map(Number).sort().map(d=>{const a=av(DEC[d]);return `<div style="display:grid;grid-template-columns:64px minmax(0,1fr) 38px;gap:6px;align-items:center;font-size:12.5px;margin:2px 0"><span style="white-space:nowrap">${d}년대</span><div style="height:10px;background:#eef1f5;border-radius:5px;overflow:hidden"><div style="width:${(a/dmax*100).toFixed(0)}%;height:100%;background:${d>=2020?'#c0392b':d>=1990?'#e07a1f':'#8a95a5'}"></div></div><b style="text-align:right">${f1(a)}</b></div>`}).join('');
+ /* CAPE 35 이상에서 산 경우 → 지금 */
+ const L=(typeof LIVE!=='undefined'&&LIVE.Q&&LIVE.Q['^GSPC'])||null,spx=(L&&L.p>0)?L.p:D.spx;
+ const hrows=MARKS.HI.map(([d,c,g])=>{const r=spx/g-1,yrs=(Date.now()-Date.parse(d+'-01'))/(365.25*864e5);return `<tr><td>${d.replace('-','년 ')}월</td><td class="n">${c}</td><td class="n" style="color:${r>=0?'#1a7f37':'#b42318'}"><b>${r>=0?'+':'−'}${Math.abs(r*100).toFixed(0)}%</b></td><td class="n">${r>-1?((Math.pow(1+r,1/yrs)-1)*100).toFixed(1)+'%':'-'}</td></tr>`}).join('');
+ const sec=(t,b,open)=>`<details style="border-top:1px solid #e6e9ef;padding:8px 0"${open?' open':''}><summary style="cursor:pointer;font-weight:700;font-size:14px">${t}</summary><div style="margin-top:8px">${b}</div></details>`;
+ const ul=a=>`<ul class="note" style="margin:6px 0 0;padding-left:18px;line-height:1.7">${a.map(x=>'<li>'+x+'</li>').join('')}</ul>`;
+ const T=(h,rows)=>`<div class="tw"><table class="g" style="font-size:12.5px"><thead><tr>${h.map((x,i)=>`<th${i?' class="n"':''}>${x}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;
+ const r=a=>a.map(x=>`<tr>${x.map((v,i)=>`<td${i?' class="n"':''}>${v}</td>`).join('')}</tr>`).join('');
+ return `<div class="card noprint" id="moreCard"><style>#moreCard td,#moreCard th{white-space:normal;word-break:keep-all}</style><details><summary style="cursor:pointer;list-style:none"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline"><b style="font-size:16px">📚 더 알아보기 — 가격표·역사·사는 법</b><span class="note">눌러서 펴기/접기</span></div><div class="note" style="margin-top:2px">연도별 CAPE·PER · CAPE의 계단 · 10년 단위 성적 · 비쌀 때 산 실제 결과 · 한 번에 vs 나눠 사기 · 극단값 · 출렁임 배수 쉬운 설명</div></summary><div style="margin-top:6px">
+ ${sec('① TQQQ 출시 이후 CAPE·PER 연도별 평균 (자동 갱신)',`<p class="note" style="margin:0 0 6px">TQQQ 자체에는 PER이 없어요(회사가 아니라 이익이 없음). 아래는 S&amp;P500 기준이에요. 매달 1일 값 평균, 작은 글씨는 그해 범위.</p>${T(['연도','CAPE (10년 이익)','PER (1년 이익)','차이'],yrows)}
+  <div style="font-size:13px;margin-top:6px"><b>2010~지금 평균: CAPE ${f1(av(allC))} · PER ${f1(av(allP))}</b> — 지금 CAPE ${f1(MARKS.now().cape)}(평균보다 ${((MARKS.now().cape/av(allC)-1)*100).toFixed(0)}% 높음) · PER ${f1(MARKS.now().pe)}(${((MARKS.now().pe/av(allP)-1)*100).toFixed(0)}% 높음)</div>
+  ${ul(['CAPE는 2010년 20 남짓에서 거의 한 방향으로 올라왔어요(2022년 하락장 때만 잠깐 내려옴).','PER은 2020년에 코로나로 이익이 줄어 잠깐 튀었어요(이익이 갑자기 줄면 PER이 커짐).','<b>"차이"가 커질수록</b> 최근 이익이 10년 평균보다 빨리 늘었다는 뜻 — AI 이익이 CAPE에 아직 덜 반영된 정도예요.'])}`,true)}
+ ${sec('② CAPE의 "보통 수준"은 계단식으로 올라왔어요 (10년 단위 평균)',`${drows}${ul(['1880~1980년대: 100년 동안 11~21 사이를 오르내림(평균 약 15).','<b>1990년대에 한 계단</b>(25 안팎), <b>2020년대에 또 한 계단</b>(30 중반). 꾸준한 오르막이 아니라 계단이에요.','흔히 드는 이유: 금리가 길게 내려옴, 퇴직연금 돈이 꾸준히 주식으로, 이익률 높은 거대 기술기업의 비중 확대. 반대로 "금리가 오래 높으면 다시 내려올 수 있다"는 의견도 있어요.','그래서 분할 매수표 기준은 최근 20년(가운데값 27.3)에 맞췄어요 — 계단이 굳어지면 32·28도 충분히 싼 자리, 예전 수준으로 돌아가면 28도 아직 비쌀 수 있어요.'])}`)}
+ ${sec('③ 나스닥100 10년 단위 성적 — 회사보다 "출발 가격표"가 갈랐어요',`${T(['시기','1년 평균','가장 많이 빠짐','출발 CAPE'],r([['1990년대','<b>+32.2%</b>','−33%','17.0 (쌌음)'],['2000년대','<b>−6.9%</b>','<b>−83%</b>','<b>43.8</b> (역대 최고)'],['2010년대','+16.6%','−23%','20.5'],['2020년~지금','+18.4%','−36%','31.0']]))}
+  ${ul(['마이크로소프트·애플·아마존은 1990년대에도 이미 나스닥100의 주인공이었어요. 2000년대가 나빴던 건 회사가 나빠서가 아니라 <b>가장 비싼 가격표에서 출발</b>했기 때문.','<b>마이크로소프트</b>: 2000년 이후에도 이익은 계속 늘었지만 주가는 1999년 말 최고점을 <b>2016년에야</b> 다시 넘었어요 — 좋은 회사 + 너무 비싼 값 = 17년 제자리.','2010년 이후가 좋았던 이유: 싼 가격표(금융위기 직후) + 스마트폰·클라우드·AI로 이어진 진짜 이익 성장 + 0% 금리 + 큰 불황이 거의 없음. 그래도 2022년엔 TQQQ가 −80% 가까이 빠졌어요.','지금 출발점(CAPE 40)은 2010년(20)보다 2000년(44)에 더 가까워요.'])}`)}
+ ${sec('④ "CAPE 35 이상이면 절대 사면 안 되나?" — 최근 실제 결과 (자동 갱신)',`${T(['그때 산 경우 (S&amp;P500)','그때 CAPE','지금까지','1년 평균'],hrows)}
+  ${ul(['"CAPE 35 이상 → 10년 뒤 82% 손해"는 사실상 <b>닷컴 한 번</b>(1998~2000년 34달)이에요. 동전 한 번 던진 결과를 법칙으로 보면 안 돼요.','2001년 이후 CAPE 35 이상이던 달의 약 90%가 지금 이익(손해는 2001년 초, 닷컴 붕괴 중).','그래서 결론은 "절대 사지 마라"가 아니라 <b>"조심해서, 적게, 나눠서"</b> — 막스도 비중을 줄이라 했지 시장을 떠나라 하지 않았어요. (배당 제외 가격 기준)'])}`)}
+ ${sec('⑤ 10만 달러가 있다면 — 한 번에 vs 나눠 사기 (1993~2026, 3년 뒤 · 실제 비용 반영)',`${T(['출발 가격표 · 상품','12개월 분할이 이긴 비율','3년 뒤 손해 (한 번에 / 분할)'],r([['CAPE 30 미만 · QQQ','19%','6% / 8%'],['CAPE 30 이상 · QQQ','37%','32% / 34%'],['CAPE 30 미만 · TQQQ','29%','16% / 14%'],['CAPE 30 이상 · TQQQ','<b>58%</b>','51% / 52%']]))}
+  <div style="font-weight:700;margin:10px 0 4px;font-size:13px">닷컴 붕괴 때 "꽤 싸졌다" 싶어 산 경우 (2002년 10월 바닥까지)</div>
+  ${T(['산 때','그때 CAPE','QQQ','TQQQ'],r([['2001년 1월','37','−62%','<b>−99%</b>'],['2001년 4월','32','−46%','−95%'],['2001년 10월','29','−29%','−81%'],['2002년 7월','23','−19%','−57%']]))}
+  ${ul(['쌀 때는 한 번에 넣는 게 대부분 이겼고, 비쌀 때 TQQQ는 나눠 사는 쪽이 더 자주 이겼어요.','하지만 <b>1년에 걸쳐 나눠 사도 하락이 2~3년 이어지면 결국 다 물려요</b>(3년 뒤 손해 51% vs 52%).','3배 레버리지는 거품이 꺼지는 동안 나눠 사도 회복이 거의 안 됐어요. 떨어질 때 더 사는 막스식 방법은 <b>QQQ(1배)</b>에서만 제대로 작동.','그래서: ① 시간 말고 <b>가격(CAPE 35·32·28)</b>으로 나누기 ② 떨어질 때 사는 몫은 QQQ ③ TQQQ는 200일선 매수 신호 뒤에만 ④ 일부는 늘 현금(단기 국채 이자 연 4% 안팎).'])}`)}
+ ${sec('⑥ 품질식으로 "양 끝 빼고 평균" 내면? — 보통은 OK, 위험은 NO',`${T(['계산','값'],r([['CAPE 보통 수준(1990~): 그냥 평균 / 위아래 10% 빼고 / 가운데값','27.4 / 27.0 / 26.4'],['TQQQ 1년 평균(1993~): 전부 포함','<b>13.4%</b>'],['… 최악·최고 하루 1%씩 빼면','20.3%'],['… 최악 하루 1%만 빼면','<b>90.9%</b>'],['지금 칸(비싸고 차가움) TQQQ 1년 뒤: 평균 / 10% 빼고 / 가운데값','+16% / −8% / <b>−48%</b>']]))}
+  ${ul(['"보통이 어떤가"(공정 중심값)를 볼 땐 양 끝을 빼도 거의 같아요.','"얼마나 크게 다칠 수 있나"를 볼 땐 양 끝이 주인공 — TQQQ는 극단적인 며칠이 성적을 거의 다 결정해요. 필드 클레임에서 가장 심각한 고장을 "튀는 값"이라 빼면 리콜을 놓치는 것과 같아요.','그래서 이 앱은 평균 대신 <b>가운데값·손해 확률·−60% 폭락 확률</b>을 보여 주고, 한 사건(닷컴)에 끌려가지 않도록 <b>시기를 나눠</b>(1993~2002 / 2003~) 따로 적어요.'])}`)}
+ ${sec('⑦ "출렁임 기준 적정 배수"를 쉽게 — 파도와 배',`${ul(['<b>출렁임</b> = 최근 한 달 나스닥100이 얼마나 크게 오르내렸나(파도 높이). 평소 15~20%, 지금은 11/5 폭락이 들어가 높아요.','파도가 잔잔하면 빠른 보트(<b>TQQQ 3배</b>), 높으면 느린 배(<b>QQQ 1배</b>). 계산: 내가 견딜 출렁임 35% ÷ 지금 출렁임 = 배수(최대 3배).','<b>샤프지수</b> = "롤러코스터를 무섭게 탄 만큼 돈을 벌었나" 점수. 파도 보고 배를 바꾸는 방법이 이 점수가 가장 높았어요.','실제 비용·세금 반영 성적: 1993~ 연 18.1%·가장 많이 잃은 때 −80% (TQQQ 계속 보유는 12.8%·거의 다 잃음) / 2010~ 연 25.8%·−49% (보유는 38.3%·−82%). 오르기만 한 시기엔 계속 보유가 더 벌었지만 82% 손실을 견뎌야 했어요.','월 1회 조정이면 충분(매일 조정과 결과 거의 같음). 소수 배수는 QQQ·QLD·TQQQ·현금을 섞어서.'])}`)}
+ <p class="note" style="margin:8px 0 0">①②④는 앱 속 CAPE·PER 월 기록과 실시간 S&amp;P500으로 열 때마다 다시 계산돼요. ③⑤⑥⑦은 1993~2026년 기록으로 한 번 계산한 연구 결과예요.</p></div></details></div>`};
 
 /* ===================== 첫 화면: TQQQ · QLD 전체 기간 그래프 (같은 200일선 신호) ===================== */
 // 주간 종가(수정주가, Yahoo Finance) — 날짜(YYMMDD), QLD, TQQQ. 2010-02-11 이전 TQQQ는 나스닥100 일간 3배 − 연 2.39% 비용으로 만든 '가상 TQQQ' (2010~2026 실제 TQQQ와 끝값이 같도록 맞춤)
@@ -1924,7 +1961,7 @@ setTimeout(()=>{if(typeof ART==='undefined')return;const f=document.createElemen
 boot();LIVE.refresh();LIVE.auto();
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261113153747';
+const FILE_BUILD='20261113155503';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
