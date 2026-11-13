@@ -204,6 +204,56 @@ footer{font-size:12px;color:var(--jmute);border-top:1px solid var(--jsoft);backg
 @media(max-width:520px){.jtop .brand .ver{display:none}.jtop .ctrl .btn{padding:6px 9px;font-size:13px}}
 @media print{header.jtop,nav{display:none!important}}
 
+
+/* ===== 🌙 다크 모드 — html[data-theme=dark] (자동: 아이폰·PC 설정 따라감) ===== */
+html[data-theme="dark"]{color-scheme:dark;
+ --ink:#e6ebf2;--ink2:#d7dde7;--mut:#a3afc1;--line:#2f3b4f;--line2:#273244;--bg:#0e141f;--soft:#161f2e;--soft2:#1a2435;
+ --in:#3a3214;--inb:#8a742a;--calc:#1a2333;--pos:#4cc38a;--pos1:#13301f;--neg:#ff7a6b;--neg1:#3a1a17;--amb:#e3ac4f;--amb1:#33270f;
+ --navy:#20324f;--navy2:#2c4670;
+ --jpage:#0e141f;--jpanel:#141c2a;--jbg:#111926;--jhdr:#1d2738;--jink:#e6ebf2;--jsub:#a3afc1;--jmute:#94a1b5;--jline:#2f3b4f;--jsoft:#253045;
+ --jgold:#c9a24a;--jgink:#d9b45c;--jgdeep:#e6c574;--jgsoft:#2f2812}
+html[data-theme="dark"] body{background:#0e141f;color:#d7dde7}
+html[data-theme="dark"] header.jtop{background:rgba(14,20,31,.95);border-bottom-color:#2f3b4f}
+html[data-theme="dark"] nav,html[data-theme="dark"] footer{background:#111926!important}
+html[data-theme="dark"] .card,html[data-theme="dark"] .kpi,html[data-theme="dark"] .node,html[data-theme="dark"] .dlg .box,html[data-theme="dark"] .jtop .menu,html[data-theme="dark"] .seg,html[data-theme="dark"] .seg button{background:#141c2a;border-color:#2f3b4f}
+html[data-theme="dark"] .btn.light,html[data-theme="dark"] .btn.danger{background:#1a2435;color:#d7dde7;border-color:#2f3b4f}
+html[data-theme="dark"] table.g td{border-color:#273244}
+html[data-theme="dark"] table.g tr.tot td{background:#1a2435}
+html[data-theme="dark"] table.g tr.hl td{background:#2f2812}
+html[data-theme="dark"] .bub{background:#221d0e;border-color:#5a4a1c}
+html[data-theme="dark"] .bub.info{background:#132033;border-color:#2b4a70}
+html[data-theme="dark"] .bub.kid{background:#1e1830;border-color:#3e3366}
+html[data-theme="dark"] .pill.gd{background:#2f2812;color:#e6c574}
+html[data-theme="dark"] .secbar{background:linear-gradient(90deg,#122219,#121c2b);border-color:#24443a}
+html[data-theme="dark"] .chk .ln.tot{background:#1a2435}
+html[data-theme="dark"] .note{color:#a3afc1}
+html[data-theme="dark"] a{color:#7fb0ff}
+html[data-theme="dark"] input,html[data-theme="dark"] select,html[data-theme="dark"] textarea{background:#1a2435;color:#e6ebf2;border-color:#2f3b4f}
+/* 화면 곳곳에 직접 적힌 밝은 색을 어둡게 (앞의 것보다 뒤의 것이 우선) */
+html[data-theme="dark"] [style*="background:#fff"]{background:#141c2a!important}
+html[data-theme="dark"] [style*="background:#f7f8fa"],html[data-theme="dark"] [style*="background:#f3f6fb"],html[data-theme="dark"] [style*="background:var(--soft"]{background:#1a2435!important}
+html[data-theme="dark"] [style*="background:#eef1f5"]{background:#2a3446!important}
+html[data-theme="dark"] [style*="background:#fffbe6"],html[data-theme="dark"] [style*="background:#fff8e6"],html[data-theme="dark"] [style*="background:#fffaf0"],html[data-theme="dark"] [style*="background:#fff0e6"],html[data-theme="dark"] [style*="background:#fffdf3"],html[data-theme="dark"] [style*="background:#fdf6e3"]{background:#2e2710!important}
+html[data-theme="dark"] [style*="background:#e8f5ec"],html[data-theme="dark"] [style*="background:#eaf6ec"],html[data-theme="dark"] [style*="background:#e3f5ea"]{background:#12301f!important}
+html[data-theme="dark"] [style*="background:#fdecea"],html[data-theme="dark"] [style*="background:#fbeae8"]{background:#3a1a17!important}
+html[data-theme="dark"] [style*="background:rgba(255,255,255"]{background:rgba(20,28,42,.85)!important}
+html[data-theme="dark"] [style*="background:#17202e"]{background:#2c4670!important;color:#fff!important}
+html[data-theme="dark"] [style*="color:#17202e"]{color:#e6ebf2!important}
+html[data-theme="dark"] [style*="color:#4a5566"],html[data-theme="dark"] [style*="color:#54627a"]{color:#b5c0d0!important}
+html[data-theme="dark"] [style*="color:#8a95a5"]{color:#9aa7ba!important}
+html[data-theme="dark"] [style*="color:#1a7f37"],html[data-theme="dark"] [style*="color:#1c7a49"]{color:#4cc38a!important}
+html[data-theme="dark"] [style*="color:#b42318"],html[data-theme="dark"] [style*="color:#c73f2e"]{color:#ff7a6b!important}
+html[data-theme="dark"] [style*="color:#2f6fed"]{color:#7fa8ff!important}
+html[data-theme="dark"] [style*="color:#7b3fbf"]{color:#b48cf0!important}
+html[data-theme="dark"] [style*="#dfe4ea"],html[data-theme="dark"] [style*="#e6e9ef"],html[data-theme="dark"] [style*="#eef1f5"],html[data-theme="dark"] [style*="var(--line"]{border-color:#2f3b4f!important}
+html[data-theme="dark"] [style*="border:2px solid #17202e"]{border-color:#9aa7ba!important}
+/* 그래프 속 글자·격자 */
+html[data-theme="dark"] svg text[fill="#8a95a5"],html[data-theme="dark"] svg text[fill="#54627a"],html[data-theme="dark"] svg text[fill="#5b6b82"]{fill:#9aa7ba}
+html[data-theme="dark"] svg line[stroke="#e3e7ee"],html[data-theme="dark"] svg line[stroke="#eef1f5"],html[data-theme="dark"] svg line[stroke="#e8ebf1"]{stroke:#2a3446}
+html[data-theme="dark"] svg rect[fill="#fff"],html[data-theme="dark"] svg rect[fill="#ffffff"]{fill:#141c2a}
+/* 테마 버튼 */
+#themeBtn{font:inherit;font-size:13px;padding:5px 10px;border-radius:6px;border:1px solid var(--jline);background:transparent;color:var(--ink2);cursor:pointer;white-space:nowrap}
+
 </style>
 </head>
 <body>
@@ -232,6 +282,18 @@ footer{font-size:12px;color:var(--jmute);border-top:1px solid var(--jsoft);backg
 <div id="toast"></div>
 <input type="file" id="fileIn" accept=".html,.htm,.json,text/html,application/json" hidden>
 <!--DATA-->
+<script>/* 🌙 다크 모드: 자동(기기 설정) → 다크 → 라이트 순서로 바뀜, 이 기기에 기억 */
+(function(){const K='tqqq_theme',mq=window.matchMedia?matchMedia('(prefers-color-scheme: dark)'):null;
+ const get=()=>{try{return localStorage.getItem(K)||'auto'}catch(e){return 'auto'}};
+ const apply=()=>{const m=get(),d=m==='dark'||(m==='auto'&&mq&&mq.matches);document.documentElement.setAttribute('data-theme',d?'dark':'light');
+  const mt=document.querySelector('meta[name="theme-color"]');if(mt)mt.setAttribute('content',d?'#0e141f':'#1f4e9a');
+  const b=document.getElementById('themeBtn');if(b)b.textContent=m==='auto'?(d?'🌙 자동':'☀️ 자동'):m==='dark'?'🌙 다크':'☀️ 라이트'};
+ window.THEME={apply,next(){const o=['auto','dark','light'],m=get(),n=o[(o.indexOf(m)+1)%3];try{localStorage.setItem(K,n)}catch(e){}apply()}};
+ apply();if(mq&&mq.addEventListener)mq.addEventListener('change',apply);
+ const add=()=>{if(document.getElementById('themeBtn'))return;const c=document.querySelector('header .ctrl')||document.querySelector('header');if(!c)return;const b=document.createElement('button');b.id='themeBtn';b.type='button';b.title='화면 밝기: 자동 → 다크 → 라이트';b.onclick=()=>THEME.next();c.insertBefore(b,c.firstChild);apply()};
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',add);else add();setTimeout(add,800);
+})();
+</script>
 <script>
 'use strict';
 /* ===== 원본 HTML 보관 (데이터 포함 저장용) — 손익 시뮬레이터 v13.6 방식 ===== */
@@ -1961,7 +2023,7 @@ setTimeout(()=>{if(typeof ART==='undefined')return;const f=document.createElemen
 boot();LIVE.refresh();LIVE.auto();
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261113155503';
+const FILE_BUILD='20261114013554';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
