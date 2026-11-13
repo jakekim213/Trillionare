@@ -1428,9 +1428,21 @@ MARKS.dec=function(){let n,r;try{n=MARKS.now();r=MARKS.rule(n)}catch(e){return '
  </div>
  <div style="display:flex;gap:6px;flex-wrap:wrap">${chip(r.on?1:0,'① 켜고 끄기 · 200일선 규칙',(r.on?'켜짐 ✅':'꺼짐 ⛔')+` <span class="note">(200일선 ${pc(r.dist)})</span>`)}${chip(q==='00'||q==='10'?1:q==='01'?0:2,'② 얼마나 · 막스 4칸',`${C[0]} ${C[3]} (비중 ${C[5]}%)`)}${chip(f==null?2:f<25&&rest<50?0:f<25?1:2,'③ 공포 판별',fearT)}${chip(n.cape<30?1:0,'④ 가격표 CAPE',n.cape.toFixed(1)+(n.cape>=30?' 비쌈':' 괜찮음'))}</div>
  <div style="margin-top:10px;padding:8px 10px;background:#fff;border-radius:8px;border-left:4px solid ${col};font-size:13.5px;line-height:1.6">⏭️ <b>다음에 바뀌는 조건</b>: ${nxt}</div>
+ ${MARKS.ladder(n)}
  ${st?`<div class="note" style="margin-top:8px;line-height:1.6">📜 1993년 이후 지금과 같은 상태였던 날, TQQQ 1년 뒤: 손해 <b>${st[0]}%</b> · 가운데값 <b>${st[1]>=0?'+':'−'}${Math.abs(st[1])}%</b> · 1년 안 −60% 폭락 <b>${st[2]}%</b> (모든 날 평균 손해 28%) · 이런 날이 있던 해 ${st[3]}개${(r.on?1:0)+'_'+q==='0_01'?' · 1993~2002년 90%, 2003년 이후 44% (닷컴 붕괴 영향이 커요)':''}</div>`:''}
  <div class="note" style="margin-top:6px">판단 순서: ① 200일선 규칙이 <b>살지 말지</b>를 정하고 → ② 막스 4칸이 <b>얼마나</b>를 정해요. ③④는 그 근거. 투자 권유가 아니라 기록에 근거한 규칙 정리예요.</div>
 </div>`};
+
+/* 🪜 가격표(CAPE) 기준 분할 매수표 — 막스식 "싸질수록 더 사기". 회사 이익이 지금 그대로라는 가정(가격만 내려 CAPE가 낮아질 때) */
+MARKS.LAD=[[35,20,'30~35',2.0,10.5],[30,30,'25~30',5.8,9.3],[25,50,'20~25',9.4,13.0]];
+MARKS.ladder=function(n){const D=MARKS.D,c=n.cape,spx=D.spx*c/D.cape,nd=n.raw.nd,k=x=>Math.round(x).toLocaleString('en-US'),pc=x=>(x>=0?'+':'−')+Math.abs(x*100).toFixed(0)+'%';
+ let got=0;const rows=MARKS.LAD.map(([t,w,b,y10,y3],i)=>{const hit=c<=t;if(hit)got+=w;const nx=!hit&&MARKS.LAD.slice(0,i).every(x=>c<=x[0]);
+  return `<tr style="${hit?'background:#e8f5ec;font-weight:700':nx?'background:#fffbe6':''}"><td style="padding:5px 4px">${hit?'✅':nx?'⏳':'⬜'} <b>${i+1}차</b> · CAPE ${t}<br><span class="note">10년 연평균 +${y10.toFixed(1)}%</span></td><td class="n" style="padding:5px 4px">${k(spx*t/c)}<br><span class="note">${pc(t/c-1)}</span></td><td class="n" style="padding:5px 4px">${k(nd*t/c)}</td><td class="n" style="padding:5px 4px"><b>${w}%</b></td></tr>`}).join('');
+ const now=c>35?`지금 CAPE <b>${c.toFixed(1)}</b> — 아직 <b>1차 매수 가격도 아니에요</b>. S&amp;P500이 약 ${k(spx*35/c)}(${pc(35/c-1)})까지 오면 1차.`:`지금 CAPE <b>${c.toFixed(1)}</b> — 준비한 돈의 <b>${got}%</b>까지 산 구간이에요.`;
+ return `<details style="margin-top:10px;background:#fff;border-radius:8px;border:1px solid #dfe4ea;padding:8px 10px"${c<=36?' open':''}><summary style="cursor:pointer;font-weight:700;font-size:14px">🪜 가격표 기준 분할 매수표 (막스식 "싸질수록 더 사기") <span class="note" style="font-weight:400">${c>35?'아직 0차':got+'% 구간'}</span></summary>
+ <div style="font-size:13.5px;line-height:1.6;margin:6px 0">${now}</div>
+ <div class="tw"><table class="g" style="font-size:12.5px"><thead><tr><th style="padding:5px 4px">단계</th><th class="n" style="padding:5px 4px">S&amp;P500</th><th class="n" style="padding:5px 4px">나스닥100<br>(대략)</th><th class="n" style="padding:5px 4px">살 몫</th></tr></thead><tbody>${rows}</tbody></table></div>
+ <ul class="note" style="margin:6px 0 0;padding-left:18px;line-height:1.65"><li>"준비한 돈" = 이 계획에 쓰려고 따로 떼어 둔 현금. 1차 20% → 2차 30% → 3차 50%로, <b>쌀수록 더 많이</b>.</li><li>200일선 규칙과는 따로 움직이는 계획이에요. 그 전에 시장이 다시 올라 규칙이 켜지면 규칙대로 들어가면 돼요.</li><li>가격은 <b>회사 이익이 지금 그대로</b>일 때의 값이에요. 이익이 늘면 같은 CAPE라도 가격이 더 높아져요. 나스닥100은 자체 가격표 기록이 없어 S&amp;P500과 같은 비율로 움직인다고 보고 계산한 대략값이에요.</li><li>"10년 연평균" = 그 CAPE 칸에서 산 S&amp;P500의 10년 뒤 연평균 가운데값(1970~, 배당 제외). 35 이상(지금)은 −2.4%였어요. 1~3년 뒤는 가격표로 잘 안 맞아요(상관 −0.05).</li><li>막스의 가치투자는 빚 없이 오래 버티는 방식이라, 이 계획의 몫은 <b>QQQ(1배)나 아주 작은 TQQQ</b>가 더 맞아요. TQQQ는 싸게 사도 더 빠지는 동안 버티기 훨씬 어려워요.</li></ul></details>`};
 
 /* ===================== 첫 화면: TQQQ · QLD 전체 기간 그래프 (같은 200일선 신호) ===================== */
 // 주간 종가(수정주가, Yahoo Finance) — 날짜(YYMMDD), QLD, TQQQ. 2010-02-11 이전 TQQQ는 나스닥100 일간 3배 − 연 2.39% 비용으로 만든 '가상 TQQQ' (2010~2026 실제 TQQQ와 끝값이 같도록 맞춤)
@@ -2443,7 +2455,7 @@ setTimeout(()=>{if(typeof ART==='undefined')return;const f=document.createElemen
 boot();LIVE.refresh();LIVE.auto();
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261113113158';
+const FILE_BUILD='20261113113625';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
