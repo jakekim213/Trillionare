@@ -2242,7 +2242,7 @@ const url='https://query1.finance.yahoo.com/v8/finance/spark?symbols='+LIVE.QF.m
  status(){const st=LIVE.st;
   if(st==='busy')return '⏳ Yahoo에서 시세 받는 중… '+(LIVE.t0?Math.round((Date.now()-LIVE.t0)/1000)+'초':'');
   if(st==='ok')return `✔ ${LIVE.at.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}에 받음${LIVE.via?' ('+esc(LIVE.via)+')':''}${LIVE.nextTxt()} · 마지막 날 <b>${LIVE.lastDate}</b>${LIVE.intraday?' <span class="pill w">장중 값</span>':''}${LIVE.miss&&LIVE.miss.length?`<br>받지 못한 종목: ${esc(LIVE.miss.join(', '))} (그래프는 앞날 값으로 이어 둠)`:''}`;
-  if(st==='err')return '⚠ '+esc(LIVE.errMsg(LIVE.err))+' 지금은 파일에 들어 있는 시세로 보여 줍니다.';
+  if(st==='err')return '⚠ '+LIVE.errMsg(LIVE.err)+' 지금은 파일에 들어 있는 시세로 보여 줍니다.';
   if(st==='nomcp')return (S.mkt&&S.mkt.loadedAt?'📎 이 화면(아이패드·휴대폰·웹)에서는 직접 시세를 받을 수 없어, PC의 Claude 데스크톱 앱에서 마지막으로 받은 시세('+esc(S.mkt.loadedAt.slice(0,16))+')를 보여 줍니다. 데스크톱 앱에서 한 번 열면 자동으로 최신이 됩니다.':'📎 이 화면에서는 직접 시세를 받을 수 없어 파일에 들어 있는 시세(2026-10-22 종가까지)로 보여 줍니다. Claude 데스크톱 앱에서 열면 바로 최신 시세를 받습니다.');
   return '시세를 받을 준비 중…'},
  btns(){const b=LIVE.st==='busy';return `<div class="noprint" style="display:flex;flex-direction:column;gap:6px;max-width:260px"><button class="btn gold" data-act="live:refresh"${b?' disabled':''}>${b?'⏳ 받는 중…':'🔄 지금 바로 다시 받기'}</button><button class="btn light" data-act="live:csv"${S.mkt&&S.mkt.csv?'':' disabled'}>📥 계산표용 CSV 내려받기</button><div class="note" style="font-size:12.5px;line-height:1.5">${LIVE.status()}</div></div>`},
@@ -2423,7 +2423,7 @@ saveWork=function(){PWA.save();toast('✔ 이 기기에 저장했습니다')};
 {const _o=openFile;openFile=async function(f){const r=await _o(f);setTimeout(PWA.save,50);return r}}
 
 /* 🔄 새 버전 알림: GitHub에 새 계산표가 올라오면(최대 몇 분) 화면 위에 알려 주고, 누르면 캐시를 피해 새로 엶 */
-const APP_BUILD='20261113081618';
+const APP_BUILD='20261113092218';
 async function chkUpd(){try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();
  if(/^\d{14}$/.test(v)&&v>APP_BUILD&&!document.getElementById('updBar')){const b=document.createElement('div');b.id='updBar';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:80;background:#1f6feb;color:#fff;padding:10px 16px;border-radius:24px;box-shadow:0 4px 14px rgba(0,0,0,.25);font-weight:700;cursor:pointer;max-width:calc(100vw - 24px)';b.textContent='🔄 새 버전이 있어요 — 눌러서 바로 적용';b.onclick=()=>{try{PWA.save()}catch(e){}location.replace(location.pathname+'?v='+v)};document.body.appendChild(b)}}catch(e){}}
 setTimeout(chkUpd,1500);setInterval(chkUpd,10*60e3);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')chkUpd()});
@@ -2432,7 +2432,7 @@ boot();PWA.load();LIVE.refresh();LIVE.auto();
 {const _r=render;render=function(){_r();if(!DIRTY){const b=document.getElementById('stBadge');if(b&&!/저장됨/.test(b.textContent)){b.className='badge final';b.textContent='✔ 이 기기에 저장됨'}}}}
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261113081618';
+const FILE_BUILD='20261113092218';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
