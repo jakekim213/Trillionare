@@ -177,3 +177,26 @@ try:
         print('cq.json', len(q), len(x))
 except Exception as e:
     print('구성종목 실패', e)
+
+
+# ===== 🌡️ 시장 온도·최종 판단 자료 (marks.json) — 3시간마다 새로 계산 =====
+try:
+    import marks_calc
+    pm = None
+    try: pm = json.load(open('prev_marks.json'))
+    except Exception: pass
+    if pm and pm.get('v') == 1 and now - pm.get('at', 0) < 3 * 3600:
+        json.dump(pm, open(f'{OUT}/marks.json', 'w'), separators=(',', ':')); print('marks.json 이전 것 유지')
+    else:
+        try: fgj = json.load(open(f'{OUT}/fg.json'))
+        except Exception: fgj = None
+        mk = marks_calc.build(get, fgj)
+        if pm and 'cape' not in mk:  # multpl 실패 시 이전 CAPE·PER 유지
+            for k in ('cape', 'capeD', 'pe', 'peD', 'M', 'Mnow'):
+                if k in pm: mk[k] = pm[k]
+        json.dump(mk, open(f'{OUT}/marks.json', 'w'), separators=(',', ':')); print('marks.json 새로 계산', mk.get('end'), mk.get('cape'), mk.get('pe'), len(mk.get('TX', [])))
+except Exception as e:
+    print('marks.json 실패', e)
+    try:
+        if pm: json.dump(pm, open(f'{OUT}/marks.json', 'w'), separators=(',', ':'))
+    except Exception: pass

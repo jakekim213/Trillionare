@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: 이전 그래프 자료 가져오기
-        run: git fetch -q --depth 1 origin data && (git show FETCH_HEAD:g.json > prev_g.json; git show FETCH_HEAD:fg.json > prev_fg.json; git show FETCH_HEAD:hold.json > prev_hold.json) || echo "이전 자료 없음"
+        run: git fetch -q --depth 1 origin data && (git show FETCH_HEAD:g.json > prev_g.json; git show FETCH_HEAD:fg.json > prev_fg.json; git show FETCH_HEAD:hold.json > prev_hold.json; git show FETCH_HEAD:marks.json > prev_marks.json || true) || echo "이전 자료 없음"
       - name: Yahoo 시세 받기
         run: python3 .github/scripts/fetch_quotes.py
       - name: data 가지에 올리기 (기록 없이 덮어씀 — 저장소가 커지지 않음)
