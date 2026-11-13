@@ -794,7 +794,7 @@ const MARKS={D:{"end":"2026-11-12","Q":{"dist":[-0.23885,-0.2013,-0.1821,-0.1697
  untip(){if(Date.now()-(MARKS._tt||0)<1500)return;const tp=document.getElementById('mtTip'),ln=document.getElementById('mtX');if(tp)tp.style.display='none';if(ln)ln.setAttribute('opacity','0')},
  card(){MARKS.boot();const n=MARKS.now();if(n.T==null)return `<div class="card noprint" id="mkCard"><h3>🌡️ 하워드 막스 시장 온도계</h3><p class="note">재료가 모자라 계산을 못 했어요.</p></div>`;
   const T=n.T,[tl,tc]=MARKS.lab(T),[cl,cc]=MARKS.capeLab(n.cape),q=(T>=50?'1':'0')+(n.cape>=30?'1':'0'),C=MARKS.CELL[q],Qa=MARKS.QD.all,Qx=MARKS.QD.a,Qb=MARKS.QD.b,pct=v=>(v>=0?'+':'')+(v*100).toFixed(1)+'%';
-  const above=n.raw.dist>0.03?'위 (켜짐)':n.raw.dist<-0.03?'아래 (꺼짐)':'근처 ±3% 안 (규칙상 직전 상태 유지)';
+  const above=n.raw.dist>0.03?'위 (🟢 매수 신호)':n.raw.dist<-0.03?'아래 (🔴 현금 신호)':'근처 ±3% 안 (규칙상 직전 상태 유지)';
   const parts=[['dist','📏 200일선 거리',pct(n.raw.dist)],['ret','📈 1년 수익률',n.raw.ret==null?'-':pct(n.raw.ret)],['fg','😱 공포·탐욕',n.raw.fg==null?'-':Math.round(n.raw.fg)+'점'],['vxn','🌪️ VXN (낮을수록 뜨거움)',n.raw.vxn?n.raw.vxn.toFixed(1):'-'],['cr','🏦 회사채 분위기',pct(n.raw.cr)+(n.crLive?'':' (어제까지)')]];
   const bar=(v,col)=>`<div style="height:8px;background:#eef1f5;border-radius:4px;overflow:hidden"><div style="width:${Math.max(2,v).toFixed(0)}%;height:100%;background:${col}"></div></div>`;
   const pr=parts.map(([k,nm,raw])=>{const v=n.p[k];return `<div style="display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) 34px;gap:6px;align-items:center;font-size:12.5px;margin:3px 0"><span>${nm} <span class="note">${raw}</span></span>${v==null?'<span class="note">-</span>':bar(v,MARKS.lab(v)[1])}<b style="text-align:right">${v==null?'-':Math.round(v)}</b></div>`}).join('');
@@ -815,7 +815,7 @@ const MARKS={D:{"end":"2026-11-12","Q":{"dist":[-0.23885,-0.2013,-0.1821,-0.1697
    <b>지금: ${C[0]} ${C[1]} → "${C[3]}"</b> — ${C[6]}<br>
    · 역사 속 이 칸: TQQQ 1년 뒤 손해 <b>${Qa[q][1]}%</b>, 1년 안에 −60% 넘게 빠진 경우 <b>${Qa[q][2]}%</b> (1993년 이후 모든 날 평균은 각각 28%, 23%)<br>
    · 이 칸에서 TQQQ 비중을 <b>${C[5]}%</b>로 맞췄다면(나머지는 현금) 아래 검증의 "온도계 다이얼"이 돼요.<br>
-   · 200일선 규칙 ${(rr=>rr.on?'<b style="color:#1a7f37">켜짐</b>':'<b style="color:#b42318">꺼짐</b>'+(rr.since?' ('+rr.since+'부터)':''))(MARKS.rule(n))} (나스닥100 200일선 ${pct(n.raw.dist)}) — <b>200일선 규칙이 켜고 끄는 스위치</b>, 온도계는 <b>얼마나 세게 할지 정하는 다이얼</b>이에요. 둘은 서로를 대신하지 못해요.<br>
+   · 200일선 규칙 ${(rr=>rr.on?'<b style="color:#1a7f37">🟢 매수 신호</b>':'<b style="color:#b42318">🔴 현금 신호</b>'+(rr.since?' ('+rr.since+'부터)':''))(MARKS.rule(n))} (나스닥100 200일선 ${pct(n.raw.dist)}) — <b>200일선 규칙이 살지 말지 정하는 신호등</b>, 온도계는 <b>얼마나 세게 할지 정하는 다이얼</b>이에요. 둘은 서로를 대신하지 못해요.<br>
    · 공포·탐욕 판별: <b>${FT.nm}</b>${FT.short?" — "+FT.short:""}
   </div>
   <div style="margin:16px 0 8px;padding:6px 10px;background:#17202e;color:#fff;border-radius:8px;font-weight:700">① 오늘 기분 <span style="font-weight:400;font-size:12px;opacity:.85">나스닥100 공포·탐욕 지수 · 매일 바뀌는 가장 빠른 숫자</span></div>
@@ -900,11 +900,11 @@ const MKS={K:'laoer_marksjudge_v1',sel:new Set(),ord:null,
  verdict(){const el=document.getElementById('mksV');if(!el)return;const {q,c,r}=MKS.state(),k=MKS.sel.size,o=MKS.ord;
   if(!o){el.style.background='#fffaf0';el.innerHTML='먼저 <b>① 무슨 주문인지</b> 고르세요.';return}
   let lv,tx;const def=q==='01'||q==='11',off=!r.on;
-  if(o==='buy'){if(off&&def){lv=2;tx=`지금은 ${c[0]} ${c[1]}(${c[3]}) + 200일선 규칙 <b>꺼짐</b>. 막스 기준과 내 규칙이 모두 "수비"예요. 더 사는 건 반대 방향 — 하려면 계획 비중의 ${c[5]}% 안에서, 아주 나눠서.`}
-   else if(def||off){lv=1;tx=`${def?`지금은 ${c[0]} ${c[1]}(${c[3]})이라`:'200일선 규칙이 꺼져 있어'} 공격할 때가 아니에요. 사더라도 평소보다 작게(다이얼 ${def?c[5]:50}%).`}
-   else{lv=0;tx=`${c[0]} ${c[1]}(${c[3]}) + 200일선 켜짐 — 공격해도 되는 쪽이에요. 멍거의 "결단": 준비된 기회엔 망설이지 않기.`}}
-  else if(o==='plan'){lv=off?1:0;tx=off?'정해 둔 규칙대로라면 200일선이 꺼진 지금은 새 매수를 쉬는 때예요. 나눠 사는 규칙을 쓰고 있다면 1회 금액을 줄여서.':`정해 둔 계획대로의 주문 — "예측 말고 대비"에 해당해요. ${def?`다만 지금 칸이 ${c[3]}이라 1회 금액은 ${c[5]}% 수준으로.`:''}`}
-  else{if(off){lv=0;tx='200일선 규칙이 꺼져 있어요. 규칙에 따른 매도·비중 줄이기라면 "지는 걸 피하기"와 같은 방향이에요.'}
+  if(o==='buy'){if(off&&def){lv=2;tx=`지금은 ${c[0]} ${c[1]}(${c[3]}) + 200일선 규칙 <b>🔴 현금 신호</b>. 막스 기준과 내 규칙이 모두 "수비"예요. 더 사는 건 반대 방향 — 하려면 계획 비중의 ${c[5]}% 안에서, 아주 나눠서.`}
+   else if(def||off){lv=1;tx=`${def?`지금은 ${c[0]} ${c[1]}(${c[3]})이라`:'200일선 규칙이 현금 신호라'} 공격할 때가 아니에요. 사더라도 평소보다 작게(다이얼 ${def?c[5]:50}%).`}
+   else{lv=0;tx=`${c[0]} ${c[1]}(${c[3]}) + 200일선 매수 신호 — 공격해도 되는 쪽이에요. 멍거의 "결단": 준비된 기회엔 망설이지 않기.`}}
+  else if(o==='plan'){lv=off?1:0;tx=off?'정해 둔 규칙대로라면 200일선이 현금 신호인 지금은 새 매수를 쉬는 때예요. 나눠 사는 규칙을 쓰고 있다면 1회 금액을 줄여서.':`정해 둔 계획대로의 주문 — "예측 말고 대비"에 해당해요. ${def?`다만 지금 칸이 ${c[3]}이라 1회 금액은 ${c[5]}% 수준으로.`:''}`}
+  else{if(off){lv=0;tx='200일선 규칙이 현금 신호예요. 규칙에 따른 매도·비중 줄이기라면 "지는 걸 피하기"와 같은 방향이에요.'}
    else if(q==='01'){lv=0;tx=`${c[0]} ${c[1]} 칸이라 비중을 줄이는 건 막스 기준에 맞아요. 다만 전부 파는 것보다 다이얼(${c[5]}%)만큼 줄이기.`}
    else{lv=1;tx='200일선 위이고 위험한 칸도 아니에요. 공포나 탐욕 "기분"만 보고 파는 거라면 다시 생각 — 멍거: 복리를 쓸데없이 끊지 말기.'}}
   if(k>=3)lv=2;else if(k>=1)lv=Math.max(lv,1);
@@ -916,7 +916,7 @@ const MKS={K:'laoer_marksjudge_v1',sel:new Set(),ord:null,
   const cnt={};L.forEach(x=>x.k.forEach(k=>cnt[k]=(cnt[k]||0)+1));const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0];
   const against=L.filter(x=>x.o==='buy'&&(x.q==='01'||x.q==='11')).length,stk=MKS.streak(L),di=Math.floor(Date.now()/864e5),qt=MKS.Q[di%MKS.Q.length];
   const prof=L.length?`점검 ${L.length}번 · 연속 ${stk}일${against?` · 수비 칸에서 "더 사기" ${against}번`:''}${top?` · 가장 자주 걸린 질문: <b>${(MKS.L.find(x=>x[0]===top[0])||[])[2]}</b>`:''}`:'주문 전에 펴서 ①~② 두 가지만 고르면 판정이 나와요';
-  const rs=r.on?'<b style="color:#1a7f37">켜짐</b>':'<b style="color:#b42318">꺼짐</b>';
+  const rs=r.on?'<b style="color:#1a7f37">🟢 매수 신호</b>':'<b style="color:#b42318">🔴 현금 신호</b>';
   const ob=(k,l)=>`<button type="button" data-mko="${k}" onclick="MKS.setOrd('${k}')" style="border:1px solid #17202e;background:#fff;color:#17202e;border-radius:999px;padding:6px 12px;margin:3px;cursor:pointer;font:inherit;font-size:14px">${l}</button>`;
   const qs=MKS.L.map(([k,ic,nm2,who,idea,ev,qq])=>`<div style="border-top:1px solid var(--line,#e6e9ef);padding:6px 0"><label style="display:flex;gap:9px;align-items:flex-start;cursor:pointer"><input type="checkbox" data-mkq="${k}" onchange="MKS.pick('${k}')" style="width:19px;height:19px;margin-top:2px;flex:none"><span style="font-size:13.5px;line-height:1.55"><b>${ic} ${nm2}</b> <span class="note">${who}</span><br>${qq}</span></label>
    <details style="margin:2px 0 0 28px"><summary class="note" style="cursor:pointer">생각 · 숫자 보기</summary><div class="note" style="line-height:1.7;margin-top:3px"><b>생각</b>: ${idea}<br><b>🔎 이 계산표의 숫자</b>: ${ev}</div></details></div>`).join('');
@@ -942,10 +942,10 @@ MARKS.DM={
  '1_0_m':[1,'🟡 보유 · 비중 70%','사더라도 계획의 70%, 나눠서','비중 70% 정도로',70,[32,17,56,6,0,47]],
  '1_1_e':[1,'🟡 보유 · 새 돈은 천천히','나눠서 조금씩 (계획의 70%)','계속 보유 (무리한 추가는 X)',70,[26,48,40,7,31,23]],
  '1_0_e':[2,'🟠 보유하되 비중 줄이기','사더라도 계획의 40%만, 나눠서','비중을 40% 정도로 줄이기',40,[32,55,52,9,46,7]],
- '0_0_c':[1,'🟡 대기 · 바겐세일 칸','규칙은 "대기". 단, 가격표가 싸서 역사적으로는 좋았던 때 — 소액 분할만','규칙상 현금 (가격표는 싸니 다시 켜지면 바로 공격)',0,[21,71,23,20,35,16]],
- '0_1_c':[1,'🟡 대기','200일선 규칙이 다시 켜질 때까지 기다리기','규칙상 현금',0,[9,70,8,8,null,10]],
- '0_0_m':[2,'🟡 대기 · 현금','200일선 규칙이 다시 켜질 때까지 기다리기 (분할 매수표만)','규칙상 현금',0,[43,15,52,5,0,50]],
- '0_1_m':[1,'🟡 대기','200일선 규칙이 다시 켜질 때까지 기다리기','규칙상 현금',0,null],
+ '0_0_c':[1,'🟡 대기 · 바겐세일 칸','규칙은 "대기". 단, 가격표가 싸서 역사적으로는 좋았던 때 — 소액 분할만','규칙상 현금 (가격표는 싸니 매수 신호가 나오면 바로 공격)',0,[21,71,23,20,35,16]],
+ '0_1_c':[1,'🟡 대기','200일선 매수 신호가 나올 때까지 기다리기','규칙상 현금',0,[9,70,8,8,null,10]],
+ '0_0_m':[2,'🟡 대기 · 현금','200일선 매수 신호가 나올 때까지 기다리기 (분할 매수표만)','규칙상 현금',0,[43,15,52,5,0,50]],
+ '0_1_m':[1,'🟡 대기','200일선 매수 신호가 나올 때까지 기다리기','규칙상 현금',0,null],
  '0_0_e':[3,'🔴 매도 · 현금 대기','사지 말고 기다리기 (분할 매수표만)','규칙대로 팔고 현금',0,[90,-87,90,5,96,0]],
  '0_1_e':[3,'🔴 매도 · 현금 대기','사지 말고 기다리기','규칙대로 팔고 현금',0,null]};
 MARKS.dec=function(){let n,r;try{n=MARKS.now();r=MARKS.rule(n)}catch(e){return ''}if(!n||n.T==null)return '';
@@ -961,13 +961,13 @@ MARKS.dec=function(){let n,r;try{n=MARKS.now();r=MARKS.rule(n)}catch(e){return '
  return `<div class="card noprint" id="decCard" style="border:3px solid ${col};background:${bg};padding:14px">
  <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline"><b style="font-size:15px">🎯 지금 TQQQ, 사? 팔아? — 최종 판단</b><span class="note">${up} 기준 · 아래 분석을 모두 합친 결과${MARKS.fresh?' · 가격표·종가 자동 수집 '+new Date(MARKS.fresh*1000).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):''}</span></div>
  <div style="font-size:clamp(26px,7vw,40px);font-weight:900;color:${col};margin:6px 0 2px;line-height:1.15">${M[1]}</div>
- <div style="font-size:14px;line-height:1.6">200일선 규칙 <b>${r.on?'켜짐':'꺼짐'}</b>${r.since?' ('+r.since+'부터)':''} + 시장은 <b>${C[0]} ${C[1]}</b> 칸 + 가격표 <b>${n.val==='e'?'둘 다 비쌈(CAPE·PER)':n.val==='m'?'CAPE만 비쌈(PER은 괜찮음)':'괜찮음'}</b></div>
+ <div style="font-size:14px;line-height:1.6">200일선 규칙 <b>${r.on?'🟢 매수 신호':'🔴 현금 신호'}</b>${r.since?' ('+r.since+'부터)':''} + 시장은 <b>${C[0]} ${C[1]}</b> 칸 + 가격표 <b>${n.val==='e'?'둘 다 비쌈(CAPE·PER)':n.val==='m'?'CAPE만 비쌈(PER은 괜찮음)':'괜찮음'}</b></div>
  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:8px;margin:10px 0">
   <div style="background:#fff;border-radius:10px;padding:10px;border:1px solid #dfe4ea"><div class="note">👜 TQQQ가 <b>없다면</b></div><div style="font-weight:800;font-size:16px;margin-top:2px">${M[2]}</div></div>
   <div style="background:#fff;border-radius:10px;padding:10px;border:1px solid #dfe4ea"><div class="note">💼 TQQQ가 <b>있다면</b></div><div style="font-weight:800;font-size:16px;margin-top:2px">${M[3]}</div></div>
  </div>
  ${MARKS.buyBox(n,r)}
- <div style="display:flex;gap:6px;flex-wrap:wrap">${chip(r.on?1:0,'① 켜고 끄기 · 200일선 규칙',(r.on?'켜짐 ✅':'꺼짐 ⛔')+` <span class="note">(200일선 ${pc(r.dist)})</span>`)}${chip(n.val==='c'?1:n.val==='e'&&hk==='0'?0:2,'② 얼마나 · 기분 × 가격표',`${C[0]} ${C[1]} → 비중 ${MARKS.DM['1_'+hk+'_'+n.val][4]}%`)}${chip(f==null?2:f<25&&rest<50?0:f<25?1:2,'③ 공포 판별',fearT)}${chip(n.val==='c'?1:n.val==='m'?2:0,'④ 가격표 CAPE · PER',`${n.cape.toFixed(1)} · ${n.pe.toFixed(1)} → ${n.val==='e'?'둘 다 비쌈':n.val==='m'?'CAPE만 비쌈':'괜찮음'}`)}</div>
+ <div style="display:flex;gap:6px;flex-wrap:wrap">${chip(r.on?1:0,'① 살지 말지 · 200일선 규칙',(r.on?'🟢 매수 신호':'🔴 현금 신호')+` <span class="note">(200일선 ${pc(r.dist)})</span>`)}${chip(n.val==='c'?1:n.val==='e'&&hk==='0'?0:2,'② 얼마나 · 기분 × 가격표',`${C[0]} ${C[1]} → 비중 ${MARKS.DM['1_'+hk+'_'+n.val][4]}%`)}${chip(f==null?2:f<25&&rest<50?0:f<25?1:2,'③ 공포 판별',fearT)}${chip(n.val==='c'?1:n.val==='m'?2:0,'④ 가격표 CAPE · PER',`${n.cape.toFixed(1)} · ${n.pe.toFixed(1)} → ${n.val==='e'?'둘 다 비쌈':n.val==='m'?'CAPE만 비쌈':'괜찮음'}`)}</div>
  <div style="margin-top:10px;padding:8px 10px;background:#fff;border-radius:8px;border-left:4px solid ${col};font-size:13.5px;line-height:1.6">⏭️ <b>다음에 바뀌는 조건</b>: ${nxt}</div>
  ${MARKS.volLine(n)}
  ${MARKS.ladder(n)}
@@ -987,7 +987,7 @@ MARKS.ladder=function(n){const D=MARKS.D,c=n.cape,spx=D.spx*c/D.cape,nd=n.raw.nd
  return `<details style="margin-top:10px;background:#fff;border-radius:8px;border:1px solid #dfe4ea;padding:8px 10px"${c<=36?' open':''}><summary style="cursor:pointer;font-weight:700;font-size:14px">🪜 가격표 기준 분할 매수표 (막스식 "싸질수록 더 사기") <span class="note" style="font-weight:400">${c>35?'아직 0차':got+'% 구간'}</span></summary>
  <div style="font-size:13.5px;line-height:1.6;margin:6px 0">${now}</div>
  <div class="tw"><table class="g" style="font-size:12.5px"><thead><tr><th style="padding:5px 4px">단계</th><th class="n" style="padding:5px 4px">S&amp;P500</th><th class="n" style="padding:5px 4px">나스닥100<br>(대략)</th><th class="n" style="padding:5px 4px">그때<br>PER</th><th class="n" style="padding:5px 4px">살 몫</th></tr></thead><tbody>${rows}</tbody></table></div>
- <ul class="note" style="margin:6px 0 0;padding-left:18px;line-height:1.65"><li>"준비한 돈" = 이 계획에 쓰려고 따로 떼어 둔 현금. 1차 20% → 2차 30% → 3차 50%로, <b>쌀수록 더 많이</b>.</li><li>200일선 규칙과는 따로 움직이는 계획이에요. 그 전에 시장이 다시 올라 규칙이 켜지면 규칙대로 들어가면 돼요.</li><li>가격은 <b>회사 이익이 지금 그대로</b>일 때의 값이에요. 이익이 늘면 같은 CAPE라도 가격이 더 높아져요. 나스닥100은 자체 가격표 기록이 없어 S&amp;P500과 같은 비율로 움직인다고 보고 계산한 대략값이에요.</li><li><b>그때 PER</b> = 그 가격에서의 최근 1년 이익 기준 PER. 1차(35)에서 이미 PER ≈ 1990년 이후 가운데값(22.5) — 1년 이익 기준으론 "평범한 값"이 되는 자리예요.</li><li><b>기준은 최근 20년(2006년 11월~)</b>: 2차 32 = 20년 중 비싼 쪽 25% 경계(31.6), 3차 28 = 20년 가운데값(27.3) 바로 위. "20년 ○%" = 최근 20년 중 CAPE가 그 값 이하였던 달의 비율, "최근" = 마지막으로 닿은 달(예: 25.04 = 2025년 4월).</li><li>1990년 이후 가격표 바닥이 올라와서(코로나 때도 24.8), 예전 기준 25는 2008년 같은 큰 위기가 아니면 닿기 어려워 28로 올렸어요. 28은 2016·2020·2022·2023년에 모두 닿았어요.</li><li>최근 20년은 강세장이 길어 CAPE로 3년 뒤를 맞히는 힘이 약했어요 — "싸게 사는 계획"이지 "바닥 맞히기"가 아니에요.</li><li>막스의 가치투자는 빚 없이 오래 버티는 방식이라, 이 계획의 몫은 <b>QQQ(1배)나 아주 작은 TQQQ</b>가 더 맞아요. TQQQ는 싸게 사도 더 빠지는 동안 버티기 훨씬 어려워요.</li></ul></details>`};
+ <ul class="note" style="margin:6px 0 0;padding-left:18px;line-height:1.65"><li>"준비한 돈" = 이 계획에 쓰려고 따로 떼어 둔 현금. 1차 20% → 2차 30% → 3차 50%로, <b>쌀수록 더 많이</b>.</li><li>200일선 규칙과는 따로 움직이는 계획이에요. 그 전에 시장이 다시 올라 200일선 매수 신호가 나오면 규칙대로 들어가면 돼요.</li><li>가격은 <b>회사 이익이 지금 그대로</b>일 때의 값이에요. 이익이 늘면 같은 CAPE라도 가격이 더 높아져요. 나스닥100은 자체 가격표 기록이 없어 S&amp;P500과 같은 비율로 움직인다고 보고 계산한 대략값이에요.</li><li><b>그때 PER</b> = 그 가격에서의 최근 1년 이익 기준 PER. 1차(35)에서 이미 PER ≈ 1990년 이후 가운데값(22.5) — 1년 이익 기준으론 "평범한 값"이 되는 자리예요.</li><li><b>기준은 최근 20년(2006년 11월~)</b>: 2차 32 = 20년 중 비싼 쪽 25% 경계(31.6), 3차 28 = 20년 가운데값(27.3) 바로 위. "20년 ○%" = 최근 20년 중 CAPE가 그 값 이하였던 달의 비율, "최근" = 마지막으로 닿은 달(예: 25.04 = 2025년 4월).</li><li>1990년 이후 가격표 바닥이 올라와서(코로나 때도 24.8), 예전 기준 25는 2008년 같은 큰 위기가 아니면 닿기 어려워 28로 올렸어요. 28은 2016·2020·2022·2023년에 모두 닿았어요.</li><li>최근 20년은 강세장이 길어 CAPE로 3년 뒤를 맞히는 힘이 약했어요 — "싸게 사는 계획"이지 "바닥 맞히기"가 아니에요.</li><li>막스의 가치투자는 빚 없이 오래 버티는 방식이라, 이 계획의 몫은 <b>QQQ(1배)나 아주 작은 TQQQ</b>가 더 맞아요. TQQQ는 싸게 사도 더 빠지는 동안 버티기 훨씬 어려워요.</li></ul></details>`};
 
 /* 📐 출렁임(변동성) 기준 적정 배수 — 배수 = 35% ÷ 최근 21거래일 나스닥100 출렁임(연), 최대 3배. 검증(실제 비용·세금 반영): 1993~ 연 18.1%·최대 −80% / 2010~ 연 25.8%·최대 −49% */
 MARKS.volLine=function(n){const N=MARKS.D.N.map(x=>x[1]).slice();const L=(typeof LIVE!=='undefined'&&LIVE.Q&&LIVE.Q['^NDX'])||null;
@@ -1003,10 +1003,10 @@ MARKS.buyBox=function(n,r){const D=MARKS.D,c=n.cape,pe=n.pe,spx=D.spx*c/D.cape,n
  const dm=v=>MARKS.DM['1_'+hk+'_'+v][4];
  const rows=[];
  const buy=ma*1.03;
- rows.push([r.on,'📈 200일선 매수 신호',`나스닥100 종가 <b>${k(buy)}</b> 이상`,r.on?'켜져 있음':`${k(nd)} → ${pc(buy/nd-1)}`,`TQQQ 비중 <b>${dm(n.val)}%</b>로 들어가기 (지금 가격표 기준)`]);
- rows.push([pe<25,'🏷️ PER 25 아래 (가격표 "중간")',`PER <b>25</b> 미만 = S&amp;P500 <b>${k(spx*25/pe)}</b> 이하`,pe<25?'도달':`PER ${pe.toFixed(1)} → ${pc(25/pe-1)}`,`200일선 켜질 때 비중 ${dm('e')}% → <b>${dm('m')}%</b>로`]);
+ rows.push([r.on,'📈 200일선 매수 신호',`나스닥100 종가 <b>${k(buy)}</b> 이상`,r.on?'매수 신호 중':`${k(nd)} → ${pc(buy/nd-1)}`,`TQQQ 비중 <b>${dm(n.val)}%</b>로 들어가기 (지금 가격표 기준)`]);
+ rows.push([pe<25,'🏷️ PER 25 아래 (가격표 "중간")',`PER <b>25</b> 미만 = S&amp;P500 <b>${k(spx*25/pe)}</b> 이하`,pe<25?'도달':`PER ${pe.toFixed(1)} → ${pc(25/pe-1)}`,`200일선 매수 신호 때 비중 ${dm('e')}% → <b>${dm('m')}%</b>로`]);
  MARKS.LAD.forEach(([t,w],i)=>rows.push([c<=t,`🪜 ${i+1}차 분할 매수`,`CAPE <b>${t}</b> 이하 (그때 PER ≈ <b>${(pe*t/c).toFixed(1)}</b>) = S&amp;P500 <b>${k(spx*t/c)}</b> · 나스닥100 약 ${k(nd*t/c)}`,c<=t?'도달':`CAPE ${c.toFixed(1)} → ${pc(t/c-1)}`,`준비한 돈의 <b>${w}%</b> 사기 (200일선과 상관없이)`]));
- rows.splice(4,0,[c<30,'🛒 CAPE 30 아래 (가격표 "쌈")',`CAPE <b>30</b> 미만 (그때 PER ≈ <b>${(pe*30/c).toFixed(1)}</b>) = S&amp;P500 <b>${k(spx*30/c)}</b>`,c<30?'도달':`CAPE ${c.toFixed(1)} → ${pc(30/c-1)}`,`200일선 켜지면 <b>100%</b> 공격 · 꺼져 있어도 "바겐세일 칸"이라 소액 분할 OK`]);
+ rows.splice(4,0,[c<30,'🛒 CAPE 30 아래 (가격표 "쌈")',`CAPE <b>30</b> 미만 (그때 PER ≈ <b>${(pe*30/c).toFixed(1)}</b>) = S&amp;P500 <b>${k(spx*30/c)}</b>`,c<30?'도달':`CAPE ${c.toFixed(1)} → ${pc(30/c-1)}`,`200일선 매수 신호면 <b>100%</b> 공격 · 현금 신호여도 "바겐세일 칸"이라 소액 분할 OK`]);
  const tr=rows.map(([ok,nm,cond,now,act])=>`<div style="padding:7px 8px;border-top:1px solid #e6e9ef;${ok?'background:#e8f5ec;':''}"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b style="font-size:14px">${ok?'✅':'⬜'} ${nm}</b><span style="font-size:13px;color:#4a5566">${now}</span></div><div style="font-size:13px;margin-top:2px">${cond}</div><div style="font-size:13px;margin-top:2px;color:#17202e">→ ${act}</div></div>`).join('');
  return `<div style="margin:10px 0;background:#fff;border-radius:10px;border:2px solid #17202e;padding:10px">
  <div style="font-weight:800;font-size:15px;margin-bottom:4px">🛒 언제 사나 — 구체적인 숫자</div>
@@ -1936,7 +1936,7 @@ saveWork=function(){PWA.save();toast('✔ 이 기기에 저장했습니다')};
 {const _o=openFile;openFile=async function(f){const r=await _o(f);setTimeout(PWA.save,50);return r}}
 
 /* 🔄 새 버전 알림: GitHub에 새 계산표가 올라오면(최대 몇 분) 화면 위에 알려 주고, 누르면 캐시를 피해 새로 엶 */
-const APP_BUILD='20261113144857';
+const APP_BUILD='20261113153216';
 async function chkUpd(){try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();
  if(/^\d{14}$/.test(v)&&v>APP_BUILD&&!document.getElementById('updBar')){const b=document.createElement('div');b.id='updBar';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:80;background:#1f6feb;color:#fff;padding:10px 16px;border-radius:24px;box-shadow:0 4px 14px rgba(0,0,0,.25);font-weight:700;cursor:pointer;max-width:calc(100vw - 24px)';b.textContent='🔄 새 버전이 있어요 — 눌러서 바로 적용';b.onclick=()=>{try{PWA.save()}catch(e){}location.replace(location.pathname+'?v='+v)};document.body.appendChild(b)}}catch(e){}}
 setTimeout(chkUpd,1500);setInterval(chkUpd,10*60e3);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')chkUpd()});
@@ -1945,7 +1945,7 @@ boot();PWA.load();LIVE.refresh();LIVE.auto();
 {const _r=render;render=function(){_r();if(!DIRTY){const b=document.getElementById('stBadge');if(b&&!/저장됨/.test(b.textContent)){b.className='badge final';b.textContent='✔ 이 기기에 저장됨'}}}}
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261113144857';
+const FILE_BUILD='20261113153216';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
