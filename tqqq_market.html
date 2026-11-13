@@ -948,6 +948,7 @@ MARKS.dec=function(){let n,r;try{n=MARKS.now();r=MARKS.rule(n)}catch(e){return '
   <div style="background:#fff;border-radius:10px;padding:10px;border:1px solid #dfe4ea"><div class="note">👜 TQQQ가 <b>없다면</b></div><div style="font-weight:800;font-size:16px;margin-top:2px">${M[2]}</div></div>
   <div style="background:#fff;border-radius:10px;padding:10px;border:1px solid #dfe4ea"><div class="note">💼 TQQQ가 <b>있다면</b></div><div style="font-weight:800;font-size:16px;margin-top:2px">${M[3]}</div></div>
  </div>
+ ${MARKS.buyBox(n,r)}
  <div style="display:flex;gap:6px;flex-wrap:wrap">${chip(r.on?1:0,'① 켜고 끄기 · 200일선 규칙',(r.on?'켜짐 ✅':'꺼짐 ⛔')+` <span class="note">(200일선 ${pc(r.dist)})</span>`)}${chip(n.val==='c'?1:n.val==='e'&&hk==='0'?0:2,'② 얼마나 · 기분 × 가격표',`${C[0]} ${C[1]} → 비중 ${MARKS.DM['1_'+hk+'_'+n.val][4]}%`)}${chip(f==null?2:f<25&&rest<50?0:f<25?1:2,'③ 공포 판별',fearT)}${chip(n.val==='c'?1:n.val==='m'?2:0,'④ 가격표 CAPE · PER',`${n.cape.toFixed(1)} · ${n.pe.toFixed(1)} → ${n.val==='e'?'둘 다 비쌈':n.val==='m'?'CAPE만 비쌈':'괜찮음'}`)}</div>
  <div style="margin-top:10px;padding:8px 10px;background:#fff;border-radius:8px;border-left:4px solid ${col};font-size:13.5px;line-height:1.6">⏭️ <b>다음에 바뀌는 조건</b>: ${nxt}</div>
  ${MARKS.volLine(n)}
@@ -976,6 +977,22 @@ MARKS.volLine=function(n){const N=MARKS.D.N.map(x=>x[1]).slice();const L=(typeof
  const mix=w.filter(x=>x[1]>0.04).map(x=>x[0]+' '+Math.round(x[1]*100)+'%').join(' + ');
  return `<div style="margin-top:8px;padding:8px 10px;background:#fff;border-radius:8px;border-left:4px solid #2f6fed;font-size:13.5px;line-height:1.6">📐 <b>출렁임 기준 적정 배수</b>: 최근 한 달 나스닥100 출렁임 연 <b>${(sd*100).toFixed(0)}%</b> → 목표 35%면 <b>${Lv.toFixed(1)}배</b> (예: ${mix})${Lv<1.5?' — 지금은 3배를 들 만큼 시장이 조용하지 않아요':Lv>=2.5?' — 시장이 조용해서 3배에 가까워도 되는 때':''}
  <div class="note" style="margin-top:3px">샤프지수(출렁임 대비 수익)를 높이는 방법: 시끄러우면 배수↓, 조용하면 배수↑(최대 3배). 실제 ETF 가격(QQQ·QLD·TQQQ, 그 전은 빌린 돈 이자까지 맞춘 가상값)·현금 이자·수수료·월 1회 조정·세금 22% 반영 검증: 1993~ 연 18.1%·최대 하락 −80% (TQQQ 보유 12.8%·≈−100%, 200일선 규칙 18.9%·−92%) · 2010~ 연 25.8%·최대 하락 −49% (보유 38.3%·−82%, 200일선 22.6%·−68%). 위 판단과 따로 보는 참고값이에요.</div></div>`};
+
+/* 🛒 언제 사나 — 구체적인 숫자 (200일선 매수선 · PER 25 · CAPE 35/32/30/28). 가격은 회사 이익이 지금 그대로일 때 */
+MARKS.buyBox=function(n,r){const D=MARKS.D,c=n.cape,pe=n.pe,spx=D.spx*c/D.cape,nd=n.raw.nd,ma=n.raw.ma,k=x=>Math.round(x).toLocaleString('en-US'),pc=x=>(x>=0?'+':'−')+Math.abs(x*100).toFixed(1)+'%',hk=n.T>=50?'1':'0';
+ const dm=v=>MARKS.DM['1_'+hk+'_'+v][4];
+ const rows=[];
+ const buy=ma*1.03;
+ rows.push([r.on,'📈 200일선 매수 신호',`나스닥100 종가 <b>${k(buy)}</b> 이상`,r.on?'켜져 있음':`${k(nd)} → ${pc(buy/nd-1)}`,`TQQQ 비중 <b>${dm(n.val)}%</b>로 들어가기 (지금 가격표 기준)`]);
+ rows.push([pe<25,'🏷️ PER 25 아래 (가격표 "중간")',`PER <b>25</b> 미만 = S&amp;P500 <b>${k(spx*25/pe)}</b> 이하`,pe<25?'도달':`PER ${pe.toFixed(1)} → ${pc(25/pe-1)}`,`200일선 켜질 때 비중 ${dm('e')}% → <b>${dm('m')}%</b>로`]);
+ MARKS.LAD.forEach(([t,w],i)=>rows.push([c<=t,`🪜 ${i+1}차 분할 매수`,`CAPE <b>${t}</b> 이하 (그때 PER ≈ <b>${(pe*t/c).toFixed(1)}</b>) = S&amp;P500 <b>${k(spx*t/c)}</b> · 나스닥100 약 ${k(nd*t/c)}`,c<=t?'도달':`CAPE ${c.toFixed(1)} → ${pc(t/c-1)}`,`준비한 돈의 <b>${w}%</b> 사기 (200일선과 상관없이)`]));
+ rows.splice(4,0,[c<30,'🛒 CAPE 30 아래 (가격표 "쌈")',`CAPE <b>30</b> 미만 (그때 PER ≈ <b>${(pe*30/c).toFixed(1)}</b>) = S&amp;P500 <b>${k(spx*30/c)}</b>`,c<30?'도달':`CAPE ${c.toFixed(1)} → ${pc(30/c-1)}`,`200일선 켜지면 <b>100%</b> 공격 · 꺼져 있어도 "바겐세일 칸"이라 소액 분할 OK`]);
+ const tr=rows.map(([ok,nm,cond,now,act])=>`<div style="padding:7px 8px;border-top:1px solid #e6e9ef;${ok?'background:#e8f5ec;':''}"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b style="font-size:14px">${ok?'✅':'⬜'} ${nm}</b><span style="font-size:13px;color:#4a5566">${now}</span></div><div style="font-size:13px;margin-top:2px">${cond}</div><div style="font-size:13px;margin-top:2px;color:#17202e">→ ${act}</div></div>`).join('');
+ return `<div style="margin:10px 0;background:#fff;border-radius:10px;border:2px solid #17202e;padding:10px">
+ <div style="font-weight:800;font-size:15px;margin-bottom:4px">🛒 언제 사나 — 구체적인 숫자</div>
+ <div class="note" style="margin-bottom:6px">지금: 나스닥100 <b>${k(nd)}</b> · S&amp;P500 약 <b>${k(spx)}</b> · CAPE <b>${c.toFixed(1)}</b> · PER <b>${pe.toFixed(1)}</b> — 아래 조건 중 <b>먼저 닿는 것</b>부터 실행</div>
+ <div style="border:1px solid #e6e9ef;border-radius:8px;overflow:hidden">${tr}</div>
+ <div class="note" style="margin-top:6px;line-height:1.6">두 가지 길: ① <b>오르면</b> 200일선 매수선에서 비중만큼 들어가기 ② <b>떨어지면</b> CAPE 35·32·28에서 나눠 사기. CAPE·PER 가격은 회사 이익이 지금 그대로일 때 값이라, 이익이 늘면 같은 CAPE·PER라도 가격이 해마다 조금씩 올라가요. 나스닥100 가격은 S&amp;P500과 같은 비율로 움직인다고 본 대략값.</div></div>`};
 
 /* ===================== 첫 화면: TQQQ · QLD 전체 기간 그래프 (같은 200일선 신호) ===================== */
 // 주간 종가(수정주가, Yahoo Finance) — 날짜(YYMMDD), QLD, TQQQ. 2010-02-11 이전 TQQQ는 나스닥100 일간 3배 − 연 2.39% 비용으로 만든 '가상 TQQQ' (2010~2026 실제 TQQQ와 끝값이 같도록 맞춤)
@@ -1893,7 +1910,7 @@ setTimeout(()=>{if(typeof ART==='undefined')return;const f=document.createElemen
 boot();LIVE.refresh();LIVE.auto();
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261113142351';
+const FILE_BUILD='20261113143051';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
