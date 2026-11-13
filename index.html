@@ -1339,7 +1339,7 @@ const MARKS={D:{"end":"2026-11-12","Q":{"dist":[-0.23885,-0.2013,-0.1821,-0.1697
 };
 /* 200일선 규칙 상태(±3% 완충): 넣어 둔 나스닥100 일봉 + 지금 값으로 차례대로 따라감 */
 MARKS.rule=function(n){const N=MARKS.D.N.map(x=>x[1]);let st=1,last=null;for(let i=199;i<N.length;i++){let s=0;for(let j=i-199;j<=i;j++)s+=N[j];const m=s/200;if(N[i]<m*0.97){if(st)last=MARKS.D.N[i][0];st=0}else if(N[i]>m*1.03){if(!st)last=MARKS.D.N[i][0];st=1}}
- const d=n.raw.dist;if(d<-0.03)st=0;else if(d>0.03)st=1;return {on:st,since:last,dist:d}};
+ const d=n.raw.dist,st0=st;if(d<-0.03)st=0;else if(d>0.03)st=1;if(st!==st0)last='오늘(실시간)';return {on:st,since:last,dist:d}};
 /* 🧭 주문 전 체크리스트 — 찰리 멍거 × 하워드 막스 (예전 '멍거 체크리스트'·'막스 판단'·온도계 안 '들뜸 체크'를 하나로 합침)
    두 사람의 원칙 중 겹치는 것(위험·인내·가격과 가치·독립)은 한 줄로 묶고, 숫자는 이 계산표에서 직접 계산한 값만 붙임 · 원문 인용 아님 · 기록은 이 기기에만 */
 const MKS={K:'laoer_marksjudge_v1',sel:new Set(),ord:null,
@@ -1405,6 +1405,39 @@ const MKS={K:'laoer_marksjudge_v1',sel:new Set(),ord:null,
   ${L.length?`<details style="margin-top:8px"><summary class="note" style="cursor:pointer">📒 최근 점검 기록 ${Math.min(10,L.length)}개</summary><div class="tw"><table class="g"><thead><tr><th>때</th><th>주문</th><th>그때 칸</th><th class="n">걸린 질문</th></tr></thead><tbody>${L.slice(-10).reverse().map(x=>`<tr><td>${x.t.slice(0,16).replace('T',' ')}</td><td>${nm[x.o]||x.o}</td><td>${(MARKS.CELL[x.q]||[''])[0]} ${(MARKS.CELL[x.q]||['',''])[1]}</td><td class="n">${x.k.length}</td></tr>`).join('')}</tbody></table></div></details>`:''}
   <p class="note" style="margin:8px 0 0;line-height:1.6">왜 이 두 사람? 멍거는 "체크리스트로 어리석은 실수를 줄여라", 막스는 "지금 시장이 어디쯤인지 읽고 공격·수비를 조절하라"로 유명해요. 문장은 그대로 옮기지 않고 생각만 쉬운 말로 풀었어요. 투자 권유가 아니라 주문 전 점검 도구예요.</p></div></details>`}
 };
+/* 🎯 최종 판단 — 200일선 규칙(켜고 끄기) × 막스 4칸(얼마나) × 공포 판별을 한 장으로. 숫자: 1993~2026 가상 TQQQ, 그 상태였던 날 기준 1년 뒤 */
+MARKS.DM={
+ '1_00':[0,'🟢 매수 (공격)','사도 좋은 때 — 계획한 금액 그대로','계속 보유 · 추가 매수도 괜찮음',100,[18,64,19,23]],
+ '1_10':[0,'🟢 매수 · 보유','사도 좋은 때','계속 보유',100,[25,36,6,23]],
+ '1_11':[1,'🟡 보유 · 새 돈은 천천히','나눠서 조금씩 (계획의 70%)','계속 보유 (무리한 추가는 X)',70,[30,38,34,13]],
+ '1_01':[2,'🟠 보유하되 비중 줄이기','사더라도 계획의 40%만, 나눠서','비중을 40% 정도로 줄이기',40,[32,39,53,13]],
+ '0_00':[1,'🟡 대기 · 바겐세일 칸','규칙은 "대기". 단, 가격표가 싸서 역사적으로는 좋았던 때 — 소액 분할만','규칙상 현금 (가격표는 싸니 다시 켜지면 바로 공격)',0,[21,71,23,20]],
+ '0_10':[1,'🟡 대기','200일선 규칙이 다시 켜질 때까지 기다리기','규칙상 현금',0,[9,70,8,8]],
+ '0_11':[3,'🔴 매도 · 현금 대기','사지 말고 기다리기','규칙대로 팔고 현금',0,null],
+ '0_01':[3,'🔴 매도 · 현금 대기','사지 말고 기다리기','규칙대로 팔고 현금',0,[74,-80,77,8]]},
+MARKS.dec=function(){let n,r;try{n=MARKS.now();r=MARKS.rule(n)}catch(e){return ''}if(!n||n.T==null)return '';
+ const q=(n.T>=50?'1':'0')+(n.cape>=30?'1':'0'),C=MARKS.CELL[q],M=MARKS.DM[(r.on?1:0)+'_'+q],lv=M[0];
+ const col=['#1a7f37','#b7791f','#d9480f','#b42318'][lv],bg=['#e8f5ec','#fff8e6','#fff0e6','#fdecea'][lv];
+ const f=(typeof FG!=='undefined'&&FG.d&&FG.d.s)?FG.d.s[FG.d.s.length-1]:n.raw.fg,a=[n.p.dist,n.p.ret,n.p.vxn,n.p.cr].filter(x=>x!=null),rest=a.reduce((x,y)=>x+y,0)/a.length;
+ const fearT=f==null?'—':f<25?(rest>=50?'😮 잠깐 놀람형 공포':'🥶 전체가 식은 공포'):f>=75?'😄 탐욕':'😐 보통';
+ const nd=n.raw.nd,ma=n.raw.ma,buy=ma*1.03,sell=ma*0.97,k=x=>Math.round(x).toLocaleString('en-US'),pc=x=>(x>=0?'+':'−')+Math.abs(x*100).toFixed(1)+'%';
+ const nxt=r.on?`나스닥100이 <b>${k(sell)}</b> 아래로 마감하면(지금보다 ${pc(sell/nd-1)}) → <b>매도 신호</b>`:`나스닥100이 <b>${k(buy)}</b> 위로 마감하면(지금보다 ${pc(buy/nd-1)}) → <b>매수 신호</b> · 그때 비중은 ${MARKS.DM['1_'+q][4]}% (${C[1]} 칸 기준)`;
+ const chip=(ok,t,s)=>`<div style="flex:1 1 150px;min-width:0;border:1px solid #dfe4ea;border-top:4px solid ${ok===1?'#1a7f37':ok===0?'#b42318':'#b7791f'};border-radius:8px;padding:6px 9px;background:#fff"><div class="note">${t}</div><div style="font-weight:700;font-size:14px">${s}</div></div>`;
+ const st=M[5];
+ const up=(()=>{const t=Math.max((typeof LIVE!=='undefined'&&LIVE.qT)||0,n.qt||0);return t?new Date(t).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):MARKS.D.end+' 종가'})();
+ return `<div class="card noprint" id="decCard" style="border:3px solid ${col};background:${bg};padding:14px">
+ <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline"><b style="font-size:15px">🎯 지금 TQQQ, 사? 팔아? — 최종 판단</b><span class="note">${up} 기준 · 아래 분석을 모두 합친 결과</span></div>
+ <div style="font-size:clamp(26px,7vw,40px);font-weight:900;color:${col};margin:6px 0 2px;line-height:1.15">${M[1]}</div>
+ <div style="font-size:14px;line-height:1.6">200일선 규칙 <b>${r.on?'켜짐':'꺼짐'}</b>${r.since?' ('+r.since+'부터)':''} + 시장은 <b>${C[0]} ${C[1]}</b> 칸(${C[3]})</div>
+ <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:8px;margin:10px 0">
+  <div style="background:#fff;border-radius:10px;padding:10px;border:1px solid #dfe4ea"><div class="note">👜 TQQQ가 <b>없다면</b></div><div style="font-weight:800;font-size:16px;margin-top:2px">${M[2]}</div></div>
+  <div style="background:#fff;border-radius:10px;padding:10px;border:1px solid #dfe4ea"><div class="note">💼 TQQQ가 <b>있다면</b></div><div style="font-weight:800;font-size:16px;margin-top:2px">${M[3]}</div></div>
+ </div>
+ <div style="display:flex;gap:6px;flex-wrap:wrap">${chip(r.on?1:0,'① 켜고 끄기 · 200일선 규칙',(r.on?'켜짐 ✅':'꺼짐 ⛔')+` <span class="note">(200일선 ${pc(r.dist)})</span>`)}${chip(q==='00'||q==='10'?1:q==='01'?0:2,'② 얼마나 · 막스 4칸',`${C[0]} ${C[3]} (비중 ${C[5]}%)`)}${chip(f==null?2:f<25&&rest<50?0:f<25?1:2,'③ 공포 판별',fearT)}${chip(n.cape<30?1:0,'④ 가격표 CAPE',n.cape.toFixed(1)+(n.cape>=30?' 비쌈':' 괜찮음'))}</div>
+ <div style="margin-top:10px;padding:8px 10px;background:#fff;border-radius:8px;border-left:4px solid ${col};font-size:13.5px;line-height:1.6">⏭️ <b>다음에 바뀌는 조건</b>: ${nxt}</div>
+ ${st?`<div class="note" style="margin-top:8px;line-height:1.6">📜 1993년 이후 지금과 같은 상태였던 날, TQQQ 1년 뒤: 손해 <b>${st[0]}%</b> · 가운데값 <b>${st[1]>=0?'+':'−'}${Math.abs(st[1])}%</b> · 1년 안 −60% 폭락 <b>${st[2]}%</b> (모든 날 평균 손해 28%) · 이런 날이 있던 해 ${st[3]}개${(r.on?1:0)+'_'+q==='0_01'?' · 1993~2002년 90%, 2003년 이후 44% (닷컴 붕괴 영향이 커요)':''}</div>`:''}
+ <div class="note" style="margin-top:6px">판단 순서: ① 200일선 규칙이 <b>살지 말지</b>를 정하고 → ② 막스 4칸이 <b>얼마나</b>를 정해요. ③④는 그 근거. 투자 권유가 아니라 기록에 근거한 규칙 정리예요.</div>
+</div>`};
 
 /* ===================== 첫 화면: TQQQ · QLD 전체 기간 그래프 (같은 200일선 신호) ===================== */
 // 주간 종가(수정주가, Yahoo Finance) — 날짜(YYMMDD), QLD, TQQQ. 2010-02-11 이전 TQQQ는 나스닥100 일간 3배 − 연 2.39% 비용으로 만든 '가상 TQQQ' (2010~2026 실제 TQQQ와 끝값이 같도록 맞춤)
@@ -2423,7 +2456,7 @@ saveWork=function(){PWA.save();toast('✔ 이 기기에 저장했습니다')};
 {const _o=openFile;openFile=async function(f){const r=await _o(f);setTimeout(PWA.save,50);return r}}
 
 /* 🔄 새 버전 알림: GitHub에 새 계산표가 올라오면(최대 몇 분) 화면 위에 알려 주고, 누르면 캐시를 피해 새로 엶 */
-const APP_BUILD='20261113092218';
+const APP_BUILD='20261113113158';
 async function chkUpd(){try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();
  if(/^\d{14}$/.test(v)&&v>APP_BUILD&&!document.getElementById('updBar')){const b=document.createElement('div');b.id='updBar';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:80;background:#1f6feb;color:#fff;padding:10px 16px;border-radius:24px;box-shadow:0 4px 14px rgba(0,0,0,.25);font-weight:700;cursor:pointer;max-width:calc(100vw - 24px)';b.textContent='🔄 새 버전이 있어요 — 눌러서 바로 적용';b.onclick=()=>{try{PWA.save()}catch(e){}location.replace(location.pathname+'?v='+v)};document.body.appendChild(b)}}catch(e){}}
 setTimeout(chkUpd,1500);setInterval(chkUpd,10*60e3);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')chkUpd()});
@@ -2432,7 +2465,7 @@ boot();PWA.load();LIVE.refresh();LIVE.auto();
 {const _r=render;render=function(){_r();if(!DIRTY){const b=document.getElementById('stBadge');if(b&&!/저장됨/.test(b.textContent)){b.className='badge final';b.textContent='✔ 이 기기에 저장됨'}}}}
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261113092218';
+const FILE_BUILD='20261113113158';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
