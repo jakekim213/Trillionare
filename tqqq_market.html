@@ -938,15 +938,16 @@ MARKS.dec=function(){let n,r;try{n=MARKS.now();r=MARKS.rule(n)}catch(e){return '
 </div>`};
 
 /* 🪜 가격표(CAPE) 기준 분할 매수표 — 막스식 "싸질수록 더 사기". 회사 이익이 지금 그대로라는 가정(가격만 내려 CAPE가 낮아질 때) */
-MARKS.LAD=[[35,20,'30~35',2.0,10.5],[30,30,'25~30',5.8,9.3],[25,50,'20~25',9.4,13.0]];
+/* [CAPE, 살 몫%, 최근 20년(2006-11~) 중 CAPE가 이 값 이하였던 달 %, 마지막으로 닿은 달] — 2차=20년 상위 25% 선(31.6), 3차=20년 가운데값(27.3) 바로 위 */
+MARKS.LAD=[[35,20,83,'2025-04'],[32,30,76,'2024-01'],[28,50,53,'2023-03']];
 MARKS.ladder=function(n){const D=MARKS.D,c=n.cape,spx=D.spx*c/D.cape,nd=n.raw.nd,k=x=>Math.round(x).toLocaleString('en-US'),pc=x=>(x>=0?'+':'−')+Math.abs(x*100).toFixed(0)+'%';
- let got=0;const rows=MARKS.LAD.map(([t,w,b,y10,y3],i)=>{const hit=c<=t;if(hit)got+=w;const nx=!hit&&MARKS.LAD.slice(0,i).every(x=>c<=x[0]);
-  return `<tr style="${hit?'background:#e8f5ec;font-weight:700':nx?'background:#fffbe6':''}"><td style="padding:5px 4px">${hit?'✅':nx?'⏳':'⬜'} <b>${i+1}차</b> · CAPE ${t}<br><span class="note">10년 연평균 +${y10.toFixed(1)}%</span></td><td class="n" style="padding:5px 4px">${k(spx*t/c)}<br><span class="note">${pc(t/c-1)}</span></td><td class="n" style="padding:5px 4px">${k(nd*t/c)}</td><td class="n" style="padding:5px 4px"><b>${w}%</b></td></tr>`}).join('');
+ let got=0;const rows=MARKS.LAD.map(([t,w,sh,lt],i)=>{const hit=c<=t;if(hit)got+=w;const nx=!hit&&MARKS.LAD.slice(0,i).every(x=>c<=x[0]);
+  return `<tr style="${hit?'background:#e8f5ec;font-weight:700':nx?'background:#fffbe6':''}"><td style="padding:5px 4px">${hit?'✅':nx?'⏳':'⬜'} <b>${i+1}차</b> · CAPE ${t}<br><span class="note">20년 ${sh}% · 최근 ${lt.slice(2).replace('-','.')}</span></td><td class="n" style="padding:5px 4px">${k(spx*t/c)}<br><span class="note">${pc(t/c-1)}</span></td><td class="n" style="padding:5px 4px">${k(nd*t/c)}</td><td class="n" style="padding:5px 4px"><b>${w}%</b></td></tr>`}).join('');
  const now=c>35?`지금 CAPE <b>${c.toFixed(1)}</b> — 아직 <b>1차 매수 가격도 아니에요</b>. S&amp;P500이 약 ${k(spx*35/c)}(${pc(35/c-1)})까지 오면 1차.`:`지금 CAPE <b>${c.toFixed(1)}</b> — 준비한 돈의 <b>${got}%</b>까지 산 구간이에요.`;
  return `<details style="margin-top:10px;background:#fff;border-radius:8px;border:1px solid #dfe4ea;padding:8px 10px"${c<=36?' open':''}><summary style="cursor:pointer;font-weight:700;font-size:14px">🪜 가격표 기준 분할 매수표 (막스식 "싸질수록 더 사기") <span class="note" style="font-weight:400">${c>35?'아직 0차':got+'% 구간'}</span></summary>
  <div style="font-size:13.5px;line-height:1.6;margin:6px 0">${now}</div>
  <div class="tw"><table class="g" style="font-size:12.5px"><thead><tr><th style="padding:5px 4px">단계</th><th class="n" style="padding:5px 4px">S&amp;P500</th><th class="n" style="padding:5px 4px">나스닥100<br>(대략)</th><th class="n" style="padding:5px 4px">살 몫</th></tr></thead><tbody>${rows}</tbody></table></div>
- <ul class="note" style="margin:6px 0 0;padding-left:18px;line-height:1.65"><li>"준비한 돈" = 이 계획에 쓰려고 따로 떼어 둔 현금. 1차 20% → 2차 30% → 3차 50%로, <b>쌀수록 더 많이</b>.</li><li>200일선 규칙과는 따로 움직이는 계획이에요. 그 전에 시장이 다시 올라 규칙이 켜지면 규칙대로 들어가면 돼요.</li><li>가격은 <b>회사 이익이 지금 그대로</b>일 때의 값이에요. 이익이 늘면 같은 CAPE라도 가격이 더 높아져요. 나스닥100은 자체 가격표 기록이 없어 S&amp;P500과 같은 비율로 움직인다고 보고 계산한 대략값이에요.</li><li>"10년 연평균" = 그 CAPE 칸에서 산 S&amp;P500의 10년 뒤 연평균 가운데값(1970~, 배당 제외). 35 이상(지금)은 −2.4%였어요. 1~3년 뒤는 가격표로 잘 안 맞아요(상관 −0.05).</li><li>막스의 가치투자는 빚 없이 오래 버티는 방식이라, 이 계획의 몫은 <b>QQQ(1배)나 아주 작은 TQQQ</b>가 더 맞아요. TQQQ는 싸게 사도 더 빠지는 동안 버티기 훨씬 어려워요.</li></ul></details>`};
+ <ul class="note" style="margin:6px 0 0;padding-left:18px;line-height:1.65"><li>"준비한 돈" = 이 계획에 쓰려고 따로 떼어 둔 현금. 1차 20% → 2차 30% → 3차 50%로, <b>쌀수록 더 많이</b>.</li><li>200일선 규칙과는 따로 움직이는 계획이에요. 그 전에 시장이 다시 올라 규칙이 켜지면 규칙대로 들어가면 돼요.</li><li>가격은 <b>회사 이익이 지금 그대로</b>일 때의 값이에요. 이익이 늘면 같은 CAPE라도 가격이 더 높아져요. 나스닥100은 자체 가격표 기록이 없어 S&amp;P500과 같은 비율로 움직인다고 보고 계산한 대략값이에요.</li><li><b>기준은 최근 20년(2006년 11월~)</b>: 2차 32 = 20년 중 비싼 쪽 25% 경계(31.6), 3차 28 = 20년 가운데값(27.3) 바로 위. "20년 ○%" = 최근 20년 중 CAPE가 그 값 이하였던 달의 비율, "최근" = 마지막으로 닿은 달(예: 25.04 = 2025년 4월).</li><li>1990년 이후 가격표 바닥이 올라와서(코로나 때도 24.8), 예전 기준 25는 2008년 같은 큰 위기가 아니면 닿기 어려워 28로 올렸어요. 28은 2016·2020·2022·2023년에 모두 닿았어요.</li><li>최근 20년은 강세장이 길어 CAPE로 3년 뒤를 맞히는 힘이 약했어요 — "싸게 사는 계획"이지 "바닥 맞히기"가 아니에요.</li><li>막스의 가치투자는 빚 없이 오래 버티는 방식이라, 이 계획의 몫은 <b>QQQ(1배)나 아주 작은 TQQQ</b>가 더 맞아요. TQQQ는 싸게 사도 더 빠지는 동안 버티기 훨씬 어려워요.</li></ul></details>`};
 
 /* ===================== 첫 화면: TQQQ · QLD 전체 기간 그래프 (같은 200일선 신호) ===================== */
 // 주간 종가(수정주가, Yahoo Finance) — 날짜(YYMMDD), QLD, TQQQ. 2010-02-11 이전 TQQQ는 나스닥100 일간 3배 − 연 2.39% 비용으로 만든 '가상 TQQQ' (2010~2026 실제 TQQQ와 끝값이 같도록 맞춤)
@@ -1864,7 +1865,7 @@ setTimeout(()=>{if(typeof ART==='undefined')return;const f=document.createElemen
 boot();LIVE.refresh();LIVE.auto();
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261113113625';
+const FILE_BUILD='20261113114430';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
