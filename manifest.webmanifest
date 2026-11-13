@@ -1,11 +1,11 @@
 {
- "name": "라오어 투자 계산표",
- "short_name": "라오어 계산표",
+ "name": "TQQQ 시장 판단",
+ "short_name": "TQQQ 판단",
  "start_url": "./",
  "scope": "./",
  "display": "standalone",
  "background_color": "#ffffff",
- "theme_color": "#b8892b",
+ "theme_color": "#1f4e9a",
  "icons": [
   {
    "src": "icon-180.png",
