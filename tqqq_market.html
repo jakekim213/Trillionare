@@ -735,7 +735,17 @@ const MARKS={D:{"end":"2026-11-12","Q":{"dist":[-0.23885,-0.2013,-0.1821,-0.1697
  /* 백분위: 넣어 둔 201개 눈금(지난 10년)에서 몇 등인지 */
  pr(q,x){if(x==null||!isFinite(x))return null;if(x<=q[0])return 0;if(x>=q[q.length-1])return 100;let i=1;while(q[i]<x)i++;const a=q[i-1],b=q[i],f=b>a?(x-a)/(b-a):0.5;return (i-1+f)/(q.length-1)*100},
  dK(t){return new Date(t-5*3600e3).toISOString().slice(0,10)},
- boot(){if(MARKS._b)return;MARKS._b=1;MARKS.load();setInterval(()=>{if(document.visibilityState!=='hidden'&&document.getElementById('mkCard'))MARKS.load()},10*60e3)},
+ boot(){if(MARKS._b)return;MARKS._b=1;MARKS.load();MARKS.gh();setInterval(()=>{if(document.visibilityState!=='hidden')MARKS.gh()},30*60e3);setInterval(()=>{if(document.visibilityState!=='hidden'&&document.getElementById('mkCard'))MARKS.load()},10*60e3)},
+ /* GitHub 자동 수집(marks.json, 3시간마다): CAPE·PER·나스닥100 일봉·회사채·10년 눈금·그동안의 기분 온도 → 파일 속 값을 최신으로 바꿈 */
+ async gh(){if(typeof LIVE==='undefined'||!LIVE.ghJ)return;try{const J=await LIVE.ghJ('marks.json',10000);if(J&&J.v===1&&MARKS.merge(J)){try{render()}catch(e){MARKS.rr()}}}catch(e){}},
+ merge(J){const D=MARKS.D;let ch=0;
+  if(J.end&&J.end>=D.end&&J.N&&J.N.length>=220){D.N=J.N;D.end=J.end;if(J.R&&J.R.length>=252){D.R=J.R;D.Rd=J.Rd;D.hr=J.hr;D.ir=J.ir}if(J.vxn)D.vxn=J.vxn;if(J.fg!=null)D.fg=J.fg;if(J.Q)for(const k in J.Q)if(J.Q[k]&&J.Q[k].length===201)D.Q[k]=J.Q[k];ch=1}
+  if(J.capeD&&J.capeD>=D.capeD&&J.cape&&J.pe&&J.spx){D.cape=J.cape;D.capeD=J.capeD;D.pe=J.pe;D.peD=J.peD;D.spx=J.spx;ch=1}
+  for(const [ym,c,p] of (J.M||[])){if(!c)continue;const y=+ym.slice(0,4),m=+ym.slice(5,7),k=(y-+D.CS.slice(0,4))*12+(m-+D.CS.slice(5,7));if(k>=0&&k<=D.CV.length){D.CV[k]=c;ch=1}if(p){const kp=(y-1990)*12+(m-1);if(kp>=0&&kp<=D.PEH.length){D.PEH[kp]=p;D.RTH[kp]=+(c/p).toFixed(3)}}}
+  if(J.TX&&J.TX.length){const t0=Date.parse(D.TS+'T00:00:00Z'),lastF=t0+(D.TV.length-1)*7*864e5,Q=D.Q,byW={};
+   for(const [d,di,re,vx,cr,fg] of J.TX){const t=Date.parse(d+'T00:00:00Z');if(t<=lastF)continue;const ps=[MARKS.pr(Q.dist,di),MARKS.pr(Q.ret1y,re),(v=>v==null?null:100-v)(MARKS.pr(Q.vxn,vx)),MARKS.pr(Q.credit,cr),fg==null?null:MARKS.pr(Q.fg,fg)].filter(x=>x!=null);if(ps.length<3)continue;const w=Math.ceil((t-lastF)/(7*864e5));byW[w]=ps.reduce((a,b)=>a+b,0)/ps.length}
+   const ws=Object.keys(byW).map(Number).sort((a,b)=>a-b);const base=Math.round((lastF-t0)/(7*864e5));for(const w of ws){const ix=base+w;while(D.TV.length<ix)D.TV.push(Math.round(byW[w]));D.TV[ix]=Math.round(byW[w]);ch=1}}
+  if(ch)MARKS.fresh=J.at;return ch},
  async load(){if(MARKS.busy||typeof LIVE==='undefined'||!LIVE.cnbc)return;MARKS.busy=1;try{const C=await LIVE.cnbc(['HYG','IEF','.SPX','.NDX','.VXN']);const h=C.HYG,i=C.IEF;if(h&&i){MARKS.hi={h:h.p,i:i.p,t:Math.max(h.t,i.t)*1000};}MARKS.cn=C;MARKS.rr()}catch(e){}finally{MARKS.busy=0}},
  /* 지금 값 계산 */
  now(){const D=MARKS.D,L=(typeof LIVE!=='undefined'&&LIVE.Q)||{},f=(typeof FG!=='undefined'&&FG.d)||null,C=MARKS.cn||{},src=[];
@@ -941,7 +951,7 @@ MARKS.dec=function(){let n,r;try{n=MARKS.now();r=MARKS.rule(n)}catch(e){return '
  const st=M[5];
  const up=(()=>{const t=Math.max((typeof LIVE!=='undefined'&&LIVE.qT)||0,n.qt||0);return t?new Date(t).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):MARKS.D.end+' 종가'})();
  return `<div class="card noprint" id="decCard" style="border:3px solid ${col};background:${bg};padding:14px">
- <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline"><b style="font-size:15px">🎯 지금 TQQQ, 사? 팔아? — 최종 판단</b><span class="note">${up} 기준 · 아래 분석을 모두 합친 결과</span></div>
+ <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline"><b style="font-size:15px">🎯 지금 TQQQ, 사? 팔아? — 최종 판단</b><span class="note">${up} 기준 · 아래 분석을 모두 합친 결과${MARKS.fresh?' · 가격표·종가 자동 수집 '+new Date(MARKS.fresh*1000).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):''}</span></div>
  <div style="font-size:clamp(26px,7vw,40px);font-weight:900;color:${col};margin:6px 0 2px;line-height:1.15">${M[1]}</div>
  <div style="font-size:14px;line-height:1.6">200일선 규칙 <b>${r.on?'켜짐':'꺼짐'}</b>${r.since?' ('+r.since+'부터)':''} + 시장은 <b>${C[0]} ${C[1]}</b> 칸 + 가격표 <b>${n.val==='e'?'둘 다 비쌈(CAPE·PER)':n.val==='m'?'CAPE만 비쌈(PER은 괜찮음)':'괜찮음'}</b></div>
  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:8px;margin:10px 0">
@@ -959,10 +969,12 @@ MARKS.dec=function(){let n,r;try{n=MARKS.now();r=MARKS.rule(n)}catch(e){return '
 
 /* 🪜 가격표(CAPE) 기준 분할 매수표 — 막스식 "싸질수록 더 사기". 회사 이익이 지금 그대로라는 가정(가격만 내려 CAPE가 낮아질 때) */
 /* [CAPE, 살 몫%, 최근 20년(2006-11~) 중 CAPE가 이 값 이하였던 달 %, 마지막으로 닿은 달] — 2차=20년 상위 25% 선(31.6), 3차=20년 가운데값(27.3) 바로 위 */
-MARKS.LAD=[[35,20,83,'2025-04'],[32,30,76,'2024-01'],[28,50,53,'2023-03']];
+MARKS.LAD=[[35,20],[32,30],[28,50]];
+/* 최근 20년(240달) 중 CAPE가 t 이하였던 달 비율·마지막으로 닿은 달 — 파일 속 CAPE 월 기록(자동 수집으로 계속 늘어남)에서 계산 */
+MARKS.ladStat=function(t){const D=MARKS.D,CV=D.CV,n=CV.length,a=Math.max(0,n-240);let c=0,last=-1;for(let i=a;i<n;i++){if(CV[i]<=t){c++;last=i}}const y0=+D.CS.slice(0,4),m0=+D.CS.slice(5,7)-1,ym=last<0?'-':(()=>{const k=m0+last;return String(y0+Math.floor(k/12)).slice(2)+'.'+String(k%12+1).padStart(2,'0')})();return [Math.round(c/(n-a)*100),ym]};
 MARKS.ladder=function(n){const D=MARKS.D,c=n.cape,spx=D.spx*c/D.cape,nd=n.raw.nd,k=x=>Math.round(x).toLocaleString('en-US'),pc=x=>(x>=0?'+':'−')+Math.abs(x*100).toFixed(0)+'%';
- let got=0;const rows=MARKS.LAD.map(([t,w,sh,lt],i)=>{const hit=c<=t;if(hit)got+=w;const nx=!hit&&MARKS.LAD.slice(0,i).every(x=>c<=x[0]);
-  return `<tr style="${hit?'background:#e8f5ec;font-weight:700':nx?'background:#fffbe6':''}"><td style="padding:5px 4px">${hit?'✅':nx?'⏳':'⬜'} <b>${i+1}차</b> · CAPE ${t}<br><span class="note">20년 ${sh}% · 최근 ${lt.slice(2).replace('-','.')}</span></td><td class="n" style="padding:5px 4px">${k(spx*t/c)}<br><span class="note">${pc(t/c-1)}</span></td><td class="n" style="padding:5px 4px">${k(nd*t/c)}</td><td class="n" style="padding:5px 4px">${(n.pe*t/c).toFixed(1)}</td><td class="n" style="padding:5px 4px"><b>${w}%</b></td></tr>`}).join('');
+ let got=0;const rows=MARKS.LAD.map(([t,w],i)=>{const [sh,lt]=MARKS.ladStat(t);const hit=c<=t;if(hit)got+=w;const nx=!hit&&MARKS.LAD.slice(0,i).every(x=>c<=x[0]);
+  return `<tr style="${hit?'background:#e8f5ec;font-weight:700':nx?'background:#fffbe6':''}"><td style="padding:5px 4px">${hit?'✅':nx?'⏳':'⬜'} <b>${i+1}차</b> · CAPE ${t}<br><span class="note">20년 ${sh}% · 최근 ${lt}</span></td><td class="n" style="padding:5px 4px">${k(spx*t/c)}<br><span class="note">${pc(t/c-1)}</span></td><td class="n" style="padding:5px 4px">${k(nd*t/c)}</td><td class="n" style="padding:5px 4px">${(n.pe*t/c).toFixed(1)}</td><td class="n" style="padding:5px 4px"><b>${w}%</b></td></tr>`}).join('');
  const now=c>35?`지금 CAPE <b>${c.toFixed(1)}</b> — 아직 <b>1차 매수 가격도 아니에요</b>. S&amp;P500이 약 ${k(spx*35/c)}(${pc(35/c-1)})까지 오면 1차.`:`지금 CAPE <b>${c.toFixed(1)}</b> — 준비한 돈의 <b>${got}%</b>까지 산 구간이에요.`;
  return `<details style="margin-top:10px;background:#fff;border-radius:8px;border:1px solid #dfe4ea;padding:8px 10px"${c<=36?' open':''}><summary style="cursor:pointer;font-weight:700;font-size:14px">🪜 가격표 기준 분할 매수표 (막스식 "싸질수록 더 사기") <span class="note" style="font-weight:400">${c>35?'아직 0차':got+'% 구간'}</span></summary>
  <div style="font-size:13.5px;line-height:1.6;margin:6px 0">${now}</div>
@@ -1910,7 +1922,7 @@ setTimeout(()=>{if(typeof ART==='undefined')return;const f=document.createElemen
 boot();LIVE.refresh();LIVE.auto();
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261113143051';
+const FILE_BUILD='20261113143648';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
