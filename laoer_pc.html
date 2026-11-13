@@ -1446,6 +1446,7 @@ MARKS.dec=function(){let n,r;try{n=MARKS.now();r=MARKS.rule(n)}catch(e){return '
  </div>
  <div style="display:flex;gap:6px;flex-wrap:wrap">${chip(r.on?1:0,'① 켜고 끄기 · 200일선 규칙',(r.on?'켜짐 ✅':'꺼짐 ⛔')+` <span class="note">(200일선 ${pc(r.dist)})</span>`)}${chip(n.val==='c'?1:n.val==='e'&&hk==='0'?0:2,'② 얼마나 · 기분 × 가격표',`${C[0]} ${C[1]} → 비중 ${MARKS.DM['1_'+hk+'_'+n.val][4]}%`)}${chip(f==null?2:f<25&&rest<50?0:f<25?1:2,'③ 공포 판별',fearT)}${chip(n.val==='c'?1:n.val==='m'?2:0,'④ 가격표 CAPE · PER',`${n.cape.toFixed(1)} · ${n.pe.toFixed(1)} → ${n.val==='e'?'둘 다 비쌈':n.val==='m'?'CAPE만 비쌈':'괜찮음'}`)}</div>
  <div style="margin-top:10px;padding:8px 10px;background:#fff;border-radius:8px;border-left:4px solid ${col};font-size:13.5px;line-height:1.6">⏭️ <b>다음에 바뀌는 조건</b>: ${nxt}</div>
+ ${MARKS.volLine(n)}
  ${MARKS.ladder(n)}
  ${st?`<div class="note" style="margin-top:8px;line-height:1.6">📜 1993년 이후 지금과 같은 상태였던 날, TQQQ 1년 뒤: 손해 <b>${st[0]}%</b> · 가운데값 <b>${st[1]>=0?'+':'−'}${Math.abs(st[1])}%</b> · 1년 안 −60% 폭락 <b>${st[2]}%</b> (모든 날 평균 손해 28%) · 이런 날이 있던 해 ${st[3]}개${st[4]!=null&&st[5]!=null&&Math.abs(st[4]-st[5])>=20?` · <b>시기별로 크게 달라요</b>: 1993~2002년 ${st[4]}%, 2003년 이후 ${st[5]}%`+(st[4]>st[5]?' (닷컴 붕괴 영향)':''):''}</div>`:''}
  <div class="note" style="margin-top:6px">판단 순서: ① 200일선 규칙이 <b>살지 말지</b>를 정하고 → ② 기분 온도 × 가격표(CAPE를 먼저 보고, PER이 25 아래면 한 단계 덜 비싸게)가 <b>얼마나</b>를 정해요. ③④는 그 근거. 투자 권유가 아니라 기록에 근거한 규칙 정리예요.</div>
@@ -1462,6 +1463,15 @@ MARKS.ladder=function(n){const D=MARKS.D,c=n.cape,spx=D.spx*c/D.cape,nd=n.raw.nd
  <div style="font-size:13.5px;line-height:1.6;margin:6px 0">${now}</div>
  <div class="tw"><table class="g" style="font-size:12.5px"><thead><tr><th style="padding:5px 4px">단계</th><th class="n" style="padding:5px 4px">S&amp;P500</th><th class="n" style="padding:5px 4px">나스닥100<br>(대략)</th><th class="n" style="padding:5px 4px">그때<br>PER</th><th class="n" style="padding:5px 4px">살 몫</th></tr></thead><tbody>${rows}</tbody></table></div>
  <ul class="note" style="margin:6px 0 0;padding-left:18px;line-height:1.65"><li>"준비한 돈" = 이 계획에 쓰려고 따로 떼어 둔 현금. 1차 20% → 2차 30% → 3차 50%로, <b>쌀수록 더 많이</b>.</li><li>200일선 규칙과는 따로 움직이는 계획이에요. 그 전에 시장이 다시 올라 규칙이 켜지면 규칙대로 들어가면 돼요.</li><li>가격은 <b>회사 이익이 지금 그대로</b>일 때의 값이에요. 이익이 늘면 같은 CAPE라도 가격이 더 높아져요. 나스닥100은 자체 가격표 기록이 없어 S&amp;P500과 같은 비율로 움직인다고 보고 계산한 대략값이에요.</li><li><b>그때 PER</b> = 그 가격에서의 최근 1년 이익 기준 PER. 1차(35)에서 이미 PER ≈ 1990년 이후 가운데값(22.5) — 1년 이익 기준으론 "평범한 값"이 되는 자리예요.</li><li><b>기준은 최근 20년(2006년 11월~)</b>: 2차 32 = 20년 중 비싼 쪽 25% 경계(31.6), 3차 28 = 20년 가운데값(27.3) 바로 위. "20년 ○%" = 최근 20년 중 CAPE가 그 값 이하였던 달의 비율, "최근" = 마지막으로 닿은 달(예: 25.04 = 2025년 4월).</li><li>1990년 이후 가격표 바닥이 올라와서(코로나 때도 24.8), 예전 기준 25는 2008년 같은 큰 위기가 아니면 닿기 어려워 28로 올렸어요. 28은 2016·2020·2022·2023년에 모두 닿았어요.</li><li>최근 20년은 강세장이 길어 CAPE로 3년 뒤를 맞히는 힘이 약했어요 — "싸게 사는 계획"이지 "바닥 맞히기"가 아니에요.</li><li>막스의 가치투자는 빚 없이 오래 버티는 방식이라, 이 계획의 몫은 <b>QQQ(1배)나 아주 작은 TQQQ</b>가 더 맞아요. TQQQ는 싸게 사도 더 빠지는 동안 버티기 훨씬 어려워요.</li></ul></details>`};
+
+/* 📐 출렁임(변동성) 기준 적정 배수 — 배수 = 35% ÷ 최근 21거래일 나스닥100 출렁임(연), 최대 3배. 검증(가상, 월 1회 조정·세금 22% 반영): 1993~ 연 19.2%·최대 −79% / 2010~ 연 26.1%·최대 −49% */
+MARKS.volLine=function(n){const N=MARKS.D.N.map(x=>x[1]).slice();const L=(typeof LIVE!=='undefined'&&LIVE.Q&&LIVE.Q['^NDX'])||null;
+ if(L&&L.p>0&&MARKS.dK(L.t||Date.now())>MARKS.D.N[MARKS.D.N.length-1][0])N.push(L.p);
+ const r=[];for(let i=N.length-21;i<N.length;i++)r.push(N[i]/N[i-1]-1);const m=r.reduce((a,b)=>a+b,0)/r.length,sd=Math.sqrt(r.reduce((a,b)=>a+(b-m)**2,0)/(r.length-1))*Math.sqrt(252);
+ const Lv=Math.max(0,Math.min(3,0.35/sd)),w=Lv<=1?[['QQQ',Lv],['현금',1-Lv]]:Lv<=2?[['QQQ',2-Lv],['QLD',Lv-1]]:[['QLD',3-Lv],['TQQQ',Lv-2]];
+ const mix=w.filter(x=>x[1]>0.04).map(x=>x[0]+' '+Math.round(x[1]*100)+'%').join(' + ');
+ return `<div style="margin-top:8px;padding:8px 10px;background:#fff;border-radius:8px;border-left:4px solid #2f6fed;font-size:13.5px;line-height:1.6">📐 <b>출렁임 기준 적정 배수</b>: 최근 한 달 나스닥100 출렁임 연 <b>${(sd*100).toFixed(0)}%</b> → 목표 35%면 <b>${Lv.toFixed(1)}배</b> (예: ${mix})${Lv<1.5?' — 지금은 3배를 들 만큼 시장이 조용하지 않아요':Lv>=2.5?' — 시장이 조용해서 3배에 가까워도 되는 때':''}
+ <div class="note" style="margin-top:3px">샤프지수(출렁임 대비 수익)를 높이는 방법: 시끄러우면 배수↓, 조용하면 배수↑(최대 3배). 월 1회 조정·세금 22% 넣은 가상 검증: 1993~ 연 19.2%·최대 하락 −79% (TQQQ 보유 16.7%·≈−100%, 200일선 규칙 21.5%·−93%) · 2010~ 연 26.1%·최대 하락 −49% (보유 40.4%·−81%, 200일선 23.1%·−69%). 위 판단과 따로 보는 참고값이에요.</div></div>`};
 
 /* ===================== 첫 화면: TQQQ · QLD 전체 기간 그래프 (같은 200일선 신호) ===================== */
 // 주간 종가(수정주가, Yahoo Finance) — 날짜(YYMMDD), QLD, TQQQ. 2010-02-11 이전 TQQQ는 나스닥100 일간 3배 − 연 2.39% 비용으로 만든 '가상 TQQQ' (2010~2026 실제 TQQQ와 끝값이 같도록 맞춤)
@@ -2474,7 +2484,7 @@ setTimeout(()=>{if(typeof ART==='undefined')return;const f=document.createElemen
 boot();LIVE.refresh();LIVE.auto();
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261113115435';
+const FILE_BUILD='20261113141520';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
