@@ -1179,7 +1179,8 @@ MARKS.dec=function(){MARKS.boot();let n,sd;try{n=MARKS.now();sd=MARKS.vol()}catc
   ${box('💼 TQQQ가 <b>있다면</b>',`이 계획 전체 돈 중 TQQQ가 <b>${W}%</b>가 되게 맞추기 (넘치면 팔고, 모자라면 사기)`)}
   ${box('📅 <b>언제 맞추나</b>','<b>한 달에 한 번</b>, 매달 첫 거래일에만. 중간에 숫자가 바뀌어도 기다리기 — 검증이 이 방식이에요')}
  </div>
- <div style="background:#fff;border-radius:10px;border:1px solid #dfe4ea;padding:10px;margin-top:4px">
+ ${MARKS.gBox(w)}
+ <div style="background:#fff;border-radius:10px;border:1px solid #dfe4ea;padding:10px;margin-top:10px">
   <div style="font-weight:800;font-size:14.5px;margin-bottom:4px">⏭️ 비중이 바뀌는 조건</div>
   ${nx.map(([a,b])=>`<div style="padding:6px 0;border-top:1px solid #eef0f3;font-size:13.5px;line-height:1.6">🏷️ ${a}<br>→ ${b}</div>`).join('')}
   <div style="padding:6px 0;border-top:1px solid #eef0f3;font-size:13.5px">🌊 출렁임이 바뀌면 (지금 가격표 ×${F[0]} 기준 TQQQ 비중)</div>
@@ -1198,6 +1199,32 @@ MARKS.dec=function(){MARKS.boot();let n,sd;try{n=MARKS.now();sd=MARKS.vol()}catc
    <li>과거 기록에 근거한 규칙 정리이지 투자 권유가 아니에요. TQQQ는 한 달 안에도 크게 빠질 수 있어요.</li></ul></details>
 </div>`};
 MARKS.rr=function(){try{const el=document.getElementById('decCard');if(el){const op=[...el.querySelectorAll('details')].map(d=>d.open);el.outerHTML=MARKS.dec();const m=document.getElementById('decCard');if(m)[...m.querySelectorAll('details')].forEach((d,i)=>{if(op[i])d.open=true})}}catch(e){}};
+
+/* 🧺 그레이엄식 돈 나누기: 투기 돈(TQQQ 계좌)은 전체의 일부로 따로 떼고, 그 안에서 최종 판단 비중만큼 TQQQ */
+MARKS.GK='tqqq_grh';
+MARKS.gG=function(){try{return JSON.parse(localStorage.getItem(MARKS.GK)||'{}')||{}}catch(e){return {}}};
+MARKS.gI=function(el){const o=MARKS.gG();o[el.dataset.g]=el.value.replace(/[^0-9.]/g,'');try{localStorage.setItem(MARKS.GK,JSON.stringify(o))}catch(e){}const t=document.getElementById('grhOut');if(t)t.innerHTML=MARKS.gOut(+t.dataset.w)};
+MARKS.tqP=function(){try{const W=LT.data().W;for(let i=W.length-1;i>=0;i--)if(W[i].t>0)return [W[i].t,W[i].d]}catch(e){}return null};
+MARKS.gOut=function(w){const o=MARKS.gG(),tot=+o.tot||0,pct=o.pct===''||o.pct==null?10:+o.pct,sh=o.sh===''||o.sh==null?null:+o.sh;
+ const won=x=>{x=Math.round(x);if(x<10000)return x.toLocaleString('ko-KR')+'만';const a=Math.floor(x/10000),b=x%10000;return a+'억'+(b?' '+b.toLocaleString('ko-KR')+'만':'')};
+ if(!tot)return '<div class="note">위에 전체 투자 재산을 넣으면 계산돼요.</div>';
+ const acc=tot*pct/100,tg=acc*w,cash=acc-tg,TP=MARKS.tqP(),fx=(typeof S!=='undefined'&&S.fx&&S.fx.r)||0;
+ const L=[];
+ L.push(`🧺 TQQQ 계좌(투기 돈): <b>${won(acc)}원</b> <span class="note">(전체의 ${pct}%) · 나머지 ${won(tot-acc)}원은 본 계좌(보통 투자·안전 자산)</span>`);
+ if(pct>10)L.push(`<span style="color:#b42318">⚠️ 그레이엄 기준(투기 돈은 전체의 10% 정도까지)을 넘었어요. 이 돈을 다 잃어도 괜찮은지 다시 생각해 보세요.</span>`);
+ let nS=null;
+ if(TP&&fx){const pw=TP[0]*fx/10000;nS=Math.floor(tg/pw);L.push(`🎯 그중 TQQQ <b>${Math.round(w*100)}%</b> = <b>${won(tg)}원</b> ≈ <b style="font-size:1.15em">${nS.toLocaleString('ko-KR')}주</b> <span class="note">(TQQQ $${TP[0].toFixed(2)} × 환율 ${Math.round(fx).toLocaleString('ko-KR')}원 = 1주 ${Math.round(pw*10000).toLocaleString('ko-KR')}원 · ${TP[1]})</span>`)}
+ else L.push(`🎯 그중 TQQQ <b>${Math.round(w*100)}%</b> = <b>${won(tg)}원</b> <span class="note">(시세·환율을 받는 중이라 주 수는 잠시 뒤에 나와요)</span>`);
+ L.push(`💵 계좌 안 현금: <b>${won(cash)}원</b> <span class="note">(파킹통장·단기 국채 등 — 검증도 현금에 단기 국채 이자를 받는다고 계산)</span>`);
+ if(sh!=null&&nS!=null){const d=nS-sh;L.push(d>0?`🛒 지금 ${sh.toLocaleString('ko-KR')}주 → <b style="color:#1a7f37">${d.toLocaleString('ko-KR')}주 더 사기</b>`:d<0?`✂️ 지금 ${sh.toLocaleString('ko-KR')}주 → <b style="color:#b42318">${(-d).toLocaleString('ko-KR')}주 팔기</b>`:`✅ 지금 ${sh.toLocaleString('ko-KR')}주 → 그대로`)+' <span class="note">(매달 첫 거래일에만)</span>'}
+ L.push(`<span class="note">전체 재산 중 TQQQ는 ${(pct*w).toFixed(1)}% — 3배짜리라 나스닥100에 걸린 돈으로 치면 약 ${(pct*w*3).toFixed(1)}%</span>`);
+ return L.map(x=>`<div style="padding:4px 0;line-height:1.55">${x}</div>`).join('')};
+MARKS.gBox=function(w){const o=MARKS.gG(),inp=(k,ph,u,v)=>`<label style="display:flex;flex-direction:column;gap:3px;font-size:12.5px;flex:1 1 140px;min-width:0"><span class="note">${ph}</span><span style="display:flex;align-items:center;gap:4px"><input data-g="${k}" inputmode="decimal" value="${v==null?'':v}" oninput="MARKS.gI(this)" style="width:100%;min-width:0;font:inherit;font-size:16px;padding:7px 8px;border:1px solid #cfd6df;border-radius:8px;background:#fff;color:#17202e"><span style="white-space:nowrap">${u}</span></span></label>`;
+ return `<div style="background:#fff;border-radius:10px;border:1px solid #dfe4ea;padding:10px;margin-top:10px">
+  <div style="font-weight:800;font-size:14.5px">🧺 그레이엄식 돈 나누기 — 내 돈으로 몇 주?</div>
+  <div class="note" style="margin:2px 0 8px;line-height:1.55">《현명한 투자자》: 빌린 돈을 쓰는 3배 ETF는 '투기'. 하지 말라는 게 아니라 <b>따로 작게 떼어서</b>(전체의 10% 정도까지) 하고, 잃어도 본 계좌로 메우지 말라는 것. 숫자는 이 기기에만 저장돼요.</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">${inp('tot','전체 투자 재산','만원',o.tot)}${inp('pct','그중 TQQQ 계좌','%',o.pct==null?10:o.pct)}${inp('sh','지금 가진 TQQQ (선택)','주',o.sh)}</div>
+  <div id="grhOut" data-w="${w}" style="margin-top:8px;font-size:13.5px">${MARKS.gOut(w)}</div></div>`};
 
 /* ===================== 첫 화면: TQQQ · QLD 전체 기간 그래프 (같은 200일선 신호) ===================== */
 // 주간 종가(수정주가, Yahoo Finance) — 날짜(YYMMDD), QLD, TQQQ. 2010-02-11 이전 TQQQ는 나스닥100 일간 3배 − 연 2.39% 비용으로 만든 '가상 TQQQ' (2010~2026 실제 TQQQ와 끝값이 같도록 맞춤)
@@ -2148,7 +2175,7 @@ saveWork=function(){PWA.save();toast('✔ 이 기기에 저장했습니다')};
 {const _o=openFile;openFile=async function(f){const r=await _o(f);setTimeout(PWA.save,50);return r}}
 
 /* 🔄 새 버전 알림: GitHub에 새 계산표가 올라오면(최대 몇 분) 화면 위에 알려 주고, 누르면 캐시를 피해 새로 엶 */
-const APP_BUILD='20261115152210';
+const APP_BUILD='20261116071418';
 async function chkUpd(){try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();
  if(/^\d{14}$/.test(v)&&v>APP_BUILD&&!document.getElementById('updBar')){const b=document.createElement('div');b.id='updBar';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:80;background:#1f6feb;color:#fff;padding:10px 16px;border-radius:24px;box-shadow:0 4px 14px rgba(0,0,0,.25);font-weight:700;cursor:pointer;max-width:calc(100vw - 24px)';b.textContent='🔄 새 버전이 있어요 — 눌러서 바로 적용';b.onclick=()=>{try{PWA.save()}catch(e){}location.replace(location.pathname+'?v='+v)};document.body.appendChild(b)}}catch(e){}}
 setTimeout(chkUpd,1500);setInterval(chkUpd,10*60e3);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')chkUpd()});
@@ -2157,7 +2184,7 @@ boot();PWA.load();LIVE.refresh();LIVE.auto();
 {const _r=render;render=function(){_r();if(!DIRTY){const b=document.getElementById('stBadge');if(b&&!/저장됨/.test(b.textContent)){b.className='badge final';b.textContent='✔ 이 기기에 저장됨'}}}}
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261115152210';
+const FILE_BUILD='20261116071418';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
