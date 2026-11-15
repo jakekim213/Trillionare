@@ -53,6 +53,9 @@ def build(get, fgj):
     H = series(get, 'HYG', 11.5, True); time.sleep(0.5)
     I = series(get, 'IEF', 11.5, True); time.sleep(0.5)
     G = series(get, '^GSPC', 0.2)
+    try:
+        TN = series(get, '^TNX', 0.1); out['tnx'] = round(TN[sorted(TN)[-1]][0], 3)
+    except Exception as e: print('TNX 실패', e)
     D = sorted(N); nv = [N[d][0] for d in D]
     dist, ret = {}, {}
     for i, d in enumerate(D):
