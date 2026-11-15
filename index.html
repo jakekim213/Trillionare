@@ -1155,25 +1155,35 @@ MARKS.vol=function(){const N=MARKS.D.N.map(x=>x[1]).slice();const L=(typeof LIVE
  const r=[];for(let i=N.length-21;i<N.length;i++)r.push(N[i]/N[i-1]-1);const m=r.reduce((a,b)=>a+b,0)/r.length;return Math.sqrt(r.reduce((a,b)=>a+(b-m)**2,0)/(r.length-1))*Math.sqrt(252)};
 MARKS.wt=(sd,v)=>Math.min(1,0.35/sd/3)*MARKS.FX[v][0];
 MARKS.dec=function(){MARKS.boot();let n,sd;try{n=MARKS.now();sd=MARKS.vol()}catch(e){return ''}if(!n||!n.cape||!sd)return '';
- const D=MARKS.D,F=MARKS.FX[n.val],base=Math.min(1,0.35/sd/3),w=base*F[0],W=Math.round(w*100);
- const lv=W>=70?0:W>=40?1:W>=15?2:3,col=['#1a7f37','#b7791f','#d9480f','#b42318'][lv],bg=['#e8f5ec','#fff8e6','#fff0e6','#fdecea'][lv],word=['🟢 공격','🟡 절반쯤','🟠 수비','🔴 거의 현금'][lv];
+ const D=MARKS.D,F=MARKS.FX[n.val],base=Math.min(1,0.35/sd/3),w0=base*F[0],W0=Math.round(w0*100);
+ /* 📘 그레이엄 모드: 주식 비율 25~75% — 이익수익률(1÷PER)이 10년 국채보다 낮으면 25%, 차이가 +3.9%p(20년 가운데값 1.95%p의 2배) 이상이면 75%, 그 사이는 고르게. 3배 ETF라 TQQQ = 주식 비율 ÷ 3 */
+ const tq=(MARKS.cn&&MARKS.cn.US10Y&&MARKS.cn.US10Y.p>0)?MARKS.cn.US10Y.p:(D.tnx||4.5),ey=100/n.pe,erp=ey-tq,gS=Math.max(0.25,Math.min(0.75,0.25+0.5*erp/3.9)),gw=gS/3,GW=Math.round(gw*100);
+ const G=MARKS.md()==='g',w=G?gw:w0,W=G?GW:W0;
+ const lv=G?(gS<=0.3?2:gS>=0.7?0:1):(W>=70?0:W>=40?1:W>=15?2:3),col=['#1a7f37','#b7791f','#d9480f','#b42318'][lv],bg=['#e8f5ec','#fff8e6','#fff0e6','#fdecea'][lv],word=G?(gS<=0.3?'📘 수비 끝 (주식 25%)':gS>=0.7?'📘 공격 끝 (주식 75%)':`📘 중간 (주식 ${Math.round(gS*100)}%)`):['🟢 공격','🟡 절반쯤','🟠 수비','🔴 거의 현금'][lv];
+ const mb=(m,l)=>`<button type="button" onclick="MARKS.setMd('${m}')" style="font:inherit;font-size:13.5px;font-weight:700;padding:6px 11px;border-radius:999px;cursor:pointer;border:2px solid ${(m==='g')===G?'#17202e':'#cfd6df'};background:${(m==='g')===G?'#17202e':'#fff'};color:${(m==='g')===G?'#fff':'#4a5566'}">${l}</button>`;
  const spx=D.spx*n.cape/D.cape,k=x=>Math.round(x).toLocaleString('en-US'),pc=x=>(x>=0?'+':'−')+Math.abs(x*100).toFixed(1)+'%',P=x=>Math.round(x*100)+'%';
  const up=(()=>{const t=Math.max((typeof LIVE!=='undefined'&&LIVE.qT)||0,n.qt||0);return t?new Date(t).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):D.end+' 종가'})();
  const box=(t,b)=>`<div style="background:#fff;border-radius:10px;padding:10px;border:1px solid #dfe4ea"><div class="note">${t}</div><div style="font-size:14px;margin-top:3px;line-height:1.6">${b}</div></div>`;
  /* 다음에 바뀌는 조건 */
  const nx=[];
- if(n.val==='e')nx.push([`PER <b>25</b> 아래 = S&amp;P500 <b>${k(spx*25/n.pe)}</b> 이하 (${pc(25/n.pe-1)})`,`가격표 배율 ×0.55 → ×0.8 · TQQQ <b>${P(base*0.8)}</b>`]);
+ if(G){const pz=100/tq,p50=100/(tq+1.95);nx.push([`PER <b>${pz.toFixed(1)}</b> 아래 = S&amp;P500 <b>${k(spx*pz/n.pe)}</b> 이하 (${pc(pz/n.pe-1)}) — 이익수익률이 국채를 넘는 선`,`주식 비율이 25%에서 올라가기 시작`]);nx.push([`PER <b>${p50.toFixed(1)}</b> 아래 = S&amp;P500 <b>${k(spx*p50/n.pe)}</b> 이하 (${pc(p50/n.pe-1)})`,`주식 50% · TQQQ <b>17%</b>`]);nx.push([`또는 10년 국채 금리가 <b>${ey.toFixed(2)}%</b> 아래로 (지금 ${tq.toFixed(2)}%)`,`가격이 그대로여도 주식 비율이 올라가기 시작`])}
+ else{ if(n.val==='e')nx.push([`PER <b>25</b> 아래 = S&amp;P500 <b>${k(spx*25/n.pe)}</b> 이하 (${pc(25/n.pe-1)})`,`가격표 배율 ×0.55 → ×0.8 · TQQQ <b>${P(base*0.8)}</b>`]);
  if(n.val!=='c')nx.push([`CAPE <b>30</b> 아래 = S&amp;P500 <b>${k(spx*30/n.cape)}</b> 이하 (${pc(30/n.cape-1)})`,`가격표 배율 → ×1 · TQQQ <b>${P(base)}</b>`]);
- if(n.val==='c')nx.push([`CAPE <b>30</b> 이상 (S&amp;P500 ${k(spx*30/n.cape)} 이상)`,`가격표 배율 ×1 → ×0.8 (PER 25 아래면) 또는 ×0.55`]);
+ if(n.val==='c')nx.push([`CAPE <b>30</b> 이상 (S&amp;P500 ${k(spx*30/n.cape)} 이상)`,`가격표 배율 ×1 → ×0.8 (PER 25 아래면) 또는 ×0.55`]);}
  const vt=[15,20,25,30,35,40,50].map(v=>`<td class="n" style="padding:4px 3px;${Math.abs(v/100-sd)<0.025?'background:#fff3bf;font-weight:800':''}">${P(Math.min(1,0.35/(v/100)/3)*F[0])}</td>`).join('');
   return `<div class="card noprint" id="decCard" style="border:3px solid ${col};background:${bg};padding:14px">
  <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline"><b style="font-size:15px">🎯 지금 TQQQ, 얼마나 들고 있을까? — 최종 판단</b><span class="note">${up} 기준${MARKS.fresh?' · 가격표·종가 자동 수집 '+new Date(MARKS.fresh*1000).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):''}</span></div>
  <div style="font-size:clamp(28px,8vw,44px);font-weight:900;color:${col};margin:6px 0 0;line-height:1.15">TQQQ ${W}% <span style="font-size:.55em;color:#4a5566">· 현금 ${100-W}%</span></div>
  <div style="font-weight:800;color:${col};font-size:16px">${word}</div>
- <div style="margin:10px 0;padding:10px;background:#fff;border-radius:10px;border:2px solid #17202e;font-size:14px;line-height:1.75">
+ <div style="display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 0">${mb('c','🧮 계산식 '+W0+'%')}${mb('g','📘 그레이엄 모드 '+GW+'%')}</div>
+ <div style="margin:10px 0;padding:10px;background:#fff;border-radius:10px;border:2px solid #17202e;font-size:14px;line-height:1.75">${G?`
+  ① <b>이익수익률</b> (주식 1주가 1년에 버는 이익 ÷ 주가) = 1 ÷ PER ${n.pe.toFixed(1)} = <b>${ey.toFixed(2)}%</b> &nbsp;vs&nbsp; 10년 국채 <b>${tq.toFixed(2)}%</b> → 차이 <b>${erp>=0?'+':'−'}${Math.abs(erp).toFixed(2)}%p</b><br>
+  ② <b>그레이엄 주식 비율</b> (25~75%): 차이가 0 이하면 25% · +3.9%p 이상이면 75% · 그 사이는 고르게 → <b>${Math.round(gS*100)}%</b><br>
+  = <b style="color:${col}">TQQQ ${Math.round(gS*100)}% ÷ 3 = ${GW}%</b> <span class="note">(3배짜리라 나스닥에 걸린 돈은 ${Math.round(gS*100)}%)</span>, 나머지 ${100-GW}%는 현금(파킹통장·단기 국채)
+  <div class="note" style="margin-top:4px;line-height:1.55">그레이엄은 "주식은 25~75% 사이, 비싸면 25% 쪽"까지만 말했어요. 이익수익률과 채권 이자를 비교하는 건 그의 잣대이고, 차이를 몇 %p로 나눌지(가운데값 1.95%p일 때 50%)는 제가 정한 숫자예요.</div>`:`
   ① <b>시장 출렁임</b>: 최근 한 달 나스닥100이 연 <b>${(sd*100).toFixed(0)}%</b> 속도로 출렁임 → 기본 비중 35% ÷ ${(sd*100).toFixed(0)}% ÷ 3 = <b>${P(base)}</b> <span class="note">(최대 100%)</span><br>
   ② <b>가격표 (하워드 막스)</b>: CAPE <b>${n.cape.toFixed(1)}</b> · PER <b>${n.pe.toFixed(1)}</b> → ${F[1]} → <b>×${F[0]}</b><br>
-  = <b style="color:${col}">TQQQ ${P(base)} × ${F[0]} = ${W}%</b>, 나머지 ${100-W}%는 현금(파킹통장·단기 국채)</div>
+  = <b style="color:${col}">TQQQ ${P(base)} × ${F[0]} = ${W}%</b>, 나머지 ${100-W}%는 현금(파킹통장·단기 국채)`}</div>
  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:8px;margin:10px 0">
   ${box('👜 TQQQ가 <b>없다면</b>',`이 계획에 쓸 돈의 <b>${W}%</b>만 TQQQ로 사고, 나머지는 현금으로 두기`)}
   ${box('💼 TQQQ가 <b>있다면</b>',`이 계획 전체 돈 중 TQQQ가 <b>${W}%</b>가 되게 맞추기 (넘치면 팔고, 모자라면 사기)`)}
@@ -1183,19 +1193,20 @@ MARKS.dec=function(){MARKS.boot();let n,sd;try{n=MARKS.now();sd=MARKS.vol()}catc
  <div style="background:#fff;border-radius:10px;border:1px solid #dfe4ea;padding:10px;margin-top:10px">
   <div style="font-weight:800;font-size:14.5px;margin-bottom:4px">⏭️ 비중이 바뀌는 조건</div>
   ${nx.map(([a,b])=>`<div style="padding:6px 0;border-top:1px solid #eef0f3;font-size:13.5px;line-height:1.6">🏷️ ${a}<br>→ ${b}</div>`).join('')}
-  <div style="padding:6px 0;border-top:1px solid #eef0f3;font-size:13.5px">🌊 출렁임이 바뀌면 (지금 가격표 ×${F[0]} 기준 TQQQ 비중)</div>
+  ${G?'':`<div style="padding:6px 0;border-top:1px solid #eef0f3;font-size:13.5px">🌊 출렁임이 바뀌면 (지금 가격표 ×${F[0]} 기준 TQQQ 비중)</div>
   <div class="tw"><table class="g" style="font-size:12.5px"><thead><tr><th style="padding:4px 3px">출렁임</th>${[15,20,25,30,35,40,50].map(v=>`<th class="n" style="padding:4px 3px">${v}%</th>`).join('')}</tr></thead><tbody><tr><td style="padding:4px 3px">TQQQ</td>${vt}</tr></tbody></table></div>
-  <div class="note" style="margin-top:4px;line-height:1.6">시장이 조용하면(출렁임↓) 더 들고, 시끄러우면(출렁임↑) 덜 들어요. 가격이 내려 가격표가 싸지는 때는 보통 출렁임도 커지니, 막상 그때 비중이 바로 크게 늘지는 않을 수 있어요. 가격은 회사 이익이 지금 그대로일 때 값.</div>
+  <div class="note" style="margin-top:4px;line-height:1.6">시장이 조용하면(출렁임↓) 더 들고, 시끄러우면(출렁임↑) 덜 들어요. 가격이 내려 가격표가 싸지는 때는 보통 출렁임도 커지니, 막상 그때 비중이 바로 크게 늘지는 않을 수 있어요. 가격은 회사 이익이 지금 그대로일 때 값.</div>`}
  </div>
- <details style="margin-top:10px;background:#fff;border-radius:8px;border:1px solid #dfe4ea;padding:8px 10px"><summary style="cursor:pointer;font-weight:700;font-size:14px">🔬 왜 이 두 가지만 남겼나 — 검증 결과 <span class="note" style="font-weight:400">(눌러서 펴기)</span></summary>
+ <details style="margin-top:10px;background:#fff;border-radius:8px;border:1px solid #dfe4ea;padding:8px 10px"><summary style="cursor:pointer;font-weight:700;font-size:14px">🔬 검증 결과 — 계산식 vs 그레이엄 모드 <span class="note" style="font-weight:400">(눌러서 펴기)</span></summary>
   <div class="note" style="margin:6px 0">실제 QQQ·QLD·TQQQ 가격(그 전은 빌린 돈 이자까지 맞춘 가상값) · 현금 이자 · 수수료 0.1% · 양도세 22%(250만 원 공제) · 배당세 15%까지 넣은 <b>세금 뒤</b> 결과</div>
-  <div style="border:1px solid #e6e9ef;border-radius:8px;overflow:hidden;font-size:13px">${[['TQQQ 그냥 보유','12.8%','−100%','38.3%','−82%','−100%','−95%','−70%','−82%'],['200일선 규칙 (사고/팔기)','18.9%','−92%','22.6%','−68%','−91%','−61%','−62%','−57%'],['이전 판단 (200일선 × 기분 × 가격표)','19.3%','−74%','20.3%','−68%','−68%','−61%','−57%','−48%'],['지금 판단 (출렁임 × 가격표)','17.5%','−65%','24.9%','−43%','−62%','−65%','−31%','−43%']].map((r,i)=>`<div style="padding:7px 8px;border-top:${i?'1px solid #e6e9ef':'0'};${i===3?'background:#e8f5ec;':''}"><b>${i===3?'⭐ ':''}${r[0]}</b><div style="margin-top:2px">1993~ 연 <b>${r[1]}</b> · 최대 하락 <b>${r[2]}</b> &nbsp;|&nbsp; 2010~ 연 <b>${r[3]}</b> · 최대 하락 <b>${r[4]}</b></div><div class="note">큰 폭락 때: 닷컴 ${r[5]} · 금융위기 ${r[6]} · 코로나 ${r[7]} · 2022년 ${r[8]}</div></div>`).join('')}</div>
+  <div style="border:1px solid #e6e9ef;border-radius:8px;overflow:hidden;font-size:13px">${[['TQQQ 그냥 보유','12.8%','−100%','38.3%','−82%','−100%','−95%','−70%','−82%'],['200일선 규칙 (사고/팔기)','18.9%','−92%','22.6%','−68%','−91%','−61%','−62%','−57%'],['이전 판단 (200일선 × 기분 × 가격표)','19.3%','−74%','20.3%','−68%','−68%','−61%','−57%','−48%'],['🧮 계산식 (출렁임 × 가격표)','17.5%','−65%','24.9%','−43%','−62%','−65%','−31%','−43%'],['📘 그레이엄 모드 (주식 25~75% ÷ 3)','7.0%','−28%','9.4%','−20%','−28%','−19%','−20%','−19%']].map((r,i)=>`<div style="padding:7px 8px;border-top:${i?'1px solid #e6e9ef':'0'};${i===(G?4:3)?'background:#e8f5ec;':''}"><b>${i===(G?4:3)?'⭐ ':''}${r[0]}</b><div style="margin-top:2px">1993~ 연 <b>${r[1]}</b> · 최대 하락 <b>${r[2]}</b> &nbsp;|&nbsp; 2010~ 연 <b>${r[3]}</b> · 최대 하락 <b>${r[4]}</b></div><div class="note">큰 폭락 때: 닷컴 ${r[5]} · 금융위기 ${r[6]} · 코로나 ${r[7]} · 2022년 ${r[8]}</div></div>`).join('')}</div>
   <ul class="note" style="margin:6px 0 0;padding-left:18px;line-height:1.65">
    <li><b>남긴 것 ① 출렁임</b>: 시장이 시끄러울 때 덜 드는 것만으로 "출렁임 대비 수익"(샤프지수)이 모든 기간에서 가장 좋았어요 (1993~ 0.67 · 2010~ 0.90, 200일선 규칙 0.61 · 0.71).</li>
    <li><b>남긴 것 ② 가격표(CAPE·PER)</b>: 비쌀 때 덜 들면 큰 폭락 때 덜 잃어요 (1993~ 최대 하락 −79% → −65%, 2010~ −49% → −43%). 대신 수익이 연 1%p쯤 줄어요 — 보험료예요.</li>
    <li><b>뺀 것 · 200일선 규칙</b>: 출렁임과 같은 위험(폭락)에 반응해서 <b>겹쳐요</b>. 둘을 같이 쓰면 너무 자주 빠져나와 1993~ 연 17.5% → 13.6%로 오히려 나빠졌어요.</li>
    <li><b>뺀 것 · 기분 온도·공포탐욕·막스 사이클 체크표</b>: "지금 어디쯤인지"는 잘 보여 주지만 다음 1년 수익과 상관이 거의 0이고, 판단에 넣어도 결과가 그대로였어요 (1993~ 19.3% vs 18.8%, 2010~ 20.3% vs 20.8%).</li>
    <li>목표 출렁임을 30%·40%로 바꾸거나 가격표 배율을 바꿔도 순위는 같았어요(우연이 아니라는 뜻). 아쉬운 점: 금융위기 때는 200일선 규칙보다 조금 더 빠졌고(−65% vs −61%), TQQQ 그냥 보유가 2010년 이후엔 수익이 더 컸어요(대신 −82%를 견뎌야 함). 평균 TQQQ 비중은 1993~ 56% · 2010~ 62%.</li>
+   <li><b>📘 그레이엄 모드</b>: 수익은 낮지만(1993~ 연 7.0% · 2010~ 9.4%) 어떤 폭락에서도 −28%를 넘지 않았어요. 대신 1990년대처럼 국채 금리가 높던 때는 거의 늘 수비 끝(25%)에 머물러 오르는 장을 많이 놓쳤어요 (전체 기간의 43%가 25%). 참고로 QQQ(1배) 그냥 보유는 1993~ 연 13.4% · 최대 −83%.</li>
    <li>과거 기록에 근거한 규칙 정리이지 투자 권유가 아니에요. TQQQ는 한 달 안에도 크게 빠질 수 있어요.</li></ul></details>
 </div>`};
 MARKS.rr=function(){try{const el=document.getElementById('decCard');if(el){const op=[...el.querySelectorAll('details')].map(d=>d.open);el.outerHTML=MARKS.dec();const m=document.getElementById('decCard');if(m)[...m.querySelectorAll('details')].forEach((d,i)=>{if(op[i])d.open=true})}}catch(e){}};
@@ -1225,6 +1236,9 @@ MARKS.gBox=function(w){const o=MARKS.gG(),inp=(k,ph,u,v)=>`<label style="display
   <div class="note" style="margin:2px 0 8px;line-height:1.55">《현명한 투자자》: 빌린 돈을 쓰는 3배 ETF는 '투기'. 하지 말라는 게 아니라 <b>따로 작게 떼어서</b>(전체의 10% 정도까지) 하고, 잃어도 본 계좌로 메우지 말라는 것. 숫자는 이 기기에만 저장돼요.</div>
   <div style="display:flex;gap:8px;flex-wrap:wrap">${inp('tot','전체 투자 재산','만원',o.tot)}${inp('pct','그중 TQQQ 계좌','%',o.pct==null?10:o.pct)}${inp('sh','지금 가진 TQQQ (선택)','주',o.sh)}</div>
   <div id="grhOut" data-w="${w}" style="margin-top:8px;font-size:13.5px">${MARKS.gOut(w)}</div></div>`};
+
+MARKS.md=function(){try{return MARKS._md||localStorage.getItem('tqqq_mode')||'c'}catch(e){return MARKS._md||'c'}};
+MARKS.setMd=function(m){try{localStorage.setItem('tqqq_mode',m)}catch(e){}MARKS._md=m;MARKS.rr()};
 
 /* ===================== 첫 화면: TQQQ · QLD 전체 기간 그래프 (같은 200일선 신호) ===================== */
 // 주간 종가(수정주가, Yahoo Finance) — 날짜(YYMMDD), QLD, TQQQ. 2010-02-11 이전 TQQQ는 나스닥100 일간 3배 − 연 2.39% 비용으로 만든 '가상 TQQQ' (2010~2026 실제 TQQQ와 끝값이 같도록 맞춤)
@@ -2175,7 +2189,7 @@ saveWork=function(){PWA.save();toast('✔ 이 기기에 저장했습니다')};
 {const _o=openFile;openFile=async function(f){const r=await _o(f);setTimeout(PWA.save,50);return r}}
 
 /* 🔄 새 버전 알림: GitHub에 새 계산표가 올라오면(최대 몇 분) 화면 위에 알려 주고, 누르면 캐시를 피해 새로 엶 */
-const APP_BUILD='20261116071418';
+const APP_BUILD='20261116072454';
 async function chkUpd(){try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();
  if(/^\d{14}$/.test(v)&&v>APP_BUILD&&!document.getElementById('updBar')){const b=document.createElement('div');b.id='updBar';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:80;background:#1f6feb;color:#fff;padding:10px 16px;border-radius:24px;box-shadow:0 4px 14px rgba(0,0,0,.25);font-weight:700;cursor:pointer;max-width:calc(100vw - 24px)';b.textContent='🔄 새 버전이 있어요 — 눌러서 바로 적용';b.onclick=()=>{try{PWA.save()}catch(e){}location.replace(location.pathname+'?v='+v)};document.body.appendChild(b)}}catch(e){}}
 setTimeout(chkUpd,1500);setInterval(chkUpd,10*60e3);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')chkUpd()});
@@ -2184,7 +2198,7 @@ boot();PWA.load();LIVE.refresh();LIVE.auto();
 {const _r=render;render=function(){_r();if(!DIRTY){const b=document.getElementById('stBadge');if(b&&!/저장됨/.test(b.textContent)){b.className='badge final';b.textContent='✔ 이 기기에 저장됨'}}}}
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261116071418';
+const FILE_BUILD='20261116072454';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
