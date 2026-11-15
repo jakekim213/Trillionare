@@ -108,6 +108,9 @@ def build(get, fgj):
     vd = sorted(V); out['vxn'] = V[vd[-1]][0]
     gd = [d for d in sorted(G) if d <= out.get('capeD', D[-1])]
     if gd: out['spx'] = G[gd[-1]][0]; out['spxD'] = gd[-1]
+    try:  # S&P500 사상 최고 종가 (현금 투입 계획의 기준점)
+        GH = series(get, '^GSPC', 3); hd = max(GH, key=lambda d: GH[d][1]); out['spxH'] = [round(GH[hd][1], 2), hd]; out['spxL'] = [round(GH[sorted(GH)[-1]][1], 2), sorted(GH)[-1]]
+    except Exception as e: print('S&P 고점 실패', e)
     # --- 기분 온도 (최근 80거래일, 오늘 눈금 기준) ---
     fgd = {}
     if fgj and fgj.get('d'):
