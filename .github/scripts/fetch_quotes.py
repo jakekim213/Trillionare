@@ -185,7 +185,7 @@ try:
     pm = None
     try: pm = json.load(open('prev_marks.json'))
     except Exception: pass
-    if pm and pm.get('v') == 1 and now - pm.get('at', 0) < 3 * 3600:
+    if pm and pm.get('v') == 1 and 'cy' in pm and 'tnx' in pm and now - pm.get('at', 0) < 3 * 3600:
         json.dump(pm, open(f'{OUT}/marks.json', 'w'), separators=(',', ':')); print('marks.json 이전 것 유지')
     else:
         try: fgj = json.load(open(f'{OUT}/fg.json'))

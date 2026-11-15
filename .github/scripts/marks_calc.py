@@ -34,6 +34,36 @@ def pr(q, x):
     while q[i] < x: i += 1
     a, b = q[i - 1], q[i]; f = (x - a) / (b - a) if b > a else 0.5
     return (i - 1 + f) / (len(q) - 1) * 100
+def monthly(get, sym):
+    R = get(f'/v8/finance/chart/{urllib.parse.quote(sym, safe="")}?range=max&interval=1mo')['chart']['result'][0]
+    cl = (R['indicators'].get('adjclose') or [{}])[0].get('adjclose') or R['indicators']['quote'][0]['close']
+    o = {}
+    for t, x in zip(R['timestamp'], cl):
+        if x: o[dt.datetime.utcfromtimestamp(t + 12 * 3600).strftime('%Y-%m')] = x
+    return o
+def mpct(vals):  # 마지막 값이 지난 120개월 중 몇 등인지 (0~100)
+    h = [x for x in vals[-120:] if x is not None]
+    if len(h) < 36: return None
+    v = h[-1]; return round(sum(1 for x in h if x < v) / len(h) * 100 + sum(1 for x in h if x == v) / len(h) * 50, 1)
+def rel(a, b, lag):  # log(a/b)의 lag개월 변화
+    import math
+    ks = sorted(k for k in a if k in b); r = []
+    for i, k in enumerate(ks):
+        r.append(math.log(a[k] / b[k]) - math.log(a[ks[i - lag]] / b[ks[i - lag]]) if i >= lag else None)
+    return r, ks
+def cyc(get):
+    import csv, io
+    M = {s: monthly(get, s) for s in ['IPO', 'SPY', 'ARKK', 'QQQ', 'SPHB', 'SPLV']}
+    o = {}
+    for k, a, b, lag in [('ipo', 'IPO', 'SPY', 12), ('ark', 'ARKK', 'QQQ', 12), ('hb', 'SPHB', 'SPLV', 6)]:
+        r, ks = rel(M[a], M[b], lag)
+        if r and r[-1] is not None: o[k] = [round(r[-1], 4), mpct(r), ks[-1]]
+    try:
+        mo = {m: i + 1 for i, m in enumerate(['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'])}
+        U = [(f"{int(r['YYYY'])}-{mo[r['Month'].strip()]:02d}", float(r['ICS_ALL'])) for r in csv.DictReader(io.StringIO(html('https://www.sca.isr.umich.edu/files/tbmics.csv'))) if (r.get('ICS_ALL') or '').strip()]
+        U.sort(); o['um'] = [U[-1][1], mpct([x for _, x in U]), U[-1][0]]
+    except Exception as e: print('미시간 심리 실패', e)
+    return o
 def build(get, fgj):
     out = {'v': 1, 'at': int(time.time())}
     # --- CAPE·PER ---
@@ -56,6 +86,9 @@ def build(get, fgj):
     try:
         TN = series(get, '^TNX', 0.1); out['tnx'] = round(TN[sorted(TN)[-1]][0], 3)
     except Exception as e: print('TNX 실패', e)
+    # --- 막스 사이클 체크표: 전망·새 상품·자본·시장 분위기 (대리 지표, 지난 10년 월말 백분위) ---
+    try: out['cy'] = cyc(get)
+    except Exception as e: print('사이클 대리지표 실패', e)
     D = sorted(N); nv = [N[d][0] for d in D]
     dist, ret = {}, {}
     for i, d in enumerate(D):
