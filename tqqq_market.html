@@ -1211,13 +1211,20 @@ MARKS.gOut=function(w){const o=MARKS.gG(),tot=+o.tot||0,pct=o.pct===''||o.pct==n
  L.push(`💵 계좌 안 현금: <b>${won(cash)}원</b>`);
  if(sh!=null&&nS!=null){const d=nS-sh;L.push(d>0?`🛒 지금 ${sh.toLocaleString('ko-KR')}주 → <b style="color:#1a7f37">${d.toLocaleString('ko-KR')}주 더 사기</b>`:d<0?`✂️ 지금 ${sh.toLocaleString('ko-KR')}주 → <b style="color:#b42318">${(-d).toLocaleString('ko-KR')}주 팔기</b>`:`✅ 지금 ${sh.toLocaleString('ko-KR')}주 → 그대로`)}
  L.push(`<span class="note">전체 재산 중 TQQQ ${(pct*w).toFixed(1)}% = 나스닥100에 걸린 돈으로 약 ${(pct*w*3).toFixed(1)}% (3배)</span>`);
+ const M=+o.m||0;
+ if(M&&TP&&fx){const pw=TP[0]*fx/10000,cur=(sh!=null?sh:nS)*pw,A2=acc+M,cap=Math.min(1,2*w);
+  const opt=[['🛡️ A · 규칙 따라','계좌 전체(적립금 포함)를 위 비중대로',A2*w-cur,'연 18~30% · 최대 하락 −22~−56%'],
+   ['⚖️ C · 중간',`적립금은 TQQQ로, 단 계좌에서 TQQQ가 ${Math.round(cap*100)}%(규칙×2)를 넘지 않게`,Math.max(A2*w,Math.min(cur+M,A2*cap))-cur,'연 17~33% · 최대 하락 −45~−71%'],
+   ['🚀 B · 적립분은 전부 TQQQ','적립금으로 산 TQQQ는 규칙과 상관없이 계속 보유 (목돈만 규칙)',M,'연 24~35% · 최대 하락 −39~−84%']];
+  L.push(`<div style="margin-top:6px;padding-top:6px;border-top:1px dashed #cfd6df"><b>📅 이번 달 적립금 ${won(M)}원은?</b> <span class="note">(매달 첫 거래일)</span>${opt.map(([nm,ds,b,st])=>{const k=Math.round(b/pw);return `<div style="padding:5px 0;border-top:1px solid #eef0f3"><b>${nm}</b> → ${k>0?`<b style="color:#1a7f37">TQQQ ${k.toLocaleString('ko-KR')}주 사기</b>`:k<0?`<b style="color:#b42318">TQQQ ${(-k).toLocaleString('ko-KR')}주 팔기</b>`:'TQQQ 그대로'}${M-Math.max(0,k)*pw>=1?` · 나머지 ${won(M-Math.max(0,k)*pw)}원은 현금`:''}<div class="note">${ds} · 과거 검증 ${st}</div></div>`}).join('')}<div class="note" style="margin-top:3px">검증: 목돈 + 매달 적립을 2000·2007·2010·2015·2021년에 시작했을 때 돈 가중 연수익률 범위(세금 전). B는 시간이 갈수록 적립분이 커져 결국 "그냥 보유"처럼 크게 빠질 수 있어요 — 자세히는 아래 🔬.</div></div>`)}
+ else if(M)L.push('<span class="note">시세·환율을 받으면 이번 달 적립금으로 살 주 수가 나와요.</span>');
  return L.map(x=>`<div style="padding:3px 0;line-height:1.55">${x}</div>`).join('')};
 MARKS.inp=(attr,k,ph,u,v,fn,f)=>`<label style="display:flex;flex-direction:column;gap:3px;font-size:12.5px;flex:${f};min-width:0"><span class="note">${ph}</span><span style="display:flex;align-items:center;gap:4px"><input ${attr}="${k}" inputmode="decimal" value="${v==null?'':v}" oninput="${fn}(this)" style="width:100%;min-width:0;font:inherit;font-size:16px;padding:7px 8px;border:1px solid #cfd6df;border-radius:8px;background:#fff;color:#17202e"><span style="white-space:nowrap">${u}</span></span></label>`;
 MARKS.gBox=function(w){const o=MARKS.gG(),I=(k,ph,u,v)=>MARKS.inp('data-g',k,ph,u,v,'MARKS.gI','1 1 120px');
  return `<div style="background:#fff;border-radius:10px;border:1px solid #dfe4ea;padding:10px;margin-top:10px">
   <div style="font-weight:800;font-size:14.5px">🧺 내 돈으로 몇 주?</div>
   <div class="note" style="margin:2px 0 8px;line-height:1.55">3배 ETF는 '투기' — 하지 말라는 게 아니라 <b>따로 작게</b>(그레이엄 10% · 보글 5%) 떼어서 하고, 잃어도 본 계좌로 메우지 않기. 숫자는 이 기기에만 저장.</div>
-  <div style="display:flex;gap:8px;flex-wrap:wrap">${I('tot','전체 투자 재산','만원',o.tot)}${I('pct','그중 TQQQ 계좌','%',o.pct==null?10:o.pct)}${I('sh','지금 가진 TQQQ (선택)','주',o.sh)}</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">${I('tot','전체 투자 재산','만원',o.tot)}${I('pct','그중 TQQQ 계좌','%',o.pct==null?10:o.pct)}${I('sh','지금 가진 TQQQ (선택)','주',o.sh)}${I('m','매달 넣는 돈 (선택)','만원',o.m)}</div>
   <div id="grhOut" data-w="${w}" style="margin-top:8px;font-size:13.5px">${MARKS.gOut(w)}</div></div>`};
 
 /* 💵 하락장 현금 투입 계획 (1배 상품용) + 🎯 막스의 적기 신호 + 📐 나스닥100 환산선 */
@@ -1266,6 +1273,9 @@ MARKS.proof=function(G,cape){const R=[['TQQQ 그냥 보유','12.8%','−100%','3
   <div class="note" style="margin:6px 0">실제 QQQ·QLD·TQQQ 가격(그 전은 빌린 돈 이자까지 맞춘 가상값) · 현금 이자 · 수수료 0.1% · 양도세 22%(250만 원 공제) · 배당세 15% 포함 <b>세금 뒤</b></div>
   <div style="border:1px solid #e6e9ef;border-radius:8px;overflow:hidden;font-size:13px">${R.map((r,i)=>`<div style="padding:7px 8px;border-top:${i?'1px solid #e6e9ef':'0'};${i===hl?'background:#e8f5ec;':''}"><b>${i===hl?'⭐ ':''}${r[0]}</b><div style="margin-top:2px">1993~ 연 <b>${r[1]}</b> · 최대 하락 <b>${r[2]}</b> &nbsp;|&nbsp; 2010~ 연 <b>${r[3]}</b> · 최대 하락 <b>${r[4]}</b></div><div class="note">큰 폭락 때: 닷컴 ${r[5]} · 금융위기 ${r[6]} · 코로나 ${r[7]} · 2022년 ${r[8]}</div></div>`).join('')}</div>
   ${MARKS.capeTab(cape)}
+  <div style="font-weight:700;font-size:13.5px;margin:10px 0 2px">📅 목돈 + 매달 적립 — 방법별 검증</div>
+  <div style="border:1px solid #e6e9ef;border-radius:8px;overflow:hidden;font-size:13px">${[['QQQ(1배)로 적립','13~19%','−25~−63%','13.3% · −63%','14.8% · −25%'],['🛡️ A · 규칙 따라 (계좌 전체를 비중대로)','18~30%','−22~−56%','21.6% · −56%','18.3% · −22%'],['⚖️ C · 중간 (적립은 TQQQ, 상한 규칙×2)','17~33%','−45~−71%','23.1% · −71%','17.2% · −45%'],['🚀 B · 적립분은 전부 TQQQ (목돈만 규칙)','24~35%','−39~−84%','24.0% · −84%','23.8% · −39%'],['TQQQ 전부 그냥 보유 + 적립','20~40%','−70~−97%','23.4% · −97%','19.9% · −70%']].map((r,i)=>`<div style="padding:7px 8px;border-top:${i?'1px solid #e6e9ef':'0'}"><b>${r[0]}</b><div>돈 가중 연수익률 <b>${r[1]}</b> · 최대 하락 ${r[2]}</div><div class="note">2000년 시작 ${r[3]} · 2021년 11월 꼭대기 시작 ${r[4]}</div></div>`).join('')}</div>
+  <div class="note" style="margin-top:4px;line-height:1.6">목돈 1만 달러 + 매달 200달러, 2000·2007·2010·2015·2021년 시작 → 2026년 11월 (이자·수수료 포함, 세금 전). 매달 1,000달러로 바꿔도 순서 같음. 위로 갈수록 덜 빠지고, 아래로 갈수록 더 벌지만 더 빠져요 — 공짜 점심은 없어요. 적립식은 폭락 바닥에서 싼 TQQQ를 많이 사서 3배도 1배를 크게 이겼지만(2000년 시작 ×81 vs ×11), 2000~2009년처럼 10년을 넣고도 손해(×0.70)인 때를 견뎌야 해요.</div>
   <div style="font-weight:700;font-size:13.5px;margin:10px 0 2px">✅ 남긴 것</div><ul class="note" style="margin:0;padding-left:18px;line-height:1.65">
    ${L('<b>출렁임</b>: 시끄러울 때 덜 드는 것만으로 출렁임 대비 수익(샤프)이 모든 기간에서 가장 좋았어요 (1993~ 0.67 · 2010~ 0.90 · 200일선 규칙 0.61 · 0.71). 목표 30%·40%로 바꿔도 순위 같음.')}
    ${L('<b>가격표 (CAPE 30 · PER 25)</b>: 비쌀 때 덜 들면 큰 폭락 때 덜 잃어요 (1993~ 최대 하락 −79% → −65%). 수익은 연 1%p쯤 줄어요 — 보험료. 기준을 28·23 / 32·26 / 35·28로 바꿔도 1993~ 연 16~18%로 비슷해서 우연이 아님(35·28은 수익↑ 대신 최대 하락 −72%).')}
@@ -2239,7 +2249,7 @@ setTimeout(()=>{if(typeof ART==='undefined')return;const f=document.createElemen
 boot();LIVE.refresh();LIVE.auto();
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261116153849';
+const FILE_BUILD='20261117063425';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
