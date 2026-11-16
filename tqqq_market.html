@@ -1309,7 +1309,7 @@ const LT_FX={r:1323.83,at:'2026-10-23 11:57'};
 /* 비교 종목: 색은 검증한 범주 팔레트 순서대로 고정 (종목이 빠져도 다른 종목 색은 그대로) */
 const LT_TK=[{k:'t',sym:'TQQQ',nm:'TQQQ',col:'#2a78d6'},{k:'q',sym:'QLD',nm:'QLD',col:'#eb6834'},{k:'o',sym:'QQQ',nm:'QQQ',col:'#5d6d7e'},{k:'x',sym:'SPXL',nm:'S&P500 3배',col:'#b03a2e'},{k:'p',sym:'PLTR',nm:'팔란티어',col:'#eda100'},{k:'m',sym:'META',nm:'메타',col:'#e87ba4'},{k:'z',sym:'TSLA',nm:'테슬라',col:'#008300'},{k:'c',sym:'TECL',nm:'TECL',col:'#00a3b4'},{k:'b',sym:'SOXL',nm:'SOXL',col:'#c2185b'},{k:'h',sym:'000660',nm:'SK하이닉스',col:'#6250d6',kr:1},{k:'e',sym:'005930',nm:'삼성전자',col:'#e34948',kr:1},{k:'g',sym:'009150',nm:'삼성전기',col:'#7a3e9d',kr:1}];
 /* 비교 그래프에 보이는 종목 (팔란티어·메타·테슬라·국내 주식은 사용자 요청으로 뺌 — 자료는 다른 분석 상자용으로 남김) */
-const LT_SH=['t','q','o','c','b'],LT_TKV=()=>LT_TK.filter(x=>LT_SH.includes(x.k));
+const LT_SH=['t','x','q','o','c','b'],LT_TKV=()=>LT_TK.filter(x=>LT_SH.includes(x.k));
 const LT_RE={};
 const LT_SCOL={pud:'#e67e22',sys:'#c0392b',m120:'#16a085'};
 // 나스닥100 매일 종가 2009-02~ (Yahoo ^NDX)
@@ -1326,7 +1326,7 @@ const LT_STAT={
  years:[['2020년 코로나 급락',110,93,89,70],['2022년 긴 하락장',-79,-31,-61,-21],['2025년 관세 급락',34,15,30,13]]
 };
 const LT={
- p:'all',m:'hold',from:null,to:null,sel:['t','q','o'],st:[],
+ p:'all',m:'hold',from:null,to:null,sel:['t','x','o'],st:[],
  _d:null,
  /* 2023-10-20 이전은 주간 종가, 그 뒤 3년은 일간 종가 (최근 기간을 하루 단위로 자세히) */
  data(){const ek=LT.extKey();if(LT._d&&LT._dk===ek)return LT._d;
@@ -1808,14 +1808,14 @@ let i1=-1;for(let i=W.length-1;i>=0;i--)if(W[i].d<=e){i1=i;break}if(i1<=i0)i1=Ma
   return `<div class="tw"><table class="g"><thead><tr><th>상품 · 방법</th><th class="n">1만 달러 →</th><th class="n">연평균</th><th class="n">최악 하락</th><th class="n">본전 회복에 필요한 상승</th><th class="n">가장 오래 물린 기간</th></tr></thead><tbody>${T.rows.map(r=>`<tr><td><b style="color:${r[0].startsWith('TQQQ')?'#2a5db0':'#c27a1a'}">${r[0]}</b> · ${name[r[1]]}</td><td class="n"><b>${LT.money(r[2])}</b> <span class="note">(${r[2].toFixed(0)}배)</span></td><td class="n">${r[3].toFixed(1)}%</td><td class="n neg">${r[4].toFixed(1)}%</td><td class="n">×${(1/(1+r[4]/100)).toFixed(1)}</td><td class="n">${r[5].toFixed(1)}년</td></tr>`).join('')}</tbody></table></div>
    <p class="note" style="margin:4px 0 0">${esc(T.label)} · 규칙 매매 ${T.trades}번 · 주식을 들고 있던 시간 ${T.inMkt}%${k==='A'?' · TQQQ* = 2010년 2월 이전은 가상 TQQQ':''}</p>`},
  /* 처음 열 때: 이 기간 금액 상위 3개(종목·전략 통틀어)만 켜 둠 — 종목 단추를 누르면 바로 더하거나 뺌 */
- initTop3(){if(LT._top3)return;LT._top3=1;try{const {W}=LT.data();const [i0,i1]=LT.range(W);const c=[];
+ initTop3(){if(LT._top3)return;LT._top3=1;LT.sel=['t','x','o'];LT.st=[];return;try{const {W}=LT.data();const [i0,i1]=LT.range(W);const c=[];
    LT_TKV().forEach(x=>{let j=i0;while(j<i1&&!(W[j][x.k]>0))j++;if(j<i1&&W[i1][x.k]>0){const r=W[i1][x.k]/W[j][x.k];c.push({t:'k',k:x.k,v:LT.taxHold([r])[0]})}});
    const B=LT.bt(i0,i1);if(B){}
    const top=c.sort((a,b)=>b.v-a.v).slice(0,3);const ks=top.filter(x=>x.t==='k').map(x=>x.k);LT.sel=ks.length?LT_TK.map(x=>x.k).filter(k=>ks.includes(k)):['t'];LT.st=top.filter(x=>x.t==='s').map(x=>x.k)}catch(e){}},
  chartSec(){LT.initTop3();const {W}=LT.data();const rg=LT.range(W);const B=(grp,v,l,cur)=>`<button class="btn sm ${cur===v?'':'light'}" data-act="lt:${grp}:${v}">${l}</button>`;
   const Y=LT_STAT.years;
   return `<div class="card" id="ltCard">
-   <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px"><b style="font-size:16px">📈 1만 달러를 넣었다면? (💸 세금 뒤 · 그날 다 팔면 손에 쥐는 돈) — TQQQ · QLD</b><span class="note">(${esc(W[0].d)} ~ ${esc(W[W.length-1].d)} · 최근 3년은 하루 단위, 그 전은 주 단위 · 로그 눈금)</span></div>
+   <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px"><b style="font-size:16px">📈 1만 달러를 넣었다면? (💸 세금 뒤 · 그날 다 팔면 손에 쥐는 돈) — TQQQ vs S&P500 3배</b><span class="note">(${esc(W[0].d)} ~ ${esc(W[W.length-1].d)} · 최근 3년은 하루 단위, 그 전은 주 단위 · 로그 눈금)</span></div>
    <div class="noprint" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0"><span class="note" style="min-width:34px">종목</span>${LT_TKV().map((x,ix,A)=>{const on=LT.sel.includes(x.k);return (x.kr&&!A[ix-1].kr?'<span class="note" style="margin-left:6px">국내</span>':'')+`<button class="btn sm ${on?'':'light'}" data-act="lt:tk:${x.k}" aria-pressed="${on}" title="${on?'그래프에서 빼기':'그래프에 넣기'}" style="display:inline-flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:2px;background:${x.col};display:inline-block;${on?'':'opacity:.45'}"></span>${x.nm}${x.sym!==x.nm?' <span style="opacity:.75;font-size:.9em">'+x.sym+'</span>':''}</button>`}).join('')}<button class="btn sm light" data-act="lt:tk:all">모두</button></div>
    <div class="noprint" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0"><span class="note" style="min-width:34px">기간</span>${['1m','3m','6m','ytd','1y','2y','3y','5y','10y','all'].map(k=>B('p',k,LT.PRESET[k][0],LT.p)).join('')}</div>
    <div class="noprint" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0"><span class="note" style="min-width:34px">사건</span>${['c20','c22','c25','b3','w3'].map(k=>B('p',k,LT.PRESET[k][0],LT.p)).join('')}
@@ -1826,23 +1826,28 @@ let i1=-1;for(let i=W.length-1;i>=0;i--)if(W[i].d<=e){i1=i;break}if(i1<=i0)i1=Ma
    <p class="note" style="margin:4px 0 10px">로그 눈금: 위로 한 칸 올라갈 때마다 같은 '몇 배'입니다 ($1만 → $10만 → $100만). 그래서 오래된 시기의 오르내림도 지금처럼 크게 보입니다. 마우스를 올리면 그날 금액이 나옵니다. 어느 기간이든 <b>시작일에 1만 달러를 넣었다고 보고</b> 다시 계산합니다.</p>
    ${LT.yearBars()}
   </div>`},
- yearBars(){let W;try{W=LT.data().W}catch(e){return ''}if(!W||!W.length)return '';const K=[['t','TQQQ','#2a78d6'],['q','QLD','#eb6834'],['o','QQQ','#8a95a5']];
+ yearBars(){let W;try{W=LT.data().W}catch(e){return ''}if(!W||!W.length)return '';const K=[['t','TQQQ','#2a78d6'],['x','S&P500 3배','#b03a2e'],['o','QQQ','#8a95a5']];
   const Y={};W.forEach(w=>{const y=+w.d.slice(0,4);(Y[y]=Y[y]||{f:w,l:w}).l=w});const ys=Object.keys(Y).map(Number).sort();const R=[];
   ys.forEach((y,i)=>{const b=i?Y[ys[i-1]].l:Y[y].f,e=Y[y].l;const v={};K.forEach(([k])=>{v[k]=b[k]>0&&e[k]>0?e[k]/b[k]-1:null});R.push([y,v,!i||e.d.slice(5)<'12-20',e.d])});
   const all=R.flatMap(r=>K.map(([k])=>r[1][k])).filter(x=>x!=null),mn=Math.min(0,...all),mx=Math.max(0,...all),z=-mn/(mx-mn)*100;
   const pc=x=>x==null?'-':(x>=0?'+':'−')+Math.abs(x*100).toFixed(0)+'%';
   const bar=(x,c)=>{if(x==null)return '';const w=Math.abs(x)/(mx-mn)*100;return `<div style="position:relative;height:9px;margin:2px 0"><div style="position:absolute;left:${z}%;top:-2px;bottom:-2px;border-left:1px solid #8a95a5"></div><div style="position:absolute;top:0;height:9px;border-radius:3px;background:${c};${x>=0?`left:${z}%`:`left:${z-w}%`};width:${Math.max(w,0.6)}%"></div></div>`};
-  const rows=R.slice().reverse().map(([y,v,part,d])=>`<div style="display:grid;grid-template-columns:52px minmax(0,1fr) 128px;gap:8px;align-items:center;padding:5px 0;border-top:1px solid #eef0f3"><div style="font-weight:700;font-size:13px">${y}${part?`<div class="note" style="font-weight:400;font-size:11px">${y===ys[0]?Y[y].f.d.slice(5).replace('-','/')+'~':'~'+d.slice(5).replace('-','/')}</div>`:''}</div><div>${K.map(([k,,c])=>bar(v[k],c)).join('')}</div><div style="font-size:12px;line-height:1.35;text-align:right">${K.map(([k,n,c])=>`<span style="color:${c};font-weight:700">${n}</span> <b style="color:${v[k]==null?'#8a95a5':v[k]>=0?'#1a7f37':'#b42318'}">${pc(v[k])}</b>`).join('<br>')}</div></div>`).join('');
+  const rows=R.slice().reverse().map(([y,v,part,d])=>`<div style="display:grid;grid-template-columns:52px minmax(0,1fr) 138px;gap:8px;align-items:center;padding:5px 0;border-top:1px solid #eef0f3"><div style="font-weight:700;font-size:13px">${y}${part?`<div class="note" style="font-weight:400;font-size:11px">${y===ys[0]?Y[y].f.d.slice(5).replace('-','/')+'~':'~'+d.slice(5).replace('-','/')}</div>`:''}</div><div>${K.map(([k,,c])=>bar(v[k],c)).join('')}</div><div style="font-size:12px;line-height:1.35;text-align:right">${K.map(([k,n,c])=>`<span style="color:${c};font-weight:700">${n}</span> <b style="color:${v[k]==null?'#8a95a5':v[k]>=0?'#1a7f37':'#b42318'}">${pc(v[k])}</b>`).join('<br>')}</div></div>`).join('');
   const t=R.filter(r=>!r[2]||r[0]===ys[0]).map(r=>r[1].t).filter(x=>x!=null),neg=t.filter(x=>x<0).length;
-  return `<details style="margin-top:12px" open><summary style="cursor:pointer;font-weight:800;font-size:15px">📊 TQQQ 출시 이후 해마다 상승률 <span class="note" style="font-weight:400">(그냥 들고 있었을 때 · 자동 갱신)</span></summary>
+  const cg=(a,b,k)=>{const xs=W.filter(w=>w.d>=a&&w.d<=b&&w[k]>0);if(xs.length<2)return null;const y=(Date.parse(xs[xs.length-1].d)-Date.parse(xs[0].d))/31557600000;let pk=0,md=0;xs.forEach(w=>{pk=Math.max(pk,w[k]);md=Math.min(md,w[k]/pk-1)});return [Math.pow(xs[xs.length-1][k]/xs[0][k],1/y)-1,md,xs[xs.length-1][k]/xs[0][k]]};
+  const last=W[W.length-1].d,P=[['TQQQ 출시 이후 전체',W[0].d,last],['2010~2014','2009-12-31','2014-12-31'],['2015~2019','2014-12-31','2019-12-31'],['2020~2024','2019-12-31','2024-12-31'],['2025~지금','2024-12-31',last]];
+  const pp=x=>x==null?'-':(x>=0?'+':'−')+Math.abs(x*100).toFixed(1)+'%';
+  const cmp=P.map(([nm,a,b])=>{const T=cg(a,b,'t'),X=cg(a,b,'x');if(!T||!X)return '';const win=T[0]>X[0];return `<div style="padding:7px 8px;border-top:1px solid #e6e9ef"><b>${nm}</b> <span class="note">${win?'TQQQ 승':'S&amp;P500 3배 승'} (연 ${(Math.abs(T[0]-X[0])*100).toFixed(1)}%p 차이)</span><div style="font-size:13px;margin-top:2px"><span style="color:#2a78d6;font-weight:700">TQQQ</span> 연 <b>${pp(T[0])}</b> · 최대 하락 ${pp(T[1])}${nm.includes('전체')?` · ${Math.round(T[2]).toLocaleString('en-US')}배`:''}<br><span style="color:#b03a2e;font-weight:700">S&amp;P500 3배</span> 연 <b>${pp(X[0])}</b> · 최대 하락 ${pp(X[1])}${nm.includes('전체')?` · ${Math.round(X[2]).toLocaleString('en-US')}배`:''}</div></div>`}).join('');
+  const box=`<div style="margin-top:12px;border:1px solid #e6e9ef;border-radius:8px;overflow:hidden"><div style="padding:8px;font-weight:800;font-size:15px">⚔️ TQQQ vs S&amp;P500 3배(SPXL) — 연복리 비교 <span class="note" style="font-weight:400">(분배금 재투자 · 자동 갱신)</span></div>${cmp}<div class="note" style="padding:6px 8px;border-top:1px solid #e6e9ef;line-height:1.6">SPXL = Direxion의 S&amp;P500 일간 3배 ETF(2008년 상장). TQQQ와 같은 회사(ProShares)의 UPRO도 거의 똑같이 움직여요. 위 그래프에서 <b>S&amp;P500 3배</b> 버튼으로 켜고 끌 수 있어요. 세금·환율 전 기준.</div></div>`;
+  return box+`<details style="margin-top:12px" open><summary style="cursor:pointer;font-weight:800;font-size:15px">📊 TQQQ 출시 이후 해마다 상승률 <span class="note" style="font-weight:400">(그냥 들고 있었을 때 · 자동 갱신)</span></summary>
    <div style="display:flex;gap:12px;flex-wrap:wrap;margin:6px 0 2px;font-size:12.5px">${K.map(([,n,c])=>`<span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${c};vertical-align:-1px"></span> ${n}</span>`).join('')}<span class="note">가운데 세로줄 = 0% · 오른쪽 = 오름 · 왼쪽 = 내림</span></div>
    ${rows}
-   <div class="note" style="margin-top:6px;line-height:1.6">TQQQ가 내린 해는 다 채운 ${t.length}해 중 <b>${neg}해</b>뿐이지만, 내린 해에는 한 번에 크게(2022년처럼) 빠져요. 같은 해 QQQ보다 3배를 넘게 오른 해도, 3배보다 덜 오른 해도 있어요 — 출렁임이 클수록 3배짜리가 깎이는 '변동성 손실' 때문. 가격 기준(배당 빠짐) · 올해는 오늘까지.</div></details>`},
+   <div class="note" style="margin-top:6px;line-height:1.6">TQQQ가 내린 해는 다 채운 ${t.length}해 중 <b>${neg}해</b>뿐이지만, 내린 해에는 한 번에 크게(2022년처럼) 빠져요. S&amp;P500 3배는 ${R.filter(r=>(!r[2]||r[0]===ys[0])&&r[1].x!=null&&r[1].t!=null&&r[1].x>r[1].t).length}해만 TQQQ를 이겼어요. 3배짜리는 출렁임이 클수록 깎여요(변동성 손실). 가격 기준(배당 빠짐) · 올해는 오늘까지.</div></details>`},
 
  section(){LT.initTop3();const {W}=LT.data();const rg=LT.range(W);const B=(grp,v,l,cur)=>`<button class="btn sm ${cur===v?'':'light'}" data-act="lt:${grp}:${v}">${l}</button>`;
   const Y=LT_STAT.years;
   return `<div style="margin-top:16px;border-top:1px solid var(--line2);padding-top:14px">
-   <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px"><b style="font-size:16px">📈 1만 달러를 넣었다면? (💸 세금 뒤 · 그날 다 팔면 손에 쥐는 돈) — TQQQ · QLD</b><span class="note">(${esc(W[0].d)} ~ ${esc(W[W.length-1].d)} · 최근 3년은 하루 단위, 그 전은 주 단위 · 로그 눈금)</span></div>
+   <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px"><b style="font-size:16px">📈 1만 달러를 넣었다면? (💸 세금 뒤 · 그날 다 팔면 손에 쥐는 돈) — TQQQ vs S&P500 3배</b><span class="note">(${esc(W[0].d)} ~ ${esc(W[W.length-1].d)} · 최근 3년은 하루 단위, 그 전은 주 단위 · 로그 눈금)</span></div>
    <div class="noprint" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0"><span class="note" style="min-width:34px">종목</span>${LT_TKV().map((x,ix,A)=>{const on=LT.sel.includes(x.k);return (x.kr&&!A[ix-1].kr?'<span class="note" style="margin-left:6px">국내</span>':'')+`<button class="btn sm ${on?'':'light'}" data-act="lt:tk:${x.k}" aria-pressed="${on}" title="${on?'그래프에서 빼기':'그래프에 넣기'}" style="display:inline-flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:2px;background:${x.col};display:inline-block;${on?'':'opacity:.45'}"></span>${x.nm}${x.sym!==x.nm?' <span style="opacity:.75;font-size:.9em">'+x.sym+'</span>':''}</button>`}).join('')}<button class="btn sm light" data-act="lt:tk:all">모두</button></div>
    <div class="noprint" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0"><span class="note" style="min-width:34px">기간</span>${['1m','3m','6m','ytd','1y','2y','3y','5y','10y','all'].map(k=>B('p',k,LT.PRESET[k][0],LT.p)).join('')}</div>
    <div class="noprint" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0"><span class="note" style="min-width:34px">사건</span>${['c20','c22','c25','b3','w3'].map(k=>B('p',k,LT.PRESET[k][0],LT.p)).join('')}
@@ -2207,7 +2212,7 @@ setTimeout(()=>{if(typeof ART==='undefined')return;const f=document.createElemen
 boot();LIVE.refresh();LIVE.auto();
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261116075852';
+const FILE_BUILD='20261116135956';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
