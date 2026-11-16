@@ -1191,7 +1191,7 @@ MARKS.dec=function(){MARKS.boot();let n,sd;try{n=MARKS.now();sd=MARKS.vol()}catc
  ${sec('⏭️ 비중이 바뀌는 조건',nx)}
  ${MARKS.gBox(w)}
  ${MARKS.cBox(spx,n.pe,100/tq,sd,n.cape,cm)}
- ${MARKS.proof(G)}
+ ${MARKS.proof(G,n.cape)}
 </div>`};
 MARKS.rr=function(){try{const el=document.getElementById('decCard');if(el){const op=[...el.querySelectorAll('details')].map(d=>d.open);el.outerHTML=MARKS.dec();const m=document.getElementById('decCard');if(m)[...m.querySelectorAll('details')].forEach((d,i)=>{if(op[i])d.open=true})}}catch(e){}};
 
@@ -1260,11 +1260,12 @@ MARKS.cBox=function(spx,pe,pz,sd,cape,cm){MARKS._ca={spx,pe,pz,sd,cape,cm};const
   <div id="cashOut" style="margin-top:10px">${MARKS.cOut()}</div></div>`};
 
 /* 🔬 검증 — 한 곳에 모음 */
-MARKS.proof=function(G){const R=[['TQQQ 그냥 보유','12.8%','−100%','38.3%','−82%','−100%','−95%','−70%','−82%'],['200일선 규칙 (사고/팔기)','18.9%','−92%','22.6%','−68%','−91%','−61%','−62%','−57%'],['🧮 계산식 (출렁임 × 가격표)','17.5%','−65%','24.9%','−43%','−62%','−65%','−31%','−43%'],['📘 그레이엄 모드 (주식 25~75% ÷ 3)','7.0%','−28%','9.4%','−20%','−28%','−19%','−20%','−19%']],hl=G?3:2;
+MARKS.proof=function(G,cape){const R=[['TQQQ 그냥 보유','12.8%','−100%','38.3%','−82%','−100%','−95%','−70%','−82%'],['200일선 규칙 (사고/팔기)','18.9%','−92%','22.6%','−68%','−91%','−61%','−62%','−57%'],['🧮 계산식 (출렁임 × 가격표)','17.5%','−65%','24.9%','−43%','−62%','−65%','−31%','−43%'],['📘 그레이엄 모드 (주식 25~75% ÷ 3)','7.0%','−28%','9.4%','−20%','−28%','−19%','−20%','−19%']],hl=G?3:2;
  const L=x=>`<li>${x}</li>`;
  return `<details style="margin-top:10px;background:#fff;border-radius:8px;border:1px solid #dfe4ea;padding:8px 10px"><summary style="cursor:pointer;font-weight:700;font-size:14px">🔬 검증 결과 — 왜 이렇게 정했나 <span class="note" style="font-weight:400">(눌러서 펴기)</span></summary>
   <div class="note" style="margin:6px 0">실제 QQQ·QLD·TQQQ 가격(그 전은 빌린 돈 이자까지 맞춘 가상값) · 현금 이자 · 수수료 0.1% · 양도세 22%(250만 원 공제) · 배당세 15% 포함 <b>세금 뒤</b></div>
   <div style="border:1px solid #e6e9ef;border-radius:8px;overflow:hidden;font-size:13px">${R.map((r,i)=>`<div style="padding:7px 8px;border-top:${i?'1px solid #e6e9ef':'0'};${i===hl?'background:#e8f5ec;':''}"><b>${i===hl?'⭐ ':''}${r[0]}</b><div style="margin-top:2px">1993~ 연 <b>${r[1]}</b> · 최대 하락 <b>${r[2]}</b> &nbsp;|&nbsp; 2010~ 연 <b>${r[3]}</b> · 최대 하락 <b>${r[4]}</b></div><div class="note">큰 폭락 때: 닷컴 ${r[5]} · 금융위기 ${r[6]} · 코로나 ${r[7]} · 2022년 ${r[8]}</div></div>`).join('')}</div>
+  ${MARKS.capeTab(cape)}
   <div style="font-weight:700;font-size:13.5px;margin:10px 0 2px">✅ 남긴 것</div><ul class="note" style="margin:0;padding-left:18px;line-height:1.65">
    ${L('<b>출렁임</b>: 시끄러울 때 덜 드는 것만으로 출렁임 대비 수익(샤프)이 모든 기간에서 가장 좋았어요 (1993~ 0.67 · 2010~ 0.90 · 200일선 규칙 0.61 · 0.71). 목표 30%·40%로 바꿔도 순위 같음.')}
    ${L('<b>가격표 (CAPE 30 · PER 25)</b>: 비쌀 때 덜 들면 큰 폭락 때 덜 잃어요 (1993~ 최대 하락 −79% → −65%). 수익은 연 1%p쯤 줄어요 — 보험료. 기준을 28·23 / 32·26 / 35·28로 바꿔도 1993~ 연 16~18%로 비슷해서 우연이 아님(35·28은 수익↑ 대신 최대 하락 −72%).')}
@@ -1281,6 +1282,14 @@ MARKS.proof=function(G){const R=[['TQQQ 그냥 보유','12.8%','−100%','38.3%'
    ${L('S&amp;P500 1950~2026년: −15% 하락 15번 · −25% 9번 · −35% 4번. 처음 닿은 날 산 돈의 3년 뒤 평균 +29% · +41% · +26% (가격 기준).')}
    ${L('나스닥100 환산: S&amp;P500 1% 하락 → 나스닥100 약 1.2%(1990년~ 하루 등락). 하락장마다 0.8배(2020)~1.45배(2022), 닷컴 때 2.6배 — 그래서 범위로 표시.')}</ul>
   <div class="note" style="margin-top:8px">과거 기록에 근거한 규칙 정리이지 투자 권유가 아니에요. TQQQ는 한 달 안에도 크게 빠질 수 있어요.</div></details>`};
+
+/* 📊 CAPE별 성적표 — 그날 CAPE(S&P500 하루 종가 ÷ 10년 평균 이익)로 나눠, 그날 샀다면 1년 뒤(가운데값). 분배금 포함 · 세금 전 · 2026-11-13 계산 */
+MARKS.CT=[[0,28,'28 아래',['+168%','0%','+50%'],['+60%','10%','+21%']],[28,32,'28~32',['+95%','3%','+35%'],['+80%','7%','+30%']],[32,35,'32~35',['+23%','23%','+16%'],['+7%','42%','+11%']],[35,38,'35~38',['+15%','42%','+14%'],['+15%','42%','+14%']],[38,41,'38~41',['+4%','47%','+10%'],['+4%','47%','+10%']],[41,99,'41 이상',null,null]];
+MARKS.capeTab=function(cape){const row=([a,b,nm,x,y])=>{const on=cape>=a&&cape<b,c=v=>v?`<b>${v[0]}</b> · 손해 ${v[1]} · QQQ ${v[2]}`:'<span class="note">2026년에 처음 와서 1년 뒤 결과가 아직 없어요</span>';
+  return `<div style="padding:7px 8px;border-top:${a?'1px solid #e6e9ef':'0'};${on?'background:#fff3bf;':''}"><b>${on?'👉 ':''}CAPE ${nm}</b>${on?` <span style="font-size:12px;color:#b7791f;font-weight:700">지금 ${cape.toFixed(1)}</span>`:''}<div style="font-size:13px;margin-top:2px">2020년~ TQQQ ${c(x)}</div><div class="note">2010년~ TQQQ ${y?(a>=35?'(이 칸은 모두 2021년 이후라 위와 같음)':`${y[0]} · 손해 ${y[1]} · QQQ ${y[2]}`):'—'}</div></div>`};
+ return `<div style="font-weight:700;font-size:13.5px;margin:10px 0 2px">📊 CAPE별 성적표 — 그날 샀다면 1년 뒤 (가운데값)</div>
+  <div style="border:1px solid #e6e9ef;border-radius:8px;overflow:hidden">${MARKS.CT.map(row).join('')}</div>
+  <div class="note" style="margin-top:4px;line-height:1.6">CAPE가 높을수록 한 계단씩 나빠지고, <b>38을 넘으면 TQQQ(3배)가 QQQ(1배)에게 졌어요</b>(출렁임·이자 비용 때문). 2020년 이후는 날은 많아도 사실상 큰 흐름 3번(2020·2022·2025)이라 표본이 작아요 — 30년 넘는 기록과 같은 방향인지 함께 보기. 분배금 포함 · 세금 전.</div>`};
 
 /* ===================== 첫 화면: TQQQ · QLD 전체 기간 그래프 (같은 200일선 신호) ===================== */
 // 주간 종가(수정주가, Yahoo Finance) — 날짜(YYMMDD), QLD, TQQQ. 2010-02-11 이전 TQQQ는 나스닥100 일간 3배 − 연 2.39% 비용으로 만든 '가상 TQQQ' (2010~2026 실제 TQQQ와 끝값이 같도록 맞춤)
@@ -2230,7 +2239,7 @@ setTimeout(()=>{if(typeof ART==='undefined')return;const f=document.createElemen
 boot();LIVE.refresh();LIVE.auto();
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261116152130';
+const FILE_BUILD='20261116153849';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
