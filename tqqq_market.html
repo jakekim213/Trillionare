@@ -1183,7 +1183,7 @@ MARKS.dec=function(){MARKS.boot();let n,sd;try{n=MARKS.now();sd=MARKS.vol()}catc
   ${box('📅 <b>언제 맞추나</b>','<b>한 달에 한 번</b>, 매달 첫 거래일에만. 중간에 숫자가 바뀌어도 기다리기 — 검증이 이 방식이에요')}
  </div>
  ${MARKS.gBox(w)}
- ${MARKS.cBox(spx,n.pe,100/tq)}
+ ${MARKS.cBox(spx,n.pe,100/tq,sd,n.cape)}
  <div style="background:#fff;border-radius:10px;border:1px solid #dfe4ea;padding:10px;margin-top:10px">
   <div style="font-weight:800;font-size:14.5px;margin-bottom:4px">⏭️ 비중이 바뀌는 조건</div>
   ${nx.map(([a,b])=>`<div style="padding:6px 0;border-top:1px solid #eef0f3;font-size:13.5px;line-height:1.6">🏷️ ${a}<br>→ ${b}</div>`).join('')}
@@ -1200,6 +1200,7 @@ MARKS.dec=function(){MARKS.boot();let n,sd;try{n=MARKS.now();sd=MARKS.vol()}catc
    <li><b>뺀 것 · 200일선 규칙</b>: 출렁임과 같은 위험(폭락)에 반응해서 <b>겹쳐요</b>. 둘을 같이 쓰면 너무 자주 빠져나와 1993~ 연 17.5% → 13.6%로 오히려 나빠졌어요.</li>
    <li><b>뺀 것 · 기분 온도·공포탐욕·막스 사이클 체크표</b>: "지금 어디쯤인지"는 잘 보여 주지만 다음 1년 수익과 상관이 거의 0이고, 판단에 넣어도 결과가 그대로였어요 (1993~ 19.3% vs 18.8%, 2010~ 20.3% vs 20.8%).</li>
    <li>목표 출렁임을 30%·40%로 바꾸거나 가격표 배율을 바꿔도 순위는 같았어요(우연이 아니라는 뜻). 아쉬운 점: 금융위기 때는 200일선 규칙보다 조금 더 빠졌고(−65% vs −61%), TQQQ 그냥 보유가 2010년 이후엔 수익이 더 컸어요(대신 −82%를 견뎌야 함). 평균 TQQQ 비중은 1993~ 56% · 2010~ 62%.</li>
+   <li><b>시험했지만 넣지 않은 것 · "공포 + 쌈"이면 TQQQ 늘리기</b>: CAPE가 25~30 아래로 싸면 출렁임으로 깎지 않게 바꿔 봤더니, 최대 하락이 −65% → −75~−97%로 커지고 출렁임 대비 수익(샤프)도 나빠졌어요. 2008년처럼 싸진 뒤에도 몇 달 더 빠지는 동안 3배는 크게 깎이기 때문. 막스의 적기는 아래 💵 현금 투입 계획에서 <b>1배</b>로 쓰도록 했어요.</li>
    <li><b>📘 그레이엄 모드</b>: 수익은 낮지만(1993~ 연 7.0% · 2010~ 9.4%) 어떤 폭락에서도 −28%를 넘지 않았어요. 대신 1990년대처럼 국채 금리가 높던 때는 거의 늘 수비 끝(25%)에 머물러 오르는 장을 많이 놓쳤어요 (전체 기간의 43%가 25%). 참고로 QQQ(1배) 그냥 보유는 1993~ 연 13.4% · 최대 −83%.</li>
    <li>과거 기록에 근거한 규칙 정리이지 투자 권유가 아니에요. TQQQ는 한 달 안에도 크게 빠질 수 있어요.</li></ul></details>
 </div>`};
@@ -1240,7 +1241,7 @@ MARKS.cG=function(){try{return JSON.parse(localStorage.getItem(MARKS.CK)||'{}')|
 MARKS.cS=function(o){try{localStorage.setItem(MARKS.CK,JSON.stringify(o))}catch(e){}};
 MARKS.cI=function(el){const o=MARKS.cG(),k=el.dataset.c,v=el.value.replace(/[^0-9.]/g,'');if(k==='cash')o.cash=v;else{o.s=o.s||[15,25,35];o.s[+k]=v===''?'':+v}MARKS.cS(o);clearTimeout(MARKS._ct);MARKS._ct=setTimeout(()=>{const t=document.getElementById('cashOut');if(t)t.innerHTML=MARKS.cOut()},350)};
 MARKS.cDone=function(i,hi){const o=MARKS.cG();o.done=o.done||{};if(o.done[i]&&Math.abs(o.done[i]/hi-1)<0.005)delete o.done[i];else o.done[i]=hi;MARKS.cS(o);const t=document.getElementById('cashOut');if(t)t.innerHTML=MARKS.cOut()};
-MARKS.cOut=function(){const a=MARKS._ca;if(!a)return '';const {spx,pe,pz}=a,D=MARKS.D,H=D.spxH||[spx,''],hi=Math.max(H[0],spx),hd=spx>H[0]?'오늘':H[1],dd=spx/hi-1;
+MARKS.cOut=function(){const a=MARKS._ca;if(!a)return '';const {spx,pe,pz,sd,cape}=a,D=MARKS.D,H=D.spxH||[spx,''],hi=Math.max(H[0],spx),hd=spx>H[0]?'오늘':H[1],dd=spx/hi-1;
  const o=MARKS.cG(),st=(o.s||[15,25,35]).map(x=>x===''||x==null?null:+x),cash=+o.cash||0,done=o.done||{},k=x=>Math.round(x).toLocaleString('en-US');
  const won=x=>{x=Math.round(x);if(x<10000)return x.toLocaleString('ko-KR')+'만';const q=Math.floor(x/10000),b=x%10000;return q+'억'+(b?' '+b.toLocaleString('ko-KR')+'만':'')};
  const ok=st.filter(x=>x>0).length,part=ok?cash/ok:0,gl=spx*pz/pe;
@@ -1255,9 +1256,11 @@ MARKS.cOut=function(){const a=MARKS._ca;if(!a)return '';const {spx,pe,pz}=a,D=MA
    ${H2[t]?`<div class="note">${H2[t]}</div>`:''}</div>`}).join('');
  const nxt=st.map((t,i)=>[t,i]).filter(([t,i])=>t>0&&spx>hi*(1-t/100));
  const head=`S&amp;P500 지금 <b>${k(spx)}</b> · 사상 최고 ${k(hi)} (${hd}) 대비 <b style="color:${dd<=-0.15?'#1a7f37':'#17202e'}">${dd<0?'−':'+'}${Math.abs(dd*100).toFixed(1)}%</b> → ${nxt.length===st.filter(x=>x>0).length?`아직 1단계 전 (−${nxt[0][0]}%까지 ${((hi*(1-nxt[0][0]/100)/spx-1)*-100).toFixed(1)}% 더)`:nxt.length?`${nxt[0][1]}단계까지 도착 — 다음은 −${nxt[0][0]}%`:'모든 단계 도착'}`;
- return `<div style="font-size:13.5px;line-height:1.6;margin-bottom:6px">${head}</div><div style="border:1px solid #e6e9ef;border-radius:8px;overflow:hidden">${rows}</div>
+ const fe=sd>=0.30,ch=cape<25,mk=fe&&ch;
+ const mks=`<div style="margin:0 0 8px;padding:8px;border-radius:8px;border:2px solid ${mk?'#1a7f37':'#dfe4ea'};background:${mk?'#e8f5ec':'#fff'};font-size:13.5px;line-height:1.6"><b>🎯 막스의 적기 신호 — 공포 + 쌈</b><br>😱 공포(출렁임 30% 이상): ${fe?'✅':'❌'} 지금 ${(sd*100).toFixed(0)}% &nbsp;·&nbsp; 🏷️ 쌈(CAPE 25 아래): ${ch?'✅':'❌'} 지금 ${cape.toFixed(1)}<br>${mk?'<b style="color:#1a7f37">둘 다 켜짐 — 막스가 말한 적기. 남은 현금을 넣기 좋은 때예요 (1배 상품으로).</b>':fe?'공포는 왔지만 아직 비싸요 → 기다리기. 과거 "공포 + 비쌈"에서 산 경우 1년 뒤 손해 57%.':'아직 둘 다 아니에요.'}<div class="note" style="margin-top:3px">1990년 이후 둘 다 켜진 날 나스닥100을 샀다면 1년 뒤 가운데값 <b>+42%</b>, 손해는 4%뿐(2002·2008·2011·2020년). 단 <b>TQQQ(3배)로는 사지 마세요</b> — 출렁임이 큰 때라 3배는 깎여요(2008년 9월: 1배 1년 +1% · 3배 −43%, 중간에 −86%). 그래서 이 신호는 1배(S&amp;P500·QQQ) 현금 투입용이에요.</div></div>`;
+ return mks+`<div style="font-size:13.5px;line-height:1.6;margin-bottom:6px">${head}</div><div style="border:1px solid #e6e9ef;border-radius:8px;overflow:hidden">${rows}</div>
   <div class="note" style="margin-top:6px;line-height:1.6">📘 그레이엄 선 = 주식 이익수익률이 10년 국채를 넘는 S&amp;P500 <b>${k(gl)}</b> (PER ${pz.toFixed(1)}). 넣는 곳은 평소 사던 주식·지수 펀드예요 — TQQQ 계좌 비중은 위 판단을 따로 따르기. S&amp;P500이 <b>새 최고가</b>를 찍으면 기준이 바뀌어 체크가 자동으로 풀리고 계획이 처음부터 다시 시작돼요. 기록은 1950~2026년 S&amp;P500 가격 기준(배당 빠짐). −35%는 드물어서(77년에 4번) 그 몫은 오래 기다릴 수 있어요.</div>`};
-MARKS.cBox=function(spx,pe,pz){MARKS._ca={spx,pe,pz};const o=MARKS.cG(),st=o.s||[15,25,35],inp=(c,ph,u,v,f)=>`<label style="display:flex;flex-direction:column;gap:3px;font-size:12.5px;flex:${f};min-width:0"><span class="note">${ph}</span><span style="display:flex;align-items:center;gap:4px"><input data-c="${c}" inputmode="decimal" value="${v==null?'':v}" oninput="MARKS.cI(this)" style="width:100%;min-width:0;font:inherit;font-size:16px;padding:7px 8px;border:1px solid #cfd6df;border-radius:8px;background:#fff;color:#17202e"><span style="white-space:nowrap">${u}</span></span></label>`;
+MARKS.cBox=function(spx,pe,pz,sd,cape){MARKS._ca={spx,pe,pz,sd,cape};const o=MARKS.cG(),st=o.s||[15,25,35],inp=(c,ph,u,v,f)=>`<label style="display:flex;flex-direction:column;gap:3px;font-size:12.5px;flex:${f};min-width:0"><span class="note">${ph}</span><span style="display:flex;align-items:center;gap:4px"><input data-c="${c}" inputmode="decimal" value="${v==null?'':v}" oninput="MARKS.cI(this)" style="width:100%;min-width:0;font:inherit;font-size:16px;padding:7px 8px;border:1px solid #cfd6df;border-radius:8px;background:#fff;color:#17202e"><span style="white-space:nowrap">${u}</span></span></label>`;
  return `<div style="background:#fff;border-radius:10px;border:1px solid #dfe4ea;padding:10px;margin-top:10px">
   <div style="font-weight:800;font-size:14.5px">💵 하락장 현금 투입 계획 — 무서울 때 쓸 현금, 미리 정해 두기</div>
   <div class="note" style="margin:2px 0 8px;line-height:1.55">막상 폭락이 오면 사람은 "더 빠질까 봐" 못 사요. 그래서 차분할 때 <b>몇 % 빠지면 얼마 넣을지</b> 숫자로 정해 두고, 그날이 오면 적힌 대로만 하기. 숫자는 이 기기에만 저장돼요.</div>
@@ -2212,7 +2215,7 @@ setTimeout(()=>{if(typeof ART==='undefined')return;const f=document.createElemen
 boot();LIVE.refresh();LIVE.auto();
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261116135956';
+const FILE_BUILD='20261116145936';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
