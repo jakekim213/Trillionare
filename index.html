@@ -552,9 +552,9 @@ const VR={
 const VRAPP={
  id:'vr-5',ver:2,title:'VR 밸류 리밸런싱 2주 계산표 (실력공식)',fileBase:'VR_실력공식_2주계산표',
  tabs:[{id:'cycle',label:'이번 사이클 매매표',grp:'2주마다 쓰기'},{id:'next',label:'사이클 마감 · 다음 V',grp:'2주마다 쓰기'},{id:'scen',label:'종가 시나리오 · 다음 V',grp:'2주마다 쓰기'},{id:'log',label:'사이클 기록 · 차트',grp:'2주마다 쓰기'},{id:'setup',label:'기본 설정 · 시작값',grp:'참고'},{id:'logic',label:'실력공식 · 로직',grp:'참고'},{id:'history',label:'변경 · 저장 이력',grp:'관리'}],
- defaults(){return{st:{ticker:'TQQQ',type:'lump',G:10,band:15,formula:'pro',C:0,W:0,floor:20,lim:{...LIM},show:25,scStep:5},cur:{V:null,pool:null,qty:null,close:null,cycleNo:1,start:today()},log:[],nf:{}}},
- sample(){return{st:{ticker:'TQQQ',type:'lump',G:10,band:15,formula:'pro',C:0,W:0,floor:20,lim:{...LIM},show:25,scStep:5},cur:{V:10000,pool:5000,qty:142,close:66.5,cycleNo:1,start:'2026-10-13'},log:[],nf:{}}},
- migrate(d){if(d.st){d.st.formula='pro';if(d.st.scStep==null)d.st.scStep=5;d.st.type='lump';d.st.C=0;d.st.W=0;if(d.st.floor==null)d.st.floor=20}},
+ defaults(){return{st:{ticker:'TQQQ',type:'lump',G:10,band:15,formula:'pro',C:0,W:0,floor:10,floorV:2,lim:{...LIM},show:25,scStep:5},cur:{V:null,pool:null,qty:null,close:null,cycleNo:1,start:today()},log:[],nf:{}}},
+ sample(){return{st:{ticker:'TQQQ',type:'lump',G:10,band:15,formula:'pro',C:0,W:0,floor:10,floorV:2,lim:{...LIM},show:25,scStep:5},cur:{V:10000,pool:5000,qty:142,close:66.5,cycleNo:1,start:'2026-10-13'},log:[],nf:{}}},
+ migrate(d){if(d.st){d.st.formula='pro';if(d.st.scStep==null)d.st.scStep=5;d.st.type='lump';d.st.C=0;d.st.W=0;if(d.st.floorV!==2){d.st.floor=10;d.st.floorV=2}}},
  label(k){return({'st.ticker':'종목','st.type':'운용 유형','st.G':'G값','st.band':'밴드폭(%)','st.C':'적립금','st.W':'인출금','st.scStep':'시나리오 간격(%)','st.floor':'Pool 바닥(총자산 %)','cur.V':'V','cur.pool':'Pool','cur.qty':'보유 수량','cur.close':'현재가','cur.cycleNo':'사이클 번호','cur.start':'사이클 시작일','st.show':'표시 줄 수'})[k]||(k.startsWith('nf.')?'마감 입력: '+k.slice(3):k.startsWith('st.lim')?'Pool 한도 '+k.slice(7):k)},
  act(a){
   if(a==='roll')return roll();
@@ -2082,7 +2082,7 @@ let i1=-1;for(let i=W.length-1;i>=0;i--)if(W[i].d<=e){i1=i;break}if(i1<=i0)i1=Ma
      ③ VR + 비상 브레이크: 폭락 경보 규칙 B(나스닥100 흔들림 35% 초과 또는 200일선 −3% 아래 → 정지 / 200일선 +3% 위·흔들림 30% 미만 → 재시작)가 🔴이면 전량 현금, 🟢 되면 평가금으로 V를 새로 잡아 재시작
         (신호 다음 날 종가 체결 · 현금 구간 이자 0%) — 2026-11-19 추가 */
   try{const RB=LT.rb(),sg=dsd.map(d=>{const s=RB.get(d);return s==null?1:s});
-   const run=brk=>{const vst={ticker:'TQQQ',type:'lump',G:10,band:15,formula:'pro',C:0,W:0,floor:(typeof S!=='undefined'&&S.v&&S.v.st&&S.v.st.floor!=null)?S.v.st.floor:20,lim:{...LIM}};
+   const run=brk=>{const vst={ticker:'TQQQ',type:'lump',G:10,band:15,formula:'pro',C:0,W:0,floor:(typeof S!=='undefined'&&S.v&&S.v.st&&S.v.st.floor!=null)?S.v.st.floor:10,lim:{...LIM}};
     let qty=Math.floor(C0*0.87/P[0]),pool=C0-qty*P[0],V=qty*P[0]+pool/vst.G;
     const vv=[1],vq=[qty/C0];let cs=0,L,bl,sl,bk,sk,bq=0,ba=0,sq=0,sa=0,q0=qty,cash=pool,out=false,nh=0;
     const lines=()=>{L=VR.ladder(vst,{V,pool,qty});bl=[];L.buy.forEach(g=>{if(!g.over)for(let j=0;j<g.n;j++)bl.push(g.p)});sl=[];L.sell.forEach(g=>{for(let j=0;j<g.n;j++)sl.push(g.p)});bk=0;sk=0;bq=ba=sq=sa=0;q0=qty;cash=pool};
@@ -2161,7 +2161,7 @@ let i1=-1;for(let i=W.length-1;i>=0;i--)if(W[i].d<=e){i1=i;break}if(i1<=i0)i1=Ma
   const all=[];{const keys=LT.m==='lao'?['t']:LT.sel;const mds=LT.m==='hold'?['hold']:LT.m==='rule'?['rule']:['hold','rule'];
    LT_TK.filter(x=>keys.includes(x.k)).forEach(x=>{let j=0;while(j<n&&!(P[j][x.k]>0))j++;if(j>=n-1){all.push({nm:x.nm,sym:x.sym,col:x.col,md:'hold',na:true});return}
     mds.filter(md=>!(x.re&&md==='rule')).forEach(md=>{const v=LT.tkV(P,j,x.k,md,W,SW,i0,i1,x.re);all.push({nm:x.nm,sym:x.sym,col:x.col,re:x.re,md,from:j>0?P[j].d:null,...LT.stats(v,P[j].d,P[n-1].d)})})})}
-  if(B)(LT.st||[]).forEach(k=>{if(B[k])all.push({nm:'TQQQ',sym:'TQQQ',col:LT_SCOL[k],md:k,info:k==='vb'?`폭락 경보 규칙 B 🔴면 전량 현금 · 🟢면 V를 새로 잡아 재시작 · 이 기간 비상 정지 ${B[k].nh}번`:'G 10 · 밴드 ±15% · Pool 한도 50% · Pool 바닥 총자산 20% · 시작 현금 13% · 2주마다 마감',...LT.stats(B[k].v,P[0].d,P[n-1].d)})});
+  if(B)(LT.st||[]).forEach(k=>{if(B[k])all.push({nm:'TQQQ',sym:'TQQQ',col:LT_SCOL[k],md:k,info:k==='vb'?`폭락 경보 규칙 B 🔴면 전량 현금 · 🟢면 V를 새로 잡아 재시작 · 이 기간 비상 정지 ${B[k].nh}번`:'G 10 · 밴드 ±15% · Pool 한도 50% · Pool 바닥 총자산 10% · 시작 현금 13% · 2주마다 마감',...LT.stats(B[k].v,P[0].d,P[n-1].d)})});
   const stOn=k=>LT.m==='lao'||LT.st.includes(k);
   const trades=SW.filter(x=>x.d>P[0].d&&x.d<=P[n-1].d).length;const res=P[0].d>=D0?'일간 종가':P[n-1].d<D0?'주간 종가':'주간(2023-10 이전)+일간 종가';
   const pc=x=>(x>=0?'+':'−')+Math.abs(x*100).toFixed(1)+'%';
@@ -2638,7 +2638,7 @@ saveWork=function(){PWA.save();toast('✔ 이 기기에 저장했습니다')};
 {const _o=openFile;openFile=async function(f){const r=await _o(f);setTimeout(PWA.save,50);return r}}
 
 /* 🔄 새 버전 알림: GitHub에 새 계산표가 올라오면(최대 몇 분) 화면 위에 알려 주고, 누르면 캐시를 피해 새로 엶 */
-const APP_BUILD='20261119064130';
+const APP_BUILD='20261119064306';
 async function chkUpd(){try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();
  if(/^\d{14}$/.test(v)&&v>APP_BUILD&&!document.getElementById('updBar')){const b=document.createElement('div');b.id='updBar';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:80;background:#1f6feb;color:#fff;padding:10px 16px;border-radius:24px;box-shadow:0 4px 14px rgba(0,0,0,.25);font-weight:700;cursor:pointer;max-width:calc(100vw - 24px)';b.textContent='🔄 새 버전이 있어요 — 눌러서 바로 적용';b.onclick=()=>{try{PWA.save()}catch(e){}location.replace(location.pathname+'?v='+v)};document.body.appendChild(b)}}catch(e){}}
 setTimeout(chkUpd,1500);setInterval(chkUpd,10*60e3);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')chkUpd()});
@@ -2739,7 +2739,7 @@ boot();PWA.load();LIVE.refresh();LIVE.auto();
 {const _r=render;render=function(){_r();if(!DIRTY){const b=document.getElementById('stBadge');if(b&&!/저장됨/.test(b.textContent)){b.className='badge final';b.textContent='✔ 이 기기에 저장됨'}}}}
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261119064130';
+const FILE_BUILD='20261119064306';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
