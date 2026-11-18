@@ -552,10 +552,10 @@ const VR={
 const VRAPP={
  id:'vr-5',ver:2,title:'VR 밸류 리밸런싱 2주 계산표 (실력공식)',fileBase:'VR_실력공식_2주계산표',
  tabs:[{id:'cycle',label:'이번 사이클 매매표',grp:'2주마다 쓰기'},{id:'next',label:'사이클 마감 · 다음 V',grp:'2주마다 쓰기'},{id:'scen',label:'종가 시나리오 · 다음 V',grp:'2주마다 쓰기'},{id:'log',label:'사이클 기록 · 차트',grp:'2주마다 쓰기'},{id:'setup',label:'기본 설정 · 시작값',grp:'참고'},{id:'logic',label:'실력공식 · 로직',grp:'참고'},{id:'history',label:'변경 · 저장 이력',grp:'관리'}],
- defaults(){return{st:{ticker:'TQQQ',type:'lump',G:10,band:15,formula:'pro',C:0,W:0,floor:10,floorV:2,lim:{...LIM},show:25,scStep:5},cur:{V:null,pool:null,qty:null,close:null,cycleNo:1,start:today()},log:[],nf:{}}},
- sample(){return{st:{ticker:'TQQQ',type:'lump',G:10,band:15,formula:'pro',C:0,W:0,floor:10,floorV:2,lim:{...LIM},show:25,scStep:5},cur:{V:10000,pool:5000,qty:142,close:66.5,cycleNo:1,start:'2026-10-13'},log:[],nf:{}}},
- migrate(d){if(d.st){d.st.formula='pro';if(d.st.scStep==null)d.st.scStep=5;d.st.type='lump';d.st.C=0;d.st.W=0;if(d.st.floorV!==2){d.st.floor=10;d.st.floorV=2}}},
- label(k){return({'st.ticker':'종목','st.type':'운용 유형','st.G':'G값','st.band':'밴드폭(%)','st.C':'적립금','st.W':'인출금','st.scStep':'시나리오 간격(%)','st.floor':'Pool 바닥(총자산 %)','cur.V':'V','cur.pool':'Pool','cur.qty':'보유 수량','cur.close':'현재가','cur.cycleNo':'사이클 번호','cur.start':'사이클 시작일','st.show':'표시 줄 수'})[k]||(k.startsWith('nf.')?'마감 입력: '+k.slice(3):k.startsWith('st.lim')?'Pool 한도 '+k.slice(7):k)},
+ defaults(){return{st:{ticker:'TQQQ',type:'lump',G:10,band:15,formula:'pro',C:0,W:0,floor:10,floorV:2,seed:20000,lim:{...LIM},show:25,scStep:5},cur:{V:null,pool:null,qty:null,close:null,cycleNo:1,start:today()},log:[],nf:{}}},
+ sample(){return{st:{ticker:'TQQQ',type:'lump',G:10,band:15,formula:'pro',C:0,W:0,floor:10,floorV:2,seed:20000,lim:{...LIM},show:25,scStep:5},cur:{V:10000,pool:5000,qty:142,close:66.5,cycleNo:1,start:'2026-10-13'},log:[],nf:{}}},
+ migrate(d){if(d.st){d.st.formula='pro';if(d.st.scStep==null)d.st.scStep=5;d.st.type='lump';d.st.C=0;d.st.W=0;if(d.st.floorV!==2){d.st.floor=10;d.st.floorV=2}if(d.st.seed==null)d.st.seed=20000}},
+ label(k){return({'st.ticker':'종목','st.type':'운용 유형','st.G':'G값','st.band':'밴드폭(%)','st.C':'적립금','st.W':'인출금','st.scStep':'시나리오 간격(%)','st.floor':'Pool 바닥(총자산 %)','st.seed':'거치식 시작 금액','cur.V':'V','cur.pool':'Pool','cur.qty':'보유 수량','cur.close':'현재가','cur.cycleNo':'사이클 번호','cur.start':'사이클 시작일','st.show':'표시 줄 수'})[k]||(k.startsWith('nf.')?'마감 입력: '+k.slice(3):k.startsWith('st.lim')?'Pool 한도 '+k.slice(7):k)},
  act(a){
   if(a==='roll')return roll();
   if(a==='undo'){const l=S.v.log[0];if(!l)return;if(!confirm('마지막 사이클 마감('+l.end+')을 취소할까요?'))return;S.v.cur=clone(l.before);S.v.log.shift();logEdit('사이클 마감 취소',l.end,'되돌림','복원');mark();render();return}
@@ -683,7 +683,8 @@ VRAPP.views.setup=function(){const st=S.v.st,c=S.v.cur,a=VR.alpha(st.G),hl=VR.ha
   <div><label>사이클 번호</label>${inp('v.cur.cycleNo',{w:'s',int:true})}</div><div><label>사이클 시작일</label><input class="ci t" type="date" data-k="v.cur.start" value="${esc(c.start||'')}"></div>
   <div><label>V ($)</label>${inp('v.cur.V',{w:'w'})}<div class="hint">처음이라면 현재 평가금</div></div><div><label>Pool (현금, $)</label>${inp('v.cur.pool',{w:'w'})}</div>
   <div><label>보유 수량 (주)</label>${inp('v.cur.qty',{int:true})}</div><div><label>현재가 ($)</label>${inp('v.cur.close')}</div></div>
-  <div class="noprint" style="margin-top:12px"><button class="btn light" data-act="v:initV">V = 현재 평가금으로 설정</button></div>
+  <div class="form" style="margin-top:12px"><div><label>거치식 시작 금액 ($)</label>${inp('v.st.seed',{w:'w'})}<div class="hint">처음 넣는 돈 · 87%로 TQQQ, 13%는 Pool</div></div></div>
+  <div class="noprint" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-act="vb:seed">💵 시작 금액으로 시작값 만들기</button><button class="btn light" data-act="v:initV">V = 현재 평가금으로 설정</button></div>
   <div class="bub info">처음 시작: 원하는 만큼 TQQQ를 사고 나머지 현금은 Pool로 둡니다. 그때의 평가금(수량 × 가격)이 첫 V입니다. 이렇게 시작하면 첫 사이클의 괴리는 0에서 출발합니다.</div></div></div>`};
 VRAPP.views.logic=function(){const st=S.v.st,a=VR.alpha(st.G);
  const ex={V:10000,P:1500,G:10,E:12000},exA=VR.alpha(10),exV=r2(ex.V+ex.P/ex.G+(ex.E-ex.V)*exA);
@@ -749,7 +750,7 @@ const VRB={
    <div style="margin-top:4px;line-height:1.6">폭락 경보 규칙 B가 <b>${esc(a.since)}</b>부터 켜져 있어요. 매매표대로 사지 말고, <b>보유 TQQQ를 모두 팔아 현금으로</b> 기다립니다.${c.qty?` 지금 보유 <b>${c.qty}주</b> · 최근 종가 ${px}.`:''}</div>
    ${c.qty?`<div style="margin-top:8px"><button class="btn" data-act="vb:halt">🛑 전량 매도했어요 (기록하기)</button></div>`:''}${rule}`)}
   if(a.on&&h){return box('var(--amb)','rgba(217,162,30,.07)',`<div style="font-size:19px;font-weight:900;color:var(--amb)">🟡 VR 비상 정지 중</div>
-   <div style="margin-top:4px;line-height:1.6">${esc(h.date)}에 ${h.qty}주를 ${usd(h.price)}에 팔았어요 · 현금 <b>${usd(c.pool,0)}</b> 대기 중. <b>매매표는 쓰지 않습니다.</b><br>다시 시작 신호: 나스닥100이 <b>200일선 +3% 위</b> <b>그리고</b> 흔들림 <b>30% 미만</b> (지금 200일선 ${(a.L.dist*100>0?'+':'')+(a.L.dist*100).toFixed(1)}%, 흔들림 ${((a.L.vol20||0)*100).toFixed(1)}%)</div>${rule}`)}
+   <div style="margin-top:4px;line-height:1.6">${h.qty?`${esc(h.date)}에 ${h.qty}주를 ${usd(h.price)}에 팔았어요`:`${esc(h.date)} 시작 금액 — 경보가 켜져 있어 아직 사지 않았어요`} · 현금 <b>${usd(c.pool,0)}</b> 대기 중. <b>매매표는 쓰지 않습니다.</b><br>다시 시작 신호: 나스닥100이 <b>200일선 +3% 위</b> <b>그리고</b> 흔들림 <b>30% 미만</b> (지금 200일선 ${(a.L.dist*100>0?'+':'')+(a.L.dist*100).toFixed(1)}%, 흔들림 ${((a.L.vol20||0)*100).toFixed(1)}%)</div>${rule}`)}
   if(!a.on&&h){const p=VRB.plan(c.pool||0,a.price||1,st.G||10);return box('var(--pos)','rgba(28,122,73,.06)',`<div style="font-size:19px;font-weight:900;color:var(--pos)">🟢 경보 꺼짐 — VR 다시 시작할 때</div>
    <div style="margin-top:4px;line-height:1.6">현금 ${usd(c.pool,0)} 기준, 최근 종가 ${px}이면 → <b>${p.q}주 매수</b> · Pool ${usd(p.pool,0)} · 새 V <b>${usd(p.V,0)}</b> (V = 보유 평가금 + Pool/${st.G||10})</div>
    <div style="margin-top:8px"><button class="btn" data-act="vb:restart">▶ 다시 샀어요 (VR 다시 시작)</button></div>${rule}`)}
@@ -758,16 +759,26 @@ const VRB={
   const s=window.prompt(`보유 ${c.qty}주를 실제로 판 평균 가격($)을 넣으세요`,a&&a.price?a.price.toFixed(2):(c.close||''));if(s==null)return;const p=+s;if(!(p>0)){toast('가격을 숫자로 넣으세요');return}
   pushHx('VR 비상 정지 전 보관');const q=c.qty,tot=r2((c.pool||0)+q*p);logEdit('VR 비상 정지',`${q}주 · Pool ${c.pool}`,`전량 매도 $${p} → 현금 ${tot}`,'브레이크');
   S.v.halt={date:today(),price:p,qty:q};c.pool=tot;c.qty=0;c.close=p;S.v.nf={};mark();render();toast('🟡 VR 비상 정지를 기록했어요 · 현금으로 기다립니다',3500)},
+ seed(){const st=S.v.st,c=S.v.cur,a=VRB.alarm(),G=st.G||10,amt=+st.seed||0;if(!(amt>0)){toast('거치식 시작 금액을 넣으세요');return}
+  if(c.qty>0&&!confirm(`지금 시작값(보유 ${c.qty}주 · Pool ${usd(c.pool||0)})을 지우고 시작 금액 ${usd(amt,0)}로 새로 시작할까요?`))return;
+  const def=a&&a.price?a.price:(c.close||null);
+  if(a&&a.on){if(!confirm(`지금은 폭락 경보(규칙 B)가 🔴이라 TQQQ를 사지 않고\n시작 금액 ${usd(amt,0)}를 현금으로 둔 채 VR 비상 정지 상태로 시작합니다.\n경보가 🟢가 되면 ▶ 다시 샀어요 버튼으로 87%를 사서 시작하면 돼요. 진행할까요?`))return;
+   pushHx('VR 시작 전 보관');logEdit('VR 시작',`보유 ${c.qty||0}주 · Pool ${c.pool||0}`,`현금 ${amt} (경보 🔴 · 정지 상태로 시작)`,'시작');
+   Object.assign(c,{qty:0,pool:amt,V:null,close:def,cycleNo:1,start:today()});S.v.halt={date:today(),price:def||0,qty:0};S.v.nf={};mark();render();toast('🟡 시작 금액을 현금으로 두고 비상 정지 상태로 시작했어요',3500);return}
+  const s=window.prompt('TQQQ를 산 평균 가격($)을 넣으세요',def?def.toFixed(2):'');if(s==null)return;const p=+s;if(!(p>0)){toast('가격을 숫자로 넣으세요');return}
+  const pl=VRB.plan(amt,p,G);if(!confirm(`${pl.q}주를 $${p}에 사고 Pool ${usd(pl.pool)}\n첫 V ${usd(pl.V)} (보유 평가금 + Pool/${G})로 시작할까요?`))return;
+  pushHx('VR 시작 전 보관');logEdit('VR 시작',`보유 ${c.qty||0}주 · Pool ${c.pool||0}`,`${pl.q}주 @ $${p} · Pool ${pl.pool} · V ${pl.V}`,'시작');
+  Object.assign(c,{qty:pl.q,pool:pl.pool,V:pl.V,close:p,cycleNo:1,start:today()});S.v.halt=null;S.v.nf={};S.tab='v_cycle';mark();render();toast('▶ 시작 금액으로 VR을 시작했어요',3000)},
  restart(){const c=S.v.cur,a=VRB.alarm(),G=S.v.st.G||10;
   const s=window.prompt('다시 산 평균 가격($)을 넣으세요',a&&a.price?a.price.toFixed(2):'');if(s==null)return;const p=+s;if(!(p>0)){toast('가격을 숫자로 넣으세요');return}
   const pl=VRB.plan(c.pool||0,p,G);if(!confirm(`${pl.q}주를 $${p}에 산 것으로 기록하고\nPool ${usd(pl.pool)} · 새 V ${usd(pl.V)}로 VR을 다시 시작할까요?`))return;
   pushHx('VR 다시 시작 전 보관');logEdit('VR 다시 시작',`현금 ${c.pool}`,`${pl.q}주 @ $${p} · V ${pl.V}`,'브레이크');
-  Object.assign(c,{qty:pl.q,pool:pl.pool,V:pl.V,close:p,start:today(),cycleNo:(c.cycleNo||1)+1});S.v.halt=null;S.v.nf={};S.tab='v_cycle';mark();render();toast('▶ VR을 다시 시작했어요',3000)}
+  Object.assign(c,{qty:pl.q,pool:pl.pool,V:pl.V,close:p,start:today(),cycleNo:S.v.halt&&S.v.halt.qty===0?1:(c.cycleNo||1)+1});S.v.halt=null;S.v.nf={};S.tab='v_cycle';mark();render();toast('▶ VR을 다시 시작했어요',3000)}
 };
 APP.tabs.filter(t=>t.id.startsWith('v_')).forEach(t=>{const f=APP.views[t.id];APP.views[t.id]=function(){let b='';try{b=VRB.banner()}catch(e){}
  if(S.v&&S.v.halt&&['v_cycle','v_next','v_scen'].includes(t.id))return b+`<h2>${esc(t.label)}</h2><div class="bub info">VR이 <b>비상 정지 중</b>이라 이번엔 매매표·다음 V 계산을 쓰지 않아요. 경보가 🟢로 돌아오면 위 <b>▶ 다시 샀어요</b> 버튼으로 새 V를 잡고 다시 시작합니다. 지난 기록은 '사이클 기록 · 차트'와 '변경 · 저장 이력'에 남아 있어요.</div>`;
  return b+f.apply(this,arguments)}});
-{const a1=APP.act;APP.act=function(a,t){if(a==='vb:halt')return VRB.halt();if(a==='vb:restart')return VRB.restart();return a1(a,t)}}
+{const a1=APP.act;APP.act=function(a,t){if(a==='vb:halt')return VRB.halt();if(a==='vb:restart')return VRB.restart();if(a==='vb:seed')return VRB.seed();return a1(a,t)}}
 
 
 
@@ -2638,7 +2649,7 @@ saveWork=function(){PWA.save();toast('✔ 이 기기에 저장했습니다')};
 {const _o=openFile;openFile=async function(f){const r=await _o(f);setTimeout(PWA.save,50);return r}}
 
 /* 🔄 새 버전 알림: GitHub에 새 계산표가 올라오면(최대 몇 분) 화면 위에 알려 주고, 누르면 캐시를 피해 새로 엶 */
-const APP_BUILD='20261119064306';
+const APP_BUILD='20261119064737';
 async function chkUpd(){try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();
  if(/^\d{14}$/.test(v)&&v>APP_BUILD&&!document.getElementById('updBar')){const b=document.createElement('div');b.id='updBar';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:80;background:#1f6feb;color:#fff;padding:10px 16px;border-radius:24px;box-shadow:0 4px 14px rgba(0,0,0,.25);font-weight:700;cursor:pointer;max-width:calc(100vw - 24px)';b.textContent='🔄 새 버전이 있어요 — 눌러서 바로 적용';b.onclick=()=>{try{PWA.save()}catch(e){}location.replace(location.pathname+'?v='+v)};document.body.appendChild(b)}}catch(e){}}
 setTimeout(chkUpd,1500);setInterval(chkUpd,10*60e3);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')chkUpd()});
@@ -2739,7 +2750,7 @@ boot();PWA.load();LIVE.refresh();LIVE.auto();
 {const _r=render;render=function(){_r();if(!DIRTY){const b=document.getElementById('stBadge');if(b&&!/저장됨/.test(b.textContent)){b.className='badge final';b.textContent='✔ 이 기기에 저장됨'}}}}
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261119064306';
+const FILE_BUILD='20261119064737';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
