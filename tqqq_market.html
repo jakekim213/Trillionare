@@ -255,6 +255,95 @@ html[data-theme="dark"] svg rect[fill="#fff"],html[data-theme="dark"] svg rect[f
 #themeBtn{font:inherit;font-size:13px;padding:5px 10px;border-radius:6px;border:1px solid var(--jline);background:transparent;color:var(--ink2);cursor:pointer;white-space:nowrap}
 
 </style>
+<style id="skinReport">
+/* ===== 📄 리포트 양식 (2026-11-19 · '물류비 절감방안' 보고서 양식을 옮김) — 슬레이트 틸 기본 · 차콜&레드 · 네이비 (⋯ 더보기 → 색상 테마) =====
+   어두운 사이드바 + 회색 바탕 위 흰 '보고서 한 장' + 큰 번호·제목·굵은 밑줄 + 왼쪽 강조선 리드 + 각진 카드. 다크 모드에서는 쓰지 않음 */
+html[data-skin="teal"]{--sk-bg:#E5ECEB;--sk-side:#123B3F;--sk-side2:#1F5C62;--sk-title:#14474C;--sk-accent:#2A9187;--sk-border:#D3DEDD;--sk-head:#EAF2F1;--sk-row:#E2EAE9;--sk-lead:#F2F8F7}
+html[data-skin="charcoal"]{--sk-bg:#E8E8E9;--sk-side:#232629;--sk-side2:#3A3F45;--sk-title:#1F2328;--sk-accent:#E51738;--sk-border:#D9DBDF;--sk-head:#F0F1F3;--sk-row:#E6E7EA;--sk-lead:#F7F7F8}
+html[data-skin="navy"]{--sk-bg:#E9ECF0;--sk-side:#1E3A5F;--sk-side2:#2F5283;--sk-title:#1F3B63;--sk-accent:#5B8CC8;--sk-border:#D5DBE3;--sk-head:#EEF2F7;--sk-row:#E3E7ED;--sk-lead:#F5F8FB}
+html[data-skin]:not([data-theme="dark"]){--navy:var(--sk-title);--navy2:var(--sk-side2);--steel:var(--sk-accent);--gold:var(--sk-accent);--gold2:var(--sk-title);--line:var(--sk-border);--line2:var(--sk-row);--soft:var(--sk-lead);
+ --jpage:var(--sk-bg);--jbg:var(--sk-lead);--jhdr:var(--sk-head);--jline:var(--sk-border);--jsoft:var(--sk-row);--jgold:var(--sk-accent);--jgink:var(--sk-title);--jgdeep:var(--sk-title);--jgsoft:var(--sk-lead)}
+html[data-skin]:not([data-theme="dark"]) body{background:var(--sk-bg);font-size:14.5px;line-height:1.5}
+/* 상단 바 */
+html[data-skin]:not([data-theme="dark"]) header.jtop{background:#fff;border-bottom:1px solid var(--sk-border)}
+html[data-skin]:not([data-theme="dark"]) .jtop .brand .mark{color:var(--sk-title);font-size:15px}
+html[data-skin]:not([data-theme="dark"]) .jtop .brand .ver{color:var(--sk-title);background:var(--sk-lead);border-color:var(--sk-border)}
+html[data-skin]:not([data-theme="dark"]) .jtop .btn{background:#fff;color:var(--sk-title);border:1px solid var(--sk-border);border-radius:4px;font-weight:600}
+html[data-skin]:not([data-theme="dark"]) .jtop .btn:hover{border-color:var(--sk-accent);background:#fff;color:var(--sk-title)}
+html[data-skin]:not([data-theme="dark"]) .jtop .btn.gold{background:var(--sk-title);border-color:var(--sk-title);color:#fff}
+html[data-skin]:not([data-theme="dark"]) .jtop .btn.gold:hover{background:var(--sk-side2)}
+html[data-skin]:not([data-theme="dark"]) .jtop details.more>summary{border-radius:4px;border-color:var(--sk-border);color:var(--sk-title)}
+html[data-skin]:not([data-theme="dark"]) .jtop details.more[open]>summary{background:var(--sk-lead);color:var(--sk-title)}
+html[data-skin]:not([data-theme="dark"]) .jtop .menu .btn{border:0;background:#fff}
+html[data-skin]:not([data-theme="dark"]) .jtop .menu .btn:hover{background:var(--sk-lead)}
+html[data-skin]:not([data-theme="dark"]) .jtop .menu .skl{font-size:11.5px;font-weight:700;color:var(--mut);padding:4px 10px 2px}
+html[data-skin]:not([data-theme="dark"]) .jtop .menu .sw3{display:inline-flex;gap:2px;margin-right:6px;vertical-align:-3px}
+html[data-skin]:not([data-theme="dark"]) .jtop .menu .sw3 i{width:9px;height:15px;border-radius:2px;display:block}
+/* 사이드바 */
+html[data-skin]:not([data-theme="dark"]) nav{background:var(--sk-side);border-right:0;padding:14px 10px 30px}
+html[data-skin]:not([data-theme="dark"]) nav .grp{color:rgba(255,255,255,.45);font-size:11px;letter-spacing:.3px;border-top:1px solid rgba(255,255,255,.12);margin:7px 2px 0;padding:10px 10px 4px}
+html[data-skin]:not([data-theme="dark"]) nav .grp:first-child{border-top:0;margin-top:0;padding-top:2px}
+html[data-skin]:not([data-theme="dark"]) nav button{color:rgba(255,255,255,.85);font-size:13px;font-weight:500;padding:8px 12px;border-radius:4px;margin-bottom:2px}
+html[data-skin]:not([data-theme="dark"]) nav button::before{display:none}
+html[data-skin]:not([data-theme="dark"]) nav button:hover{background:rgba(255,255,255,.08);color:#fff}
+html[data-skin]:not([data-theme="dark"]) nav button.on{background:var(--sk-side2);color:#fff;font-weight:700;box-shadow:inset 3px 0 0 var(--sk-accent)}
+html[data-skin]:not([data-theme="dark"]) nav button .no{color:rgba(255,255,255,.55)}
+html[data-skin]:not([data-theme="dark"]) nav button.on .no{color:#fff}
+html[data-skin]:not([data-theme="dark"]) nav .navsec{background:transparent;border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.6);border-radius:4px}
+html[data-skin]:not([data-theme="dark"]) nav .navsec b{color:#fff}
+/* 보고서 한 장 */
+html[data-skin]:not([data-theme="dark"]) main{padding:24px 28px 40px}
+html[data-skin]:not([data-theme="dark"]) #view{background:#fff;max-width:1240px;margin:0 auto;padding:28px 40px 30px;box-shadow:0 1px 3px rgba(20,40,70,.08),0 6px 24px rgba(20,40,70,.06)}
+html[data-skin]:not([data-theme="dark"]) #view h2{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;font-size:26px;font-weight:700;color:var(--sk-title);letter-spacing:-.3px;padding-bottom:10px;border-bottom:2px solid var(--sk-title);margin:0 0 12px}
+html[data-skin]:not([data-theme="dark"]) #view h2 .pno{color:var(--sk-accent);font-weight:700}
+html[data-skin]:not([data-theme="dark"]) #view h2 .pg{margin-left:auto;font-size:13px;font-weight:400;color:var(--mut)}
+html[data-skin]:not([data-theme="dark"]) .lead{margin:12px 0 18px;font-size:15px;line-height:1.55;color:var(--ink2);padding:9px 14px;background:var(--sk-lead);border-left:3px solid var(--sk-accent)}
+html[data-skin]:not([data-theme="dark"]) .lead b{color:var(--sk-title)}
+html[data-skin]:not([data-theme="dark"]) h3{font-size:17px;font-weight:700;color:var(--sk-title)}
+html[data-skin]:not([data-theme="dark"]) h3:before{width:4px;height:16px;background:var(--sk-accent);border-radius:1px}
+html[data-skin]:not([data-theme="dark"]) .card{border:1px solid var(--sk-border);border-radius:4px;box-shadow:none;padding:14px 16px}
+html[data-skin]:not([data-theme="dark"]) .card.soft{background:var(--sk-lead)}
+html[data-skin]:not([data-theme="dark"]) .kpi{border:1px solid var(--sk-border);border-top:3px solid var(--sk-accent);border-radius:4px;padding:11px 14px}
+html[data-skin]:not([data-theme="dark"]) .kpi.g{border-top-color:#D3A12A}
+html[data-skin]:not([data-theme="dark"]) .kpi .lab{font-size:13.5px;color:var(--mut)}
+html[data-skin]:not([data-theme="dark"]) .kpi .val{color:var(--ink);font-size:27px}
+html[data-skin]:not([data-theme="dark"]) .tw{border:1px solid var(--sk-border);border-radius:4px}
+html[data-skin]:not([data-theme="dark"]) table.g th,html[data-skin]:not([data-theme="dark"]) table.g td{border-bottom-color:var(--sk-row)}
+html[data-skin]:not([data-theme="dark"]) table.g thead th{background:var(--sk-head);color:var(--ink2);font-weight:600;border-bottom:1.5px solid var(--sk-title)}
+html[data-skin]:not([data-theme="dark"]) table.g tr.sec td{background:var(--sk-lead);color:var(--sk-title)}
+html[data-skin]:not([data-theme="dark"]) table.g tr.tot td{background:#FAFBFC;border-top-color:var(--sk-border)}
+html[data-skin]:not([data-theme="dark"]) table.g tr.now td{background:var(--sk-lead)}
+html[data-skin]:not([data-theme="dark"]) .btn{background:var(--sk-title);border:1px solid var(--sk-title);color:#fff;border-radius:4px}
+html[data-skin]:not([data-theme="dark"]) .btn:hover{background:var(--sk-side2)}
+html[data-skin]:not([data-theme="dark"]) .btn.light{background:#fff;color:var(--sk-title);border-color:var(--sk-border)}
+html[data-skin]:not([data-theme="dark"]) .btn.light:hover{background:#fff;border-color:var(--sk-accent)}
+html[data-skin]:not([data-theme="dark"]) .btn.danger{background:#fff;color:var(--neg);border-color:#eec1b9}
+html[data-skin]:not([data-theme="dark"]) .bub{background:var(--sk-lead);border:1px solid var(--sk-border);border-left:4px solid var(--sk-accent);border-radius:4px}
+html[data-skin]:not([data-theme="dark"]) .bub.warn{background:var(--neg1);border-color:#eec1b9;border-left-color:var(--neg)}
+html[data-skin]:not([data-theme="dark"]) .bub.ok{background:var(--pos1);border-color:#bcd8c8;border-left-color:var(--pos)}
+html[data-skin]:not([data-theme="dark"]) .bub b{color:var(--sk-title)}
+html[data-skin]:not([data-theme="dark"]) .banner,html[data-skin]:not([data-theme="dark"]) .secbar,html[data-skin]:not([data-theme="dark"]) .seg,html[data-skin]:not([data-theme="dark"]) .node,html[data-skin]:not([data-theme="dark"]) .copybox{border-radius:4px}
+html[data-skin]:not([data-theme="dark"]) .seg button.on{background:var(--sk-title)}
+html[data-skin]:not([data-theme="dark"]) .chev div{background:var(--sk-side2)}
+html[data-skin]:not([data-theme="dark"]) .chev div:nth-child(even){background:var(--sk-accent)}
+html[data-skin]:not([data-theme="dark"]) footer{background:transparent;border-top:0}
+html[data-skin]:not([data-theme="dark"]) #toast{border-left-color:var(--sk-accent)}
+/* 아래쪽 이전 · 다음 */
+.pnav{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:22px 0 0;padding-top:12px;border-top:1px solid var(--line2);font-size:13px;color:var(--mut)}
+.pnav .btn{max-width:42%;overflow:hidden;text-overflow:ellipsis}
+/* 좁은 화면 */
+@media(max-width:900px){
+ html[data-skin]:not([data-theme="dark"]) nav{background:var(--sk-side);border-bottom:0;padding:6px 8px}
+ html[data-skin]:not([data-theme="dark"]) nav button{margin:0;padding:7px 11px}
+ html[data-skin]:not([data-theme="dark"]) nav button.on{box-shadow:inset 0 -3px 0 var(--sk-accent)}
+ html[data-skin]:not([data-theme="dark"]) main{padding:10px 8px 30px}
+ html[data-skin]:not([data-theme="dark"]) #view{padding:18px 14px 22px}
+ html[data-skin]:not([data-theme="dark"]) #view h2{font-size:21px;gap:10px}
+}
+@media print{html[data-skin] #view{box-shadow:none;padding:0;max-width:none}html[data-skin] body{background:#fff}.pnav{display:none}}
+</style>
+<script>try{document.documentElement.setAttribute('data-skin',localStorage.getItem('tqqqSkin')||'teal')}catch(e){document.documentElement.setAttribute('data-skin','teal')}</script>
+
 </head>
 <body>
 <header class="jtop">
@@ -2610,10 +2699,24 @@ const CRASH={
 
 
 
+/* ===== 📄 리포트 양식: 제목 앞 페이지 번호 · 아래쪽 이전/다음 · 색상 테마 고르기 (2026-11-19) ===== */
+const SKIN={L:[['teal','슬레이트 틸 (기본)',['#123B3F','#1D6E7A','#2A9187','#E0773A']],['charcoal','차콜 & 레드',['#232629','#36485E','#E51738','#2B9C8A']],['navy','네이비',['#1E3A5F','#1F5FAE','#5B8CC8','#E27B36']]],
+ set(k){document.documentElement.setAttribute('data-skin',k);try{localStorage.setItem('tqqqSkin',k)}catch(e){}SKIN.menu();render()},
+ menu(){const m=document.querySelector('.jtop .menu');if(!m)return;let b=m.querySelector('#skinMenu');if(!b){m.insertAdjacentHTML('beforeend','<hr><div id="skinMenu"></div>');b=m.querySelector('#skinMenu')}
+  const cur=document.documentElement.getAttribute('data-skin')||'teal';
+  b.innerHTML='<div class="skl">🎨 색상 테마 (밝은 화면)</div>'+SKIN.L.map(([k,n,sw])=>`<button class="btn" data-act="skin:${k}">${cur===k?'✔ ':''}<span class="sw3">${sw.map(c=>`<i style="background:${c}"></i>`).join('')}</span>${n}</button>`).join('')}};
+{const _rS=render;render=function(){_rS.apply(this,arguments);try{const v=document.getElementById('view');if(!v)return;const i=APP.tabs.findIndex(t=>t.id===S.tab),N=APP.tabs.length;if(i<0)return;
+  let h=v.querySelector('h2');if(!h){v.insertAdjacentHTML('afterbegin',`<h2>${esc(APP.tabs[i].label)}</h2>`);h=v.querySelector('h2')}
+  if(!h.querySelector('.pno'))h.insertAdjacentHTML('afterbegin',`<span class="pno">${p2(i+1)}</span>`);if(v.firstElementChild!==h)v.prepend(h);
+  const pv=APP.tabs[i-1],nx=APP.tabs[i+1];v.insertAdjacentHTML('beforeend',`<div class="pnav noprint">${pv?`<button class="btn light sm" data-tab="${pv.id}">‹ ${esc(pv.label)}</button>`:'<span></span>'}<span>${i+1} / ${N}</span>${nx?`<button class="btn light sm" data-tab="${nx.id}">${esc(nx.label)} ›</button>`:'<span></span>'}</div>`)}catch(e){}}}
+{const _aS=APP.act;APP.act=function(a,t){if(a&&a.startsWith('skin:')){SKIN.set(a.slice(5));const d=document.querySelector('.jtop details.more');if(d)d.open=false;return}return _aS(a,t)}}
+try{SKIN.menu()}catch(e){}
+
+
 boot();LIVE.refresh();LIVE.auto();
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261119062156';
+const FILE_BUILD='20261119062713';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
