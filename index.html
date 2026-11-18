@@ -646,6 +646,40 @@ Object.entries(VRAPP.views).forEach(([k,f])=>{if(k!=='history')APP.views['v_'+k]
  APP.migrate=function(d){m0(d);if(!d.v)d.v=VRAPP.defaults();VRAPP.migrate(d.v)};
  APP.csv=function(){let r=[];try{if(S.v&&S.v.cur&&S.v.cur.V!=null)r=[['[VR 밸류 리밸런싱 · 실력공식]'],...VRAPP.csv(),[],[]]}catch(e){}return r.concat(c0())};}
 
+/* ===== VR 비상 브레이크 (2026-11-18 추가 · 운용 원칙: VR이 평소 운전, 폭락 경보 규칙 B가 🔴이면 VR 정지·전량 현금) =====
+   검증(가상 TQQQ 1999~2026, 거치식 G10·밴드±15%·Pool 한도 50%·시작 현금 13%): VR만 1.8배·최대낙폭 −100% → 브레이크 143배·−59%
+   다시 시작: 평가금 = 현금, 보유 = ⌊현금×87%÷가격⌋주, Pool = 나머지, V = 보유×가격 + Pool/G */
+const VRB={
+ alarm(){try{const c=CRASH.calc();return c?{on:!c.e,since:c.eS,L:c.L,price:c.L.tqqq}:null}catch(e){return null}},
+ plan(tot,p,G){const q=Math.floor(tot*0.87/p),pool=r2(tot-q*p);return{q,pool,V:r2(q*p+pool/G)}},
+ banner(){const a=VRB.alarm(),v=S.v||{},c=v.cur||{},h=v.halt,st=v.st||{};if(!a)return '';
+  const px=a.price?usd(a.price):'–',box=(col,bg,html)=>`<div class="card noprint" style="border:3px solid ${col};background:${bg};margin-bottom:14px;padding:12px 14px">${html}</div>`;
+  const rule=`<div class="note" style="margin-top:6px">운용 원칙: <b>VR이 평소 운전</b>, 폭락 경보 <b>규칙 B(흔들림+추세)</b>가 🔴이면 <b>VR을 멈추고 전부 현금</b>, 🟢로 돌아오면 평가금으로 V를 새로 잡아 다시 시작. 검증: 1999~2026 VR만 1.8배·최대 낙폭 −100% → 브레이크 143배·−59% (닷컴 −100%→−12%, 2008 −95%→−49%, 코로나 −66%→−28%, 2022 −80%→−36%). <button class="btn sm light" data-tab="home">경보 카드 보기 →</button></div>`;
+  if(a.on&&!h){return box('var(--neg)','rgba(199,63,46,.06)',`<div style="font-size:19px;font-weight:900;color:var(--neg)">🔴 비상 브레이크 — 지금은 VR을 멈출 때</div>
+   <div style="margin-top:4px;line-height:1.6">폭락 경보 규칙 B가 <b>${esc(a.since)}</b>부터 켜져 있어요. 매매표대로 사지 말고, <b>보유 TQQQ를 모두 팔아 현금으로</b> 기다립니다.${c.qty?` 지금 보유 <b>${c.qty}주</b> · 최근 종가 ${px}.`:''}</div>
+   ${c.qty?`<div style="margin-top:8px"><button class="btn" data-act="vb:halt">🛑 전량 매도했어요 (기록하기)</button></div>`:''}${rule}`)}
+  if(a.on&&h){return box('var(--amb)','rgba(217,162,30,.07)',`<div style="font-size:19px;font-weight:900;color:var(--amb)">🟡 VR 비상 정지 중</div>
+   <div style="margin-top:4px;line-height:1.6">${esc(h.date)}에 ${h.qty}주를 ${usd(h.price)}에 팔았어요 · 현금 <b>${usd(c.pool,0)}</b> 대기 중. <b>매매표는 쓰지 않습니다.</b><br>다시 시작 신호: 나스닥100이 <b>200일선 +3% 위</b> <b>그리고</b> 흔들림 <b>30% 미만</b> (지금 200일선 ${(a.L.dist*100>0?'+':'')+(a.L.dist*100).toFixed(1)}%, 흔들림 ${((a.L.vol20||0)*100).toFixed(1)}%)</div>${rule}`)}
+  if(!a.on&&h){const p=VRB.plan(c.pool||0,a.price||1,st.G||10);return box('var(--pos)','rgba(28,122,73,.06)',`<div style="font-size:19px;font-weight:900;color:var(--pos)">🟢 경보 꺼짐 — VR 다시 시작할 때</div>
+   <div style="margin-top:4px;line-height:1.6">현금 ${usd(c.pool,0)} 기준, 최근 종가 ${px}이면 → <b>${p.q}주 매수</b> · Pool ${usd(p.pool,0)} · 새 V <b>${usd(p.V,0)}</b> (V = 보유 평가금 + Pool/${st.G||10})</div>
+   <div style="margin-top:8px"><button class="btn" data-act="vb:restart">▶ 다시 샀어요 (VR 다시 시작)</button></div>${rule}`)}
+  return box('var(--pos)','transparent',`<div style="font-size:16px;font-weight:800;color:var(--pos)">🟢 VR 운전 중 — 폭락 경보 꺼짐, 매매표대로 하면 돼요</div>${rule}`)},
+ halt(){const c=S.v.cur,a=VRB.alarm();if(!c.qty){toast('보유 수량이 없습니다');return}
+  const s=window.prompt(`보유 ${c.qty}주를 실제로 판 평균 가격($)을 넣으세요`,a&&a.price?a.price.toFixed(2):(c.close||''));if(s==null)return;const p=+s;if(!(p>0)){toast('가격을 숫자로 넣으세요');return}
+  pushHx('VR 비상 정지 전 보관');const q=c.qty,tot=r2((c.pool||0)+q*p);logEdit('VR 비상 정지',`${q}주 · Pool ${c.pool}`,`전량 매도 $${p} → 현금 ${tot}`,'브레이크');
+  S.v.halt={date:today(),price:p,qty:q};c.pool=tot;c.qty=0;c.close=p;S.v.nf={};mark();render();toast('🟡 VR 비상 정지를 기록했어요 · 현금으로 기다립니다',3500)},
+ restart(){const c=S.v.cur,a=VRB.alarm(),G=S.v.st.G||10;
+  const s=window.prompt('다시 산 평균 가격($)을 넣으세요',a&&a.price?a.price.toFixed(2):'');if(s==null)return;const p=+s;if(!(p>0)){toast('가격을 숫자로 넣으세요');return}
+  const pl=VRB.plan(c.pool||0,p,G);if(!confirm(`${pl.q}주를 $${p}에 산 것으로 기록하고\nPool ${usd(pl.pool)} · 새 V ${usd(pl.V)}로 VR을 다시 시작할까요?`))return;
+  pushHx('VR 다시 시작 전 보관');logEdit('VR 다시 시작',`현금 ${c.pool}`,`${pl.q}주 @ $${p} · V ${pl.V}`,'브레이크');
+  Object.assign(c,{qty:pl.q,pool:pl.pool,V:pl.V,close:p,start:today(),cycleNo:(c.cycleNo||1)+1});S.v.halt=null;S.v.nf={};S.tab='v_cycle';mark();render();toast('▶ VR을 다시 시작했어요',3000)}
+};
+APP.tabs.filter(t=>t.id.startsWith('v_')).forEach(t=>{const f=APP.views[t.id];APP.views[t.id]=function(){let b='';try{b=VRB.banner()}catch(e){}
+ if(S.v&&S.v.halt&&['v_cycle','v_next','v_scen'].includes(t.id))return b+`<h2>${esc(t.label)}</h2><div class="bub info">VR이 <b>비상 정지 중</b>이라 이번엔 매매표·다음 V 계산을 쓰지 않아요. 경보가 🟢로 돌아오면 위 <b>▶ 다시 샀어요</b> 버튼으로 새 V를 잡고 다시 시작합니다. 지난 기록은 '사이클 기록 · 차트'와 '변경 · 저장 이력'에 남아 있어요.</div>`;
+ return b+f.apply(this,arguments)}});
+{const a1=APP.act;APP.act=function(a,t){if(a==='vb:halt')return VRB.halt();if(a==='vb:restart')return VRB.restart();return a1(a,t)}}
+
+
 
 /* ===================== 참고 분석: TQQQ 매수 시점 (첨부 자료 수록) ===================== */
 
@@ -2485,7 +2519,7 @@ saveWork=function(){PWA.save();toast('✔ 이 기기에 저장했습니다')};
 {const _o=openFile;openFile=async function(f){const r=await _o(f);setTimeout(PWA.save,50);return r}}
 
 /* 🔄 새 버전 알림: GitHub에 새 계산표가 올라오면(최대 몇 분) 화면 위에 알려 주고, 누르면 캐시를 피해 새로 엶 */
-const APP_BUILD='20261118185500';
+const APP_BUILD='20261118200436';
 async function chkUpd(){try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();
  if(/^\d{14}$/.test(v)&&v>APP_BUILD&&!document.getElementById('updBar')){const b=document.createElement('div');b.id='updBar';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:80;background:#1f6feb;color:#fff;padding:10px 16px;border-radius:24px;box-shadow:0 4px 14px rgba(0,0,0,.25);font-weight:700;cursor:pointer;max-width:calc(100vw - 24px)';b.textContent='🔄 새 버전이 있어요 — 눌러서 바로 적용';b.onclick=()=>{try{PWA.save()}catch(e){}location.replace(location.pathname+'?v='+v)};document.body.appendChild(b)}}catch(e){}}
 setTimeout(chkUpd,1500);setInterval(chkUpd,10*60e3);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')chkUpd()});
@@ -2546,7 +2580,7 @@ const CRASH={
   <div class="note" style="font-size:13px">품질 관리도와 같은 원리예요. <b>흔들림</b>(R 관리도·산포)은 코로나처럼 <b>빠른 폭락</b>을, <b>200일선</b>(X̄ 관리도·평균)은 2008·2022처럼 <b>느린 폭락</b>을 잡습니다. 3배 레버리지는 흔들릴수록 돈이 녹아서 흔들림 센서가 특히 중요해요.</div>
   <div class="row c2" style="margin-top:10px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px">
    ${tile('규칙 A · 흔들림만','(100배 목표형 · 수익 우선)',f,fS,howA,fl.length?(fl[fl.length-1][1]?'▲매수 ':'▼매도 ')+fl[fl.length-1][0]:'')}
-   ${tile('규칙 B · 흔들림 + 추세','(안심형 · 낙폭 최소)',e,eS,howB,el.length?(el[el.length-1][1]?'▲매수 ':'▼매도 ')+el[el.length-1][0]:'')}
+   ${tile('규칙 B · 흔들림 + 추세','(🧭 VR 비상 브레이크 · 낙폭 최소)',e,eS,howB,el.length?(el[el.length-1][1]?'▲매수 ':'▼매도 ')+el[el.length-1][0]:'')}
   </div>
   ${gV}${gD}
   <div style="margin-top:4px">${CRASH.chart(c.R)}</div>
@@ -2572,7 +2606,7 @@ boot();PWA.load();LIVE.refresh();LIVE.auto();
 {const _r=render;render=function(){_r();if(!DIRTY){const b=document.getElementById('stBadge');if(b&&!/저장됨/.test(b.textContent)){b.className='badge final';b.textContent='✔ 이 기기에 저장됨'}}}}
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261118185500';
+const FILE_BUILD='20261118200436';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
