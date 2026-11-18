@@ -544,9 +544,9 @@ const VR={
 const VRAPP={
  id:'vr-5',ver:2,title:'VR 밸류 리밸런싱 2주 계산표 (실력공식)',fileBase:'VR_실력공식_2주계산표',
  tabs:[{id:'cycle',label:'이번 사이클 매매표',grp:'2주마다 쓰기'},{id:'next',label:'사이클 마감 · 다음 V',grp:'2주마다 쓰기'},{id:'scen',label:'종가 시나리오 · 다음 V',grp:'2주마다 쓰기'},{id:'log',label:'사이클 기록 · 차트',grp:'2주마다 쓰기'},{id:'setup',label:'기본 설정 · 시작값',grp:'참고'},{id:'logic',label:'실력공식 · 로직',grp:'참고'},{id:'history',label:'변경 · 저장 이력',grp:'관리'}],
- defaults(){return{st:{ticker:'TQQQ',type:'acc',G:10,band:15,formula:'pro',C:250,W:0,lim:{...LIM},show:25,scStep:5},cur:{V:null,pool:null,qty:null,close:null,cycleNo:1,start:today()},log:[],nf:{}}},
- sample(){return{st:{ticker:'TQQQ',type:'acc',G:10,band:15,formula:'pro',C:250,W:0,lim:{...LIM},show:25,scStep:5},cur:{V:10000,pool:5000,qty:142,close:66.5,cycleNo:1,start:'2026-10-13'},log:[],nf:{}}},
- migrate(d){if(d.st){d.st.formula='pro';if(d.st.scStep==null)d.st.scStep=5}},
+ defaults(){return{st:{ticker:'TQQQ',type:'lump',G:10,band:15,formula:'pro',C:0,W:0,lim:{...LIM},show:25,scStep:5},cur:{V:null,pool:null,qty:null,close:null,cycleNo:1,start:today()},log:[],nf:{}}},
+ sample(){return{st:{ticker:'TQQQ',type:'lump',G:10,band:15,formula:'pro',C:0,W:0,lim:{...LIM},show:25,scStep:5},cur:{V:10000,pool:5000,qty:142,close:66.5,cycleNo:1,start:'2026-10-13'},log:[],nf:{}}},
+ migrate(d){if(d.st){d.st.formula='pro';if(d.st.scStep==null)d.st.scStep=5;d.st.type='lump';d.st.C=0;d.st.W=0}},
  label(k){return({'st.ticker':'종목','st.type':'운용 유형','st.G':'G값','st.band':'밴드폭(%)','st.C':'적립금','st.W':'인출금','st.scStep':'시나리오 간격(%)','cur.V':'V','cur.pool':'Pool','cur.qty':'보유 수량','cur.close':'현재가','cur.cycleNo':'사이클 번호','cur.start':'사이클 시작일','st.show':'표시 줄 수'})[k]||(k.startsWith('nf.')?'마감 입력: '+k.slice(3):k.startsWith('st.lim')?'Pool 한도 '+k.slice(7):k)},
  act(a){
   if(a==='roll')return roll();
@@ -661,15 +661,14 @@ VRAPP.views.log=function(){const L=S.v.log.slice().reverse();
  <div class="card"><h3>📈 V · 밴드 · 평가금 추이</h3>${svg||'<p class="note">사이클을 한 번 이상 마감하면 차트가 그려집니다.</p>'}</div>
  <div class="card"><h3>📒 사이클 기록 <span class="pill n">${L.length}건</span>${L.length?`<span class="note">실력 보정 누적 ${sumPro>=0?'+':''}${usd(sumPro,0)}</span>`:''}</h3>${L.length?`<div class="tw tall"><table class="g"><thead><tr><th>사이클</th><th>기간</th><th>V</th><th>밴드<span class="tg">하단 ~ 상단</span></th><th>매수<span class="tg">수량 · 금액</span></th><th>매도<span class="tg">수량 · 금액</span></th><th>마감 평가금 E</th><th>괴리 E − V</th><th>마감 Pool</th><th>성장분 P/G</th><th>실력 보정</th><th>다음 V</th><th>기본공식이었다면</th><th>다음 Pool</th></tr></thead><tbody>${S.v.log.map(l=>{const r=l.r,G=r.G||l.G,gap=r.E-l.before.V,isPro=r.pro!=null&&l.formula!=='basic';return `<tr><td class="c"><b>${l.before.cycleNo}</b></td><td>${esc(l.before.start)} ~ ${esc(l.end)}</td><td class="n">${usd(l.before.V,0)}</td><td class="n">${usd(l.lo,0)} ~ ${usd(l.hi,0)}</td><td class="n">${l.f.bq||0}주 · ${usd(l.f.ba||0,0)}</td><td class="n">${l.f.sq||0}주 · ${usd(l.f.sa||0,0)}</td><td class="n">${usd(r.E,0)}</td><td class="n ${gap>=0?'pos':'neg'}">${gap>=0?'+':''}${usd(gap,0)}</td><td class="n">${usd(r.P,0)}</td><td class="n">${usd(r.P/G,0)}</td><td class="n ${isPro?(r.pro>=0?'pos':'neg'):''}">${isPro?(r.pro>=0?'+':'')+usd(r.pro,0):'<span class="pill n">기본공식</span>'}</td><td class="n"><b>${usd(r.V,0)}</b></td><td class="n" style="color:var(--mut)">${r.Vb!=null?usd(r.Vb,0):'–'}</td><td class="n">${usd(r.pool,0)}</td></tr>`}).join('')}</tbody></table></div>`:'<p class="note">아직 마감한 사이클이 없습니다.</p>'}</div>`};
 VRAPP.views.setup=function(){const st=S.v.st,c=S.v.cur,a=VR.alpha(st.G),hl=VR.halfLife(st.G);
- return `<h2>${tx('v.t.setup','기본 설정 · 시작값')}</h2><p class="lead">처음 시작할 때와 유형을 바꿀 때만 씁니다. 유형 전환은 수개월 단위로만 하고, 2주마다 바꾸지 않습니다.</p>
+ return `<h2>${tx('v.t.setup','기본 설정 · 시작값')}</h2><p class="lead">처음 시작할 때만 씁니다. 운용 유형은 거치식(추가 입금·출금 없음)으로 고정입니다.</p>
  <div class="row c2"><div class="card"><h3>⚙️ 방법론 설정 ${proTag(st.G)}</h3><div class="form">
   <div><label>종목</label>${sel('v.st.ticker',[['TQQQ','TQQQ (오피셜)'],['QLD','QLD (2배)'],['UPRO','UPRO (S&P 3배)']])}</div>
-  <div><label>운용 유형</label>${sel('v.st.type',[['acc','적립식 (매 사이클 추가 입금)'],['lump','거치식 (추가 없음)'],['wd','인출식 (매 사이클 출금)']])}</div>
-  <div><label>G값 (/G)</label>${inp('v.st.G',{w:'s'})}<div class="hint">적립·거치 /10, 인출 /20부터 권장</div></div>
+  <div><label>운용 유형</label><div style="padding:6px 0;font-weight:700">거치식 (추가 입금·출금 없음)</div></div>
+  <div><label>G값 (/G)</label>${inp('v.st.G',{w:'s'})}<div class="hint">거치식 /10 권장</div></div>
   <div><label>밴드폭 (±%)</label>${inp('v.st.band',{w:'s'})}<div class="hint">오피셜 ±15</div></div>
-  <div><label>사이클당 적립금 ($)</label>${inp('v.st.C')}</div><div><label>사이클당 인출금 ($)</label>${inp('v.st.W')}</div>
   <div><label>매매표 표시 줄 수</label>${inp('v.st.show',{w:'s',int:true})}</div><div><label>시나리오 간격 (%)</label>${inp('v.st.scStep',{w:'s'})}</div></div>
-  <h3 style="margin-top:16px">Pool 사용 한도 (%)</h3><div class="form"><div><label>적립식</label>${inp('v.st.lim.acc',{w:'s'})}</div><div><label>거치식</label>${inp('v.st.lim.lump',{w:'s'})}</div><div><label>인출식</label>${inp('v.st.lim.wd',{w:'s'})}</div></div>
+  <h3 style="margin-top:16px">Pool 사용 한도 (%)</h3><div class="form"><div><label>거치식</label>${inp('v.st.lim.lump',{w:'s'})}</div></div>
   <div class="legend-in"><span class="li">직접 입력</span></div>
   <div class="bub info">지금 G=/${st.G}이면 실력공식은 V와 평가금의 차이를 <b>2주마다 ${fmt(a*100,1)}%씩</b> 따라갑니다. 차이가 절반으로 줄어드는 데 약 <b>${hl?fmt(hl,1):'–'}사이클(${hl?fmt(hl*2,0):'–'}주)</b>이 걸립니다.</div></div>
  <div class="card"><h3>🚩 현재 사이클 시작값</h3><div class="form">
@@ -710,7 +709,7 @@ VRAPP.views.logic=function(){const st=S.v.st,a=VR.alpha(st.G);
   <div class="tw" style="margin-top:12px"><table class="g"><tbody>
   <tr><td>밴드</td><td>V × (1 ± ${st.band}%)</td></tr>
   <tr><td>매수표 k번째 줄</td><td>하단 ÷ (보유 + k − 1), 1주</td></tr><tr><td>매도표 k번째 줄</td><td>상단 ÷ (보유 − k + 1), 1주</td></tr>
-  <tr><td>매수 한도</td><td>적립 후 Pool × ${st.lim.acc}% / 거치 ${st.lim.lump}% / 인출 후 ${st.lim.wd}%</td></tr></tbody></table></div></div></div>
+  <tr><td>매수 한도</td><td>Pool × ${st.lim.lump}% (거치식)</td></tr></tbody></table></div></div></div>
  <div class="card"><h3>🧪 매매표 검산 (원문 6기 23주차)</h3><p class="note">원문 실력공식 V $1,435.25 · 밴드 ±15% → 하단 $1,219.96, 상단 $1,650.54 · 보유 17주</p><div class="tw"><table class="g"><thead><tr><th>줄</th><th>매수가 (원문)</th><th>이 표 계산</th><th>매도가 (원문)</th><th>이 표 계산</th></tr></thead><tbody>
   ${[[71.76,97.09],[67.78,103.16],[64.21,110.04],[61.00,117.90],[58.09,126.96]].map(([b,s],i)=>{const lo=1435.25*.85,hi=1435.25*1.15,cb=r2(lo/(17+i)),cs=r2(hi/(17-i));return `<tr><td class="c">${i+1}</td><td class="n">${usd(b)}</td><td class="n ${cb===b?'pos':'neg'}">${usd(cb)} ${cb===b?'✔':'✖'}</td><td class="n">${usd(s)}</td><td class="n ${cs===s?'pos':'neg'}">${usd(cs)} ${cs===s?'✔':'✖'}</td></tr>`}).join('')}</tbody></table></div></div>
  <div class="bub info"><b>출처와 한계</b> · 실력공식은 책 『라오어의 미국주식 밸류 리밸런싱』 특별 수록 공식과 원저자 카페 자료를 대조·정리한 2차 자료(<code>V + P/G + (E−V)/(2√G) + 적립금</code>, P는 적립 전 Pool, E는 마지막 날 종가 기준)를 따릅니다. 원 저작권은 라오어에게 있으며, 실제 운용 전 원문을 확인하세요. 투자 권유가 아닌 계산 도구입니다.</div>`};
@@ -2717,7 +2716,7 @@ try{SKIN.menu()}catch(e){}
 boot();LIVE.refresh();LIVE.auto();
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261119063040';
+const FILE_BUILD='20261119063331';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
