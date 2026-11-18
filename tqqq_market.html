@@ -292,8 +292,9 @@ html[data-skin]:not([data-theme="dark"]) nav button.on .no{color:#fff}
 html[data-skin]:not([data-theme="dark"]) nav .navsec{background:transparent;border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.6);border-radius:4px}
 html[data-skin]:not([data-theme="dark"]) nav .navsec b{color:#fff}
 /* 보고서 한 장 */
-html[data-skin]:not([data-theme="dark"]) main{padding:24px 28px 40px}
-html[data-skin]:not([data-theme="dark"]) #view{background:#fff;max-width:1240px;margin:0 auto;padding:28px 40px 30px;box-shadow:0 1px 3px rgba(20,40,70,.08),0 6px 24px rgba(20,40,70,.06)}
+html[data-skin]:not([data-theme="dark"]) main{padding:16px 16px 32px}
+html[data-skin] .layout{max-width:none}html[data-skin] main{max-width:none}
+html[data-skin]:not([data-theme="dark"]) #view{background:#fff;max-width:none;margin:0;padding:28px 36px 30px;box-shadow:0 1px 3px rgba(20,40,70,.08),0 6px 24px rgba(20,40,70,.06)}
 html[data-skin]:not([data-theme="dark"]) #view h2{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;font-size:26px;font-weight:700;color:var(--sk-title);letter-spacing:-.3px;padding-bottom:10px;border-bottom:2px solid var(--sk-title);margin:0 0 12px}
 html[data-skin]:not([data-theme="dark"]) #view h2 .pno{color:var(--sk-accent);font-weight:700}
 html[data-skin]:not([data-theme="dark"]) #view h2 .pg{margin-left:auto;font-size:13px;font-weight:400;color:var(--mut)}
@@ -2716,7 +2717,7 @@ try{SKIN.menu()}catch(e){}
 boot();LIVE.refresh();LIVE.auto();
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261119062713';
+const FILE_BUILD='20261119063040';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
