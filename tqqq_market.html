@@ -417,6 +417,229 @@ const APP={
 };
 APP.views.home=function(){return ''};
 
+/* ===================== VR 밸류 리밸런싱 2주 계산표 · 실력공식 ===================== */
+const LIM={acc:75,lump:50,wd:25},TYN={acc:'적립식',lump:'거치식',wd:'인출식'};
+const VR={
+ band(st,V){return{hi:V*(1+st.band/100),lo:V*(1-st.band/100)}},
+ limit(st,pool){return pool*(st.lim[st.type]/100)},
+ /* 실력공식 추종 비율 α = 1/(2√G) : V가 평가금 E와의 차이 중 몇 %를 따라가는가 */
+ alpha(G){return 1/(2*Math.sqrt(G))},
+ halfLife(G){const a=this.alpha(G);return a>0&&a<1?Math.log(0.5)/Math.log(1-a):null},
+ /* 1주 단위 예약표 (원문 매수표·매도표): 매수 k줄 = 하단 ÷ (보유+k−1), 매도 k줄 = 상단 ÷ (보유−k+1) */
+ ladder(st,c){
+  const {hi,lo}=this.band(st,c.V),q=c.qty||0,lim=this.limit(st,c.pool||0),buy=[],sell=[];
+  if(q>0){let cum=0,k=1;while(k<=600){const p=r2(lo/(q+k-1));if(p<=0)break;if(cum+p>lim+1e-9){buy.push({p,over:true,k});break}cum+=p;buy.push({p,k,cum});k++}
+   for(let k=1;k<=Math.min(q,600);k++){const d=q-k+1;sell.push({p:r2(hi/d),k})}}
+  const grp=a=>{const g=[];a.forEach(x=>{const l=g[g.length-1];if(l&&l.p===x.p&&!!l.over===!!x.over){l.n++}else g.push({p:x.p,n:1,over:x.over})});let cq=0,ca=0;g.forEach(x=>{if(!x.over){cq+=x.n;ca+=x.p*x.n}x.cq=cq;x.ca=ca});return g};
+  return{hi,lo,lim,buy:grp(buy),sell:grp(sell)};
+ },
+ /* 사이클 마감 → 다음 V (실력공식). 기본공식 값(Vb)은 비교용으로만 함께 계산 */
+ next(st,c,f){
+  const bq=f.bq||0,ba=f.ba||0,sq=f.sq||0,sa=f.sa||0,div=f.div||0;if(sq>(c.qty||0))throw new Error('매도 수량이 보유 수량보다 많습니다.');
+  if(!f.close)throw new Error('사이클 마지막 날 종가를 입력하세요.');
+  const qty=(c.qty||0)+bq-sq,P=(c.pool||0)+sa-ba+div;            // P = 마감 Pool (적립 전)
+  const E=qty*f.close,G=st.G,C=st.type==='acc'?(st.C||0):0,W=st.type==='wd'?(st.W||0):0;
+  const grow=P/G,gap=E-c.V,pro=gap*this.alpha(G);               // 성장분 · 괴리 · 실력 보정
+  const V=r2(c.V+grow+pro+C-W),Vb=r2(c.V+grow+C-W),pool=r2(P+C-W);
+  return{qty,P,E,G,C,W,grow,gap,pro,V,Vb,pool,close:f.close};
+ },
+ /* 2주 뒤 종가 시나리오: 그 가격까지 오면서 예약표 줄이 각자 가격에 체결된다고 가정 */
+ sim(st,c,p){
+  const L=this.ladder(st,c);let bq=0,ba=0,sq=0,sa=0;
+  L.buy.forEach(x=>{if(!x.over&&p<=x.p){bq+=x.n;ba+=x.p*x.n}});
+  L.sell.forEach(x=>{if(p>=x.p&&sq+x.n<=c.qty){sq+=x.n;sa+=x.p*x.n}});
+  const r=this.next(st,c,{close:p,bq,ba:r2(ba),sq,sa:r2(sa)});return{...r,bq,ba:r2(ba),sq,sa:r2(sa)};
+ }
+};
+const VRAPP={
+ id:'vr-5',ver:2,title:'VR 밸류 리밸런싱 2주 계산표 (실력공식)',fileBase:'VR_실력공식_2주계산표',
+ tabs:[{id:'cycle',label:'이번 사이클 매매표',grp:'2주마다 쓰기'},{id:'next',label:'사이클 마감 · 다음 V',grp:'2주마다 쓰기'},{id:'scen',label:'종가 시나리오 · 다음 V',grp:'2주마다 쓰기'},{id:'log',label:'사이클 기록 · 차트',grp:'2주마다 쓰기'},{id:'setup',label:'기본 설정 · 시작값',grp:'참고'},{id:'logic',label:'실력공식 · 로직',grp:'참고'},{id:'history',label:'변경 · 저장 이력',grp:'관리'}],
+ defaults(){return{st:{ticker:'TQQQ',type:'acc',G:10,band:15,formula:'pro',C:250,W:0,lim:{...LIM},show:25,scStep:5},cur:{V:null,pool:null,qty:null,close:null,cycleNo:1,start:today()},log:[],nf:{}}},
+ sample(){return{st:{ticker:'TQQQ',type:'acc',G:10,band:15,formula:'pro',C:250,W:0,lim:{...LIM},show:25,scStep:5},cur:{V:10000,pool:5000,qty:142,close:66.5,cycleNo:1,start:'2026-10-13'},log:[],nf:{}}},
+ migrate(d){if(d.st){d.st.formula='pro';if(d.st.scStep==null)d.st.scStep=5}},
+ label(k){return({'st.ticker':'종목','st.type':'운용 유형','st.G':'G값','st.band':'밴드폭(%)','st.C':'적립금','st.W':'인출금','st.scStep':'시나리오 간격(%)','cur.V':'V','cur.pool':'Pool','cur.qty':'보유 수량','cur.close':'현재가','cur.cycleNo':'사이클 번호','cur.start':'사이클 시작일','st.show':'표시 줄 수'})[k]||(k.startsWith('nf.')?'마감 입력: '+k.slice(3):k.startsWith('st.lim')?'Pool 한도 '+k.slice(7):k)},
+ act(a){
+  if(a==='roll')return roll();
+  if(a==='undo'){const l=S.v.log[0];if(!l)return;if(!confirm('마지막 사이클 마감('+l.end+')을 취소할까요?'))return;S.v.cur=clone(l.before);S.v.log.shift();logEdit('사이클 마감 취소',l.end,'되돌림','복원');mark();render();return}
+  if(a==='copy')return copyText(ladderText());
+  if(a==='initV'){const c=S.v.cur;if(!(c.qty&&c.close)){toast('보유 수량과 현재가를 먼저 넣으세요');return}const v=r2(c.qty*c.close);if(!confirm(`시작 V를 현재 평가금 ${usd(v)}로 설정할까요?`))return;logEdit('V',c.V,v);c.V=v;mark();render();return}
+ },
+ views:{},
+ csv(){const c=S.v.cur,L=VR.ladder(S.v.st,c);const R=[['VR 2주 계산표 (실력공식)',S.v.st.ticker,TYN[S.v.st.type],'G=/'+S.v.st.G,'α=1/(2√G)='+fmt(VR.alpha(S.v.st.G)*100,2)+'%','밴드±'+S.v.st.band+'%','작성',nowTs()],[],['사이클',c.cycleNo,'시작일',c.start,'V',c.V,'Pool',c.pool,'보유',c.qty,'상단',r2(L.hi),'하단',r2(L.lo),'매수한도',r2(L.lim)],[],['매수표','줄','가격($)','수량','누적수량','누적금액','한도']];
+  L.buy.forEach((x,i)=>R.push(['',i+1,x.p,x.n,x.cq,r2(x.ca),x.over?'한도초과':'']));R.push([],['매도표','줄','가격($)','수량','누적수량','누적금액']);L.sell.forEach((x,i)=>R.push(['',i+1,x.p,x.n,x.cq,r2(x.ca)]));
+  R.push([],['사이클 기록','번호','시작일','마감일','V','상단','하단','마감 평가금 E','괴리 E−V','마감 Pool P','성장분 P/G','실력 보정','적립−인출','다음 V(실력)','기본공식이었다면','다음 Pool','보유','종가','매수금','매도금']);
+  S.v.log.slice().reverse().forEach(l=>{const r=l.r;R.push(['',l.before.cycleNo,l.before.start,l.end,l.before.V,r2(l.hi),r2(l.lo),r2(r.E),r2(r.E-l.before.V),r2(r.P),r2(r.P/(r.G||l.G)),r.pro!=null?r2(r.pro):'',r2((r.C||0)-(r.W||0)),r.V,r.Vb!=null?r.Vb:'',r.pool,r.qty,r.close,l.f.ba||0,l.f.sa||0])});return R}
+};
+function ladderText(){const c=S.v.cur,L=VR.ladder(S.v.st,c),sh=S.v.st.show||25;let s=`[VR 실력공식 · ${TYN[S.v.st.type]}] ${S.v.st.ticker} · ${c.cycleNo}사이클 (${c.start} ~ ${addD(c.start,14)})\nV ${usd(c.V)} · 밴드 ${usd(L.lo)} ~ ${usd(L.hi)} · Pool ${usd(c.pool)} · 매수한도 ${usd(L.lim)}\n[매수표 · LOC/지정가]\n`;
+ L.buy.filter(x=>!x.over).slice(0,sh).forEach(x=>s+=`  ${usd(x.p)} × ${x.n}주\n`);s+='[매도표 · LOC/지정가]\n';L.sell.slice(0,sh).forEach(x=>s+=`  ${usd(x.p)} × ${x.n}주\n`);return s}
+function addD(d,n){const t=new Date(d+'T00:00:00');if(isNaN(t))return'';t.setDate(t.getDate()+n);return `${t.getFullYear()}-${p2(t.getMonth()+1)}-${p2(t.getDate())}`}
+function roll(){const st=S.v.st,c=S.v.cur,f=S.v.nf;let r;try{if(c.V==null||c.pool==null||c.qty==null)throw new Error('기본 설정에서 시작 V·Pool·보유 수량을 먼저 넣으세요.');r=VR.next(st,c,f)}catch(e){toast('⚠ '+e.message);return}
+ const b=VR.band(st,c.V);pushHx(`${c.cycleNo}사이클 마감 전`);
+ S.v.log.unshift({end:f.end||addD(c.start,14),f:clone(f),before:clone(c),r,hi:b.hi,lo:b.lo,type:st.type,G:st.G,formula:'pro'});
+ logEdit(`${c.cycleNo}사이클 마감`,`V ${fmt(c.V)} · Pool ${fmt(c.pool)}`,`V ${fmt(r.V)} (보정 ${fmt(r.pro)}) · Pool ${fmt(r.pool)}`,'사이클');
+ S.v.cur={V:r.V,pool:r.pool,qty:r.qty,close:r.close,cycleNo:c.cycleNo+1,start:f.end||addD(c.start,14)};S.v.nf={};S.tab='v_cycle';mark();render();toast(`✔ ${S.v.cur.cycleNo}사이클 매매표가 만들어졌습니다 (실력 보정 ${usd(r.pro)})`,3800)}
+
+function bandSvg(st,c){if(!(c.V&&c.qty&&c.close))return'';const {hi,lo}=VR.band(st,c.V),E=c.qty*c.close;const mn=Math.min(lo,E)*0.9,mx=Math.max(hi,E)*1.06,W=760,x=v=>20+(v-mn)/(mx-mn)*(W-40);
+ const col=E>hi?'var(--steel)':E<lo?'var(--neg)':'var(--pos)';
+ return `<svg viewBox="0 0 ${W} 96" width="100%" role="img" aria-label="밴드와 현재 평가금 위치">
+  <rect x="${x(lo)}" y="34" width="${x(hi)-x(lo)}" height="26" rx="5" fill="#e3f5ea" stroke="#9ccfb1"/>
+  <rect x="20" y="34" width="${Math.max(x(lo)-20,0)}" height="26" rx="5" fill="#fbeae8"/><rect x="${x(hi)}" y="34" width="${Math.max(W-20-x(hi),0)}" height="26" rx="5" fill="#dce8f7"/>
+  <line x1="${x(c.V)}" x2="${x(c.V)}" y1="28" y2="66" stroke="var(--navy)" stroke-width="2" stroke-dasharray="4 3"/>
+  <text x="${x(lo)}" y="80" text-anchor="middle" font-size="13" fill="#54627a">하단 ${usd(lo,0)}</text><text x="${x(c.V)}" y="22" text-anchor="middle" font-size="13" fill="#0f2a4a" font-weight="700">V ${usd(c.V,0)}</text><text x="${x(hi)}" y="80" text-anchor="middle" font-size="13" fill="#54627a">상단 ${usd(hi,0)}</text>
+  <text x="40" y="52" font-size="12.5" fill="#c73f2e">← 사는 구역</text><text x="${W-40}" y="52" font-size="12.5" text-anchor="end" fill="#21416d">파는 구역 →</text>
+  <circle cx="${x(E)}" cy="47" r="9" fill="${col}" stroke="#fff" stroke-width="2"/><text x="${x(E)}" y="94" text-anchor="middle" font-size="13" font-weight="800" fill="${col}">지금 ${usd(E,0)}</text></svg>`}
+const proTag=G=>`<span class="pill gd">실력공식 · α ${fmt(VR.alpha(G)*100,1)}%</span>`;
+
+VRAPP.views.cycle=function(){
+ const st=S.v.st,c=S.v.cur;if(c.V==null||c.pool==null||!c.qty)return `<h2>${tx('v.t.cycle','이번 사이클 매매표')}</h2><div class="bub warn"><b>시작값이 없습니다.</b> '기본 설정 · 시작값' 탭에서 V(처음엔 현재 평가금), Pool(현금), 보유 수량을 넣거나 상단 📋 샘플을 눌러 보세요.</div>`;
+ const L=VR.ladder(st,c),E=c.close?c.qty*c.close:null,sh=st.show||25,pv=c.close?VR.sim(st,c,c.close):null;
+ const pos=E==null?'':E>L.hi?'<span class="pill s">상단 위 → 매도 체결 구간</span>':E<L.lo?'<span class="pill b">하단 아래 → 매수 체결 구간</span>':'<span class="pill ok">밴드 안 → 대기</span>';
+ const near=(arr,side)=>{if(!c.close)return -1;let i=-1;arr.forEach((x,j)=>{if(!x.over&&(side==='b'?x.p<=c.close:x.p>=c.close)&&i<0)i=j});return i};
+ const nb=near(L.buy,'b'),ns=near(L.sell,'s');
+ const tb=(arr,side,ni)=>`<div class="tw tall"><table class="g"><thead><tr><th>줄</th><th>${side==='b'?'매수':'매도'} 가격</th><th>수량</th><th>누적 수량</th><th>누적 금액</th><th>체결 후 보유</th></tr></thead><tbody>
+  ${arr.slice(0,sh).map((x,i)=>`<tr class="${side==='b'?'buy':'sell'}${x.over?' off':''}${i===ni?' hl':''}"><td class="c">${i+1}</td><td class="n"><b>${usd(x.p)}</b>${i===ni?' ◀ 현재가 근처':''}</td><td class="n">${x.n}주</td><td class="n">${x.over?'–':x.cq+'주'}</td><td class="n">${x.over?'Pool 한도 초과':usd(x.ca)}</td><td class="n">${x.over?'–':(side==='b'?c.qty+x.cq:c.qty-x.cq)+'주'}</td></tr>`).join('')}
+  ${arr.length>sh?`<tr class="mut"><td colspan="6" class="c">… 아래 ${arr.length-sh}줄 더 있음 (기본 설정에서 표시 줄 수 조정)</td></tr>`:''}</tbody></table></div>`;
+ return `<div class="titlebar"><div><h2>${tx('v.t.cycle','이번 사이클 매매표')} ${proTag(st.G)}</h2><div class="lead" style="margin:0">${c.cycleNo}사이클 · ${esc(c.start)} ~ ${addD(c.start,14)} · ${esc(st.ticker)} ${TYN[st.type]} · G=/${st.G} · 밴드 ±${st.band}% · 단위 $</div></div><div class="noprint"><button class="btn light" data-act="v:copy">📋 매매표 복사</button></div></div>
+ <div class="row c6" style="margin-bottom:16px">
+  <div class="kpi"><div class="lab">V (목표 평가금)</div><div class="val">${usd(c.V,0)}</div><div class="dl">상단 ${usd(L.hi,0)} · 하단 ${usd(L.lo,0)}</div></div>
+  <div class="kpi g"><div class="lab">현재 평가금 E</div><div class="val">${E==null?'–':usd(E,0)}</div><div class="dl">${c.qty}주 × ${usd(c.close)}</div></div>
+  <div class="kpi ${E!=null&&E<c.V?'r':'p'}"><div class="lab">괴리 E − V</div><div class="val ${E==null?'':E>=c.V?'pos':'neg'}">${E==null?'–':(E>=c.V?'+':'')+usd(E-c.V,0)}</div><div class="dl">${E==null?'':pct((E/c.V-1)*100,1)+' · 실력공식이 따라갈 차이'}</div></div>
+  <div class="kpi p"><div class="lab">Pool (현금)</div><div class="val">${usd(c.pool,0)}</div><div class="dl">총자산 ${E==null?'–':usd(E+c.pool,0)}</div></div>
+  <div class="kpi g"><div class="lab">이번 매수 한도</div><div class="val">${usd(L.lim,0)}</div><div class="dl">Pool × ${st.lim[st.type]}% (${TYN[st.type]})</div></div>
+  <div class="kpi"><div class="lab">지금 가격으로 마감 시 다음 V</div><div class="val">${pv?usd(pv.V,0):'–'}</div><div class="dl">${pv?`보정 ${pv.pro>=0?'+':''}${usd(pv.pro,0)} · 기본공식 ${usd(pv.Vb,0)}`:'현재가 입력 필요'}</div></div></div>
+ <div class="card"><h3>🎯 지금 어디쯤? ${pos}</h3>${bandSvg(st,c)}
+  <div class="bub kid"><b>쉽게 말하면:</b> 초록 울타리(밴드) 안에 있으면 아무것도 안 해요. 왼쪽(빨강)으로 넘어가면 <b>싸졌으니 1주씩 사고</b>, 오른쪽(파랑)으로 넘어가면 <b>비싸졌으니 1주씩 팔아요</b>. 실력공식은 2주 뒤 울타리를 정할 때 <b>지금 내 주식이 실제로 얼마인지</b>도 ${fmt(VR.alpha(st.G)*100,0)}%만큼 반영해요.</div></div>
+ <div class="row c2"><div class="card"><h3>🔻 매수표 <span class="pill b">${L.buy.filter(x=>!x.over).reduce((a,x)=>a+x.n,0)}주 · ${usd(L.buy.filter(x=>!x.over).slice(-1)[0]?.ca||0)}</span></h3>${tb(L.buy,'b',nb)}<p class="note">가격 = 하단 ÷ (보유수량 + 줄번호 − 1). 이 가격까지 내려오면 1주를 사서 평가금을 다시 하단에 맞춥니다. 누적 금액이 Pool 한도를 넘는 줄부터는 걸지 않습니다.</p></div>
+ <div class="card"><h3>🔺 매도표 <span class="pill s">상단 위 1주씩</span></h3>${tb(L.sell,'s',ns)}<p class="note">가격 = 상단 ÷ (보유수량 − 줄번호 + 1). 이 가격까지 오르면 1주를 팔아 평가금을 다시 상단에 맞춥니다. 판 돈은 Pool로 들어갑니다.</p></div></div>
+ <div class="bub info"><b>주문 방법</b> · 사이클 첫날 위 가격들을 LOC(또는 지정가) 예약 주문으로 걸고 2주간 그대로 둡니다. 가격이 같은 줄은 한 번에 여러 주로 겁니다. 매매표는 실력공식·기본공식 모두 같은 방식이며, 달라지는 것은 다음 V(울타리 위치)입니다.</div>`;
+};
+VRAPP.views.next=function(){
+ const st=S.v.st,c=S.v.cur,f=S.v.nf;let pv='';
+ if(c.V!=null&&f.close){try{const r=VR.next(st,c,f),b=VR.band(st,r.V),a=VR.alpha(st.G);pv=`<div class="card chk"><h3>🧮 다음 V 계산 과정 · 실력공식</h3>
+  ${[['① 마감 Pool (P)',`${fmt(c.pool)} + 매도 ${fmt(f.sa||0)} − 매수 ${fmt(f.ba||0)}${f.div?' + 배당 '+fmt(f.div):''} (적립 전)`,usd(r.P)],
+    ['② 마감 평가금 (E)',`${r.qty}주 × 마지막 날 종가 ${usd(f.close)}`,usd(r.E)],
+    ['③ 성장분 P/G',`${fmt(r.P)} ÷ ${st.G}`,usd(r.grow)],
+    ['④ 괴리 E − V',`${fmt(r.E)} − ${fmt(c.V)}`,(r.gap>=0?'+':'')+usd(r.gap)],
+    ['⑤ 실력 보정',`괴리 ÷ (2√G) = ${fmt(r.gap)} ÷ ${fmt(2*Math.sqrt(st.G),4)}  (괴리의 ${fmt(a*100,2)}%)`,(r.pro>=0?'+':'')+usd(r.pro)],
+    ['⑥ '+(st.type==='wd'?'인출금':'적립금'),st.type==='acc'?'적립식: 다음 V와 Pool에 더함':st.type==='wd'?'인출식: 다음 V와 Pool에서 뺌':'거치식: 없음',st.type==='wd'?'−'+usd(r.W):usd(r.C)]].map(([x,b2,d])=>`<div class="ln"><span class="lb">${x}</span><span class="fm">${esc(b2)}</span><span class="rs">${d}</span></div>`).join('')}
+  <div class="ln tot"><span class="lb">다음 V (실력공식)</span><span class="fm">${fmt(c.V)} + ${fmt(r.grow)} ${r.pro>=0?'+':'−'} ${fmt(Math.abs(r.pro))} ${st.type==='wd'?'− '+fmt(r.W):'+ '+fmt(r.C)}</span><span class="rs">${usd(r.V)}</span></div>
+  <div class="ln"><span class="lb">참고: 기본공식이었다면</span><span class="fm">V + P/G ${st.type==='wd'?'− 인출금':'+ 적립금'} (괴리 무시)</span><span class="rs" style="color:var(--mut)">${usd(r.Vb)} <small>(${r.V>=r.Vb?'+':''}${fmt(r.V-r.Vb)})</small></span></div>
+  <div class="ln tot"><span class="lb">다음 Pool · 매수한도</span><span class="fm">Pool ${usd(r.pool)} × ${st.lim[st.type]}%</span><span class="rs">${usd(r.pool)} · ${usd(VR.limit(st,r.pool))}</span></div>
+  <div class="ln"><span class="lb">다음 밴드</span><span class="fm">하단 ~ 상단</span><span class="rs">${usd(b.lo)} ~ ${usd(b.hi)}</span></div>
+  ${r.V<c.V?`<div class="bub warn"><b>다음 V가 이번 V보다 낮아집니다.</b> 평가금이 V보다 많이 낮아 실력 보정(${usd(r.pro)})이 성장분(${usd(r.grow)})보다 큽니다. 울타리가 내려가므로 다음 사이클 매수가 줄고, 반등 시 평단보다 낮은 가격에 팔 수도 있습니다 — 실력공식의 정상 동작입니다.</div>`:''}</div>`}catch(e){pv=`<div class="bub warn">${esc(e.message)}</div>`}}
+ return `<h2>${tx('v.t.next','사이클 마감 · 다음 V')} ${proTag(st.G)}</h2><p class="lead">${tx('v.d.next','2주가 끝나는 날, 그동안 체결된 매수·매도 합계와 마지막 종가만 넣으면 실력공식으로 다음 2주의 V·밴드·매매표가 자동으로 만들어집니다.')}</p>
+ <div class="row c2"><div class="card"><h3>✍️ 지난 2주 체결 합계</h3><div class="form">
+  <div><label>사이클 마감일</label><input class="ci t" type="date" data-k="v.nf.end" value="${esc(f.end||addD(c.start,14))}"></div>
+  <div><label>마지막 날 종가 ($)</label>${inp('v.nf.close')}<div class="hint">실력공식의 E = 보유수량 × 이 종가</div></div>
+  <div><label>매수 체결 수량 (주)</label>${inp('v.nf.bq',{int:true})}</div><div><label>매수 체결 금액 ($)</label>${inp('v.nf.ba',{w:'w'})}</div>
+  <div><label>매도 체결 수량 (주)</label>${inp('v.nf.sq',{int:true})}</div><div><label>매도 체결 금액 ($)</label>${inp('v.nf.sa',{w:'w'})}</div>
+  <div><label>배당 입금 ($, 선택)</label>${inp('v.nf.div')}</div></div>
+  <div class="noprint" style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn gold" data-act="v:roll">✔ 마감하고 다음 사이클 만들기</button>${S.v.log.length?`<button class="btn danger" data-act="v:undo">↶ 마지막 마감 취소</button>`:''}</div>
+  <div class="bub kid"><b>쉽게 말하면:</b> 목표(V)를 정할 때 두 가지를 봐요. ① 현금(Pool)의 1/${st.G}만큼 목표를 올리고, ② 실제 내 주식값(E)이 목표보다 높으면 목표를 조금 올리고, 낮으면 조금 내려요. ②가 기본공식에는 없는 실력공식의 "눈치"예요.</div></div>
+ <div>${pv||'<div class="card soft"><h3>🧮 계산 과정</h3><p class="note">마지막 날 종가를 넣으면 실력공식 계산 과정을 단계별로 보여드립니다.</p></div>'}</div></div>`;
+};
+VRAPP.views.scen=function(){
+ const st=S.v.st,c=S.v.cur;if(c.V==null||c.pool==null||!c.qty||!c.close)return `<h2>${tx('v.t.scen','종가 시나리오 · 다음 V')}</h2><div class="bub warn">시작값(V·Pool·보유 수량)과 현재가가 있어야 시나리오를 계산할 수 있습니다.</div>`;
+ const step=st.scStep||5,ks=[];for(let k=-40;k<=40;k+=step)ks.push(k);if(!ks.includes(0))ks.push(0);ks.sort((a,b)=>a-b);
+ const rows=ks.map(k=>{const p=r2(c.close*(1+k/100));let r=null;try{r=VR.sim(st,c,p)}catch(e){}return{k,p,r}}).filter(x=>x.r&&x.p>0);
+ const W=900,H=260,pl=70,pr=20,pt=16,pb=34,vals=rows.flatMap(x=>[x.r.V,x.r.Vb]),mn=Math.min(...vals)*0.98,mx=Math.max(...vals)*1.02,X=i=>pl+i/(rows.length-1)*(W-pl-pr),Y=v=>pt+(1-(v-mn)/(mx-mn))*(H-pt-pb);
+ const pl1=k=>`<polyline fill="none" stroke="${k==='V'?'#b8892d':'#0f2a4a'}" stroke-width="2.6" ${k==='Vb'?'stroke-dasharray="6 4"':''} points="${rows.map((x,i)=>X(i)+','+Y(x.r[k])).join(' ')}"/>`;
+ const svg=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="종가별 다음 V">${[0,.5,1].map(t=>{const v=mn+(mx-mn)*t;return `<line x1="${pl}" x2="${W-pr}" y1="${Y(v)}" y2="${Y(v)}" stroke="#e8ebf1"/><text x="${pl-8}" y="${Y(v)+4}" text-anchor="end" font-size="12" fill="#54627a">${usd(v,0)}</text>`}).join('')}
+  <line x1="${pl}" x2="${W-pr}" y1="${Y(c.V)}" y2="${Y(c.V)}" stroke="#c73f2e" stroke-dasharray="2 4"/><text x="${W-pr}" y="${Y(c.V)-5}" text-anchor="end" font-size="12" fill="#c73f2e">이번 V ${usd(c.V,0)}</text>
+  ${pl1('Vb')}${pl1('V')}${rows.map((x,i)=>`<circle cx="${X(i)}" cy="${Y(x.r.V)}" r="${x.k===0?6:3.5}" fill="#b8892d"/><text x="${X(i)}" y="${H-12}" text-anchor="middle" font-size="11.5" fill="${x.k===0?'#0f2a4a':'#54627a'}" ${x.k===0?'font-weight="800"':''}>${x.k>0?'+':''}${x.k}%</text>`).join('')}</svg>
+  <div class="legend-in" style="justify-content:center"><span>━ 금색 = 실력공식 다음 V</span><span>— — 남색 = 기본공식이었다면</span><span>가로축 = 2주 뒤 종가 변화</span></div>`;
+ const dn=rows[0],up=rows[rows.length-1];
+ return `<h2>${tx('v.t.scen','종가 시나리오 · 다음 V')} ${proTag(st.G)}</h2><p class="lead">${tx('v.d.scen','2주 뒤 마지막 날 종가가 지금보다 얼마나 오르내리느냐에 따라, 이번 매매표가 체결된 뒤 다음 V가 어떻게 정해지는지 미리 봅니다.')}</p>
+ <div class="bub kid"><b>쉽게 말하면:</b> 기본공식(남색)은 주가가 폭락해도 목표를 꾸준히 올려서, 계속 사라고 해요. 실력공식(금색)은 주가가 많이 빠지면 목표를 덜 올리거나 내려서 <b>현금을 아껴 주고</b>, 많이 오르면 목표를 더 올려서 <b>너무 일찍 다 팔지 않게</b> 해 줘요.</div>
+ <div class="card"><h3>📈 2주 뒤 종가별 다음 V</h3>${svg}</div>
+ <div class="card"><h3>📋 시나리오표 <span class="note">현재가 ${usd(c.close)} 기준 · 간격 ${step}%</span></h3><div class="tw tall"><table class="g"><thead><tr><th>종가 변화</th><th>마지막 날 종가</th><th>예약표 체결<span class="tg">매수 / 매도</span></th><th>마감 평가금 E</th><th>괴리 E − V</th><th>실력 보정</th><th>다음 V<span class="tg">실력공식</span></th><th>기본공식이었다면</th><th>다음 Pool</th></tr></thead><tbody>
+ ${rows.map(x=>{const r=x.r;return `<tr class="${x.k===0?'now':''}${r.bq?' buy':r.sq?' sell':''}"><td class="n">${x.k>0?'+':''}${x.k}%${x.k===0?' ◀ 지금':''}</td><td class="n">${usd(x.p)}</td><td class="n">${r.bq?`<span class="neg">+${r.bq}주 ${usd(r.ba,0)}</span>`:r.sq?`<span style="color:var(--steel)">−${r.sq}주 ${usd(r.sa,0)}</span>`:'–'}</td><td class="n">${usd(r.E,0)}</td><td class="n ${r.gap>=0?'pos':'neg'}">${r.gap>=0?'+':''}${usd(r.gap,0)}</td><td class="n ${r.pro>=0?'pos':'neg'}">${r.pro>=0?'+':''}${usd(r.pro,0)}</td><td class="n"><b>${usd(r.V,0)}</b></td><td class="n" style="color:var(--mut)">${usd(r.Vb,0)}</td><td class="n">${usd(r.pool,0)}</td></tr>`}).join('')}</tbody></table></div>
+ <p class="note">가정: 2주 동안 그 종가까지 움직이면서 예약표의 각 줄이 자기 가격에 체결됩니다 (지정가 기준). 실제 LOC는 그날 종가에 체결되므로 금액이 조금 다를 수 있습니다.</p></div>
+ <div class="bub info"><b>읽는 법</b> · ${pct(dn.k,0)}로 빠지면 다음 V는 기본공식 ${usd(dn.r.Vb,0)} 대신 <b>${usd(dn.r.V,0)}</b> (${usd(dn.r.V-dn.r.Vb,0)}), ${pct(up.k,0)}로 오르면 ${usd(up.r.Vb,0)} 대신 <b>${usd(up.r.V,0)}</b> (+${usd(up.r.V-up.r.Vb,0)})가 됩니다. 차이는 언제나 "괴리 × ${fmt(VR.alpha(st.G)*100,2)}%"입니다.</div>`;
+};
+VRAPP.views.log=function(){const L=S.v.log.slice().reverse();
+ let svg='';if(L.length){const pts=[...L.map(l=>({n:l.before.cycleNo,V:l.before.V,hi:l.hi,lo:l.lo,E:l.r.E})),...(S.v.cur.V&&S.v.cur.close?[{n:S.v.cur.cycleNo,V:S.v.cur.V,hi:VR.band(S.v.st,S.v.cur.V).hi,lo:VR.band(S.v.st,S.v.cur.V).lo,E:S.v.cur.qty*S.v.cur.close}]:[])];
+  const W=900,H=300,pl=70,pr=20,pt=20,pb=36,all=pts.flatMap(p=>[p.hi,p.lo,p.E]).filter(isFinite),mn=Math.min(...all)*0.95,mx=Math.max(...all)*1.03,X=i=>pl+(pts.length<2?0.5:i/(pts.length-1))*(W-pl-pr),Y=v=>pt+(1-(v-mn)/(mx-mn))*(H-pt-pb);
+  const line=(k,col,dash='')=>`<polyline fill="none" stroke="${col}" stroke-width="2.4" ${dash?`stroke-dasharray="${dash}"`:''} points="${pts.map((p,i)=>X(i)+','+Y(p[k])).join(' ')}"/>`;
+  const area=`<polygon fill="#e3f5ea" opacity=".7" points="${pts.map((p,i)=>X(i)+','+Y(p.hi)).join(' ')} ${pts.slice().reverse().map((p,i)=>X(pts.length-1-i)+','+Y(p.lo)).join(' ')}"/>`;
+  const ticks=[0,.25,.5,.75,1].map(t=>mn+(mx-mn)*t);
+  svg=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="V와 밴드, 평가금 추이">${ticks.map(v=>`<line x1="${pl}" x2="${W-pr}" y1="${Y(v)}" y2="${Y(v)}" stroke="#e8ebf1"/><text x="${pl-8}" y="${Y(v)+4}" text-anchor="end" font-size="12" fill="#54627a">${usd(v,0)}</text>`).join('')}${area}${line('V','#0f2a4a','6 4')}${line('E','#b8892d')}
+   ${pts.map((p,i)=>`<circle cx="${X(i)}" cy="${Y(p.E)}" r="4" fill="${p.E>p.hi?'#2b5288':p.E<p.lo?'#c73f2e':'#b8892d'}"/><text x="${X(i)}" y="${H-12}" text-anchor="middle" font-size="12" fill="#54627a">${p.n}</text>`).join('')}</svg>
+   <div class="legend-in" style="justify-content:center"><span>— — V (목표)</span><span>━ 평가금 E</span><span>■ 초록 = 밴드(±${S.v.st.band}%)</span><span>가로축 = 사이클 번호</span></div>`}
+ const sumPro=S.v.log.reduce((a,l)=>a+(l.r.pro||0),0);
+ return `<h2>${tx('v.t.log','사이클 기록 · 차트')}</h2><p class="lead">2주마다 V와 평가금이 어떻게 움직였는지, 실력 보정이 V를 얼마나 움직였는지 봅니다.</p>
+ <div class="card"><h3>📈 V · 밴드 · 평가금 추이</h3>${svg||'<p class="note">사이클을 한 번 이상 마감하면 차트가 그려집니다.</p>'}</div>
+ <div class="card"><h3>📒 사이클 기록 <span class="pill n">${L.length}건</span>${L.length?`<span class="note">실력 보정 누적 ${sumPro>=0?'+':''}${usd(sumPro,0)}</span>`:''}</h3>${L.length?`<div class="tw tall"><table class="g"><thead><tr><th>사이클</th><th>기간</th><th>V</th><th>밴드<span class="tg">하단 ~ 상단</span></th><th>매수<span class="tg">수량 · 금액</span></th><th>매도<span class="tg">수량 · 금액</span></th><th>마감 평가금 E</th><th>괴리 E − V</th><th>마감 Pool</th><th>성장분 P/G</th><th>실력 보정</th><th>다음 V</th><th>기본공식이었다면</th><th>다음 Pool</th></tr></thead><tbody>${S.v.log.map(l=>{const r=l.r,G=r.G||l.G,gap=r.E-l.before.V,isPro=r.pro!=null&&l.formula!=='basic';return `<tr><td class="c"><b>${l.before.cycleNo}</b></td><td>${esc(l.before.start)} ~ ${esc(l.end)}</td><td class="n">${usd(l.before.V,0)}</td><td class="n">${usd(l.lo,0)} ~ ${usd(l.hi,0)}</td><td class="n">${l.f.bq||0}주 · ${usd(l.f.ba||0,0)}</td><td class="n">${l.f.sq||0}주 · ${usd(l.f.sa||0,0)}</td><td class="n">${usd(r.E,0)}</td><td class="n ${gap>=0?'pos':'neg'}">${gap>=0?'+':''}${usd(gap,0)}</td><td class="n">${usd(r.P,0)}</td><td class="n">${usd(r.P/G,0)}</td><td class="n ${isPro?(r.pro>=0?'pos':'neg'):''}">${isPro?(r.pro>=0?'+':'')+usd(r.pro,0):'<span class="pill n">기본공식</span>'}</td><td class="n"><b>${usd(r.V,0)}</b></td><td class="n" style="color:var(--mut)">${r.Vb!=null?usd(r.Vb,0):'–'}</td><td class="n">${usd(r.pool,0)}</td></tr>`}).join('')}</tbody></table></div>`:'<p class="note">아직 마감한 사이클이 없습니다.</p>'}</div>`};
+VRAPP.views.setup=function(){const st=S.v.st,c=S.v.cur,a=VR.alpha(st.G),hl=VR.halfLife(st.G);
+ return `<h2>${tx('v.t.setup','기본 설정 · 시작값')}</h2><p class="lead">처음 시작할 때와 유형을 바꿀 때만 씁니다. 유형 전환은 수개월 단위로만 하고, 2주마다 바꾸지 않습니다.</p>
+ <div class="row c2"><div class="card"><h3>⚙️ 방법론 설정 ${proTag(st.G)}</h3><div class="form">
+  <div><label>종목</label>${sel('v.st.ticker',[['TQQQ','TQQQ (오피셜)'],['QLD','QLD (2배)'],['UPRO','UPRO (S&P 3배)']])}</div>
+  <div><label>운용 유형</label>${sel('v.st.type',[['acc','적립식 (매 사이클 추가 입금)'],['lump','거치식 (추가 없음)'],['wd','인출식 (매 사이클 출금)']])}</div>
+  <div><label>G값 (/G)</label>${inp('v.st.G',{w:'s'})}<div class="hint">적립·거치 /10, 인출 /20부터 권장</div></div>
+  <div><label>밴드폭 (±%)</label>${inp('v.st.band',{w:'s'})}<div class="hint">오피셜 ±15</div></div>
+  <div><label>사이클당 적립금 ($)</label>${inp('v.st.C')}</div><div><label>사이클당 인출금 ($)</label>${inp('v.st.W')}</div>
+  <div><label>매매표 표시 줄 수</label>${inp('v.st.show',{w:'s',int:true})}</div><div><label>시나리오 간격 (%)</label>${inp('v.st.scStep',{w:'s'})}</div></div>
+  <h3 style="margin-top:16px">Pool 사용 한도 (%)</h3><div class="form"><div><label>적립식</label>${inp('v.st.lim.acc',{w:'s'})}</div><div><label>거치식</label>${inp('v.st.lim.lump',{w:'s'})}</div><div><label>인출식</label>${inp('v.st.lim.wd',{w:'s'})}</div></div>
+  <div class="legend-in"><span class="li">직접 입력</span></div>
+  <div class="bub info">지금 G=/${st.G}이면 실력공식은 V와 평가금의 차이를 <b>2주마다 ${fmt(a*100,1)}%씩</b> 따라갑니다. 차이가 절반으로 줄어드는 데 약 <b>${hl?fmt(hl,1):'–'}사이클(${hl?fmt(hl*2,0):'–'}주)</b>이 걸립니다.</div></div>
+ <div class="card"><h3>🚩 현재 사이클 시작값</h3><div class="form">
+  <div><label>사이클 번호</label>${inp('v.cur.cycleNo',{w:'s',int:true})}</div><div><label>사이클 시작일</label><input class="ci t" type="date" data-k="v.cur.start" value="${esc(c.start||'')}"></div>
+  <div><label>V ($)</label>${inp('v.cur.V',{w:'w'})}<div class="hint">처음이라면 현재 평가금</div></div><div><label>Pool (현금, $)</label>${inp('v.cur.pool',{w:'w'})}</div>
+  <div><label>보유 수량 (주)</label>${inp('v.cur.qty',{int:true})}</div><div><label>현재가 ($)</label>${inp('v.cur.close')}</div></div>
+  <div class="noprint" style="margin-top:12px"><button class="btn light" data-act="v:initV">V = 현재 평가금으로 설정</button></div>
+  <div class="bub info">처음 시작: 원하는 만큼 TQQQ를 사고 나머지 현금은 Pool로 둡니다. 그때의 평가금(수량 × 가격)이 첫 V입니다. 이렇게 시작하면 첫 사이클의 괴리는 0에서 출발합니다.</div></div></div>`};
+VRAPP.views.logic=function(){const st=S.v.st,a=VR.alpha(st.G);
+ const ex={V:10000,P:1500,G:10,E:12000},exA=VR.alpha(10),exV=r2(ex.V+ex.P/ex.G+(ex.E-ex.V)*exA);
+ return `<h2>${tx('v.t.logic','실력공식 · 로직')}</h2><p class="lead">이 계산표가 쓰는 규칙 전부입니다. 다음 V는 항상 <b>실력공식</b>으로 정하고, 기본공식 값은 비교용으로만 보여줍니다.</p>
+ <div class="card"><h3>📐 실력공식</h3>
+  <div style="font-size:21px;font-weight:800;color:var(--navy);text-align:center;padding:14px;background:var(--soft);border-radius:8px;letter-spacing:-.3px">다음 V = V + P/G + (E − V) / (2√G) ${st.type==='wd'?'− 인출금':'+ 적립금'}</div>
+  <div class="tw" style="margin-top:12px"><table class="g"><thead><tr><th>기호</th><th>뜻</th><th>언제 값을 읽나</th></tr></thead><tbody>
+   <tr><td><b>V</b></td><td>이번 사이클의 목표 평가금</td><td>이번 사이클 시작 때 정해진 값</td></tr>
+   <tr><td><b>P</b></td><td>Pool(현금) = 이전 Pool + 매도금 − 매수금 + 배당</td><td>사이클 마감 시, <b>적립 전</b></td></tr>
+   <tr><td><b>E</b></td><td>평가금 = 보유수량 × 종가 (현금 제외)</td><td>사이클 <b>마지막 날 종가</b></td></tr>
+   <tr><td><b>G</b></td><td>기울기 조절값. 클수록 천천히, 안정적으로</td><td>설정값 (지금 /${st.G})</td></tr>
+   <tr><td><b>P/G</b></td><td>성장분 — 현금이 많을수록 목표를 빨리 올림</td><td>기본공식과 같음</td></tr>
+   <tr><td><b>(E−V)/(2√G)</b></td><td>실력 보정 — 실제 평가금과 목표의 차이를 일부 따라감</td><td>실력공식에만 있음</td></tr></tbody></table></div></div>
+ <div class="row c2"><div class="card"><h3>🔍 뻔하지 않은 해석: "반쯤 따라가는 중심선"</h3>
+  <p style="margin-top:0">보정항을 정리하면 <code>V가 E 쪽으로 (E−V) × 1/(2√G)만큼 이동</code>합니다. 품질 관리에서 쓰는 <b>EWMA(지수가중 이동평균) 관리도</b>와 같은 구조입니다. 중심선이 실제 공정값을 일정 비율로 따라가는 것입니다.</p>
+  <div class="tw"><table class="g"><thead><tr><th>G</th><th>2√G</th><th>추종 비율 α</th><th>차이가 절반이 되는 데</th></tr></thead><tbody>
+  ${[10,15,20,30,40].map(G=>{const h=VR.halfLife(G);return `<tr class="${G===st.G?'now':''}"><td class="c">/${G}${G===st.G?' ◀':''}</td><td class="n">${fmt(2*Math.sqrt(G),3)}</td><td class="n"><b>${fmt(VR.alpha(G)*100,1)}%</b></td><td class="n">${fmt(h,1)}사이클 (${fmt(h*2,0)}주)</td></tr>`}).join('')}</tbody></table></div>
+  <p class="note">G를 키우면 성장분(P/G)만 줄어드는 게 아니라, 추종 비율도 √G에 반비례해 함께 줄어듭니다. 즉 G 하나로 "얼마나 빨리 올릴지"와 "시장을 얼마나 따라갈지"가 같이 정해집니다.</p></div>
+ <div class="card"><h3>🧪 손계산 검산</h3><p class="note">V $10,000 · P $1,500 · G /10 · E $12,000 · 거치식</p><div class="chk" style="border-left:none">
+  <div class="ln"><span class="lb">성장분 P/G</span><span class="fm">1,500 ÷ 10</span><span class="rs">$150.00</span></div>
+  <div class="ln"><span class="lb">실력 보정</span><span class="fm">(12,000 − 10,000) ÷ (2 × √10 = 6.3246)</span><span class="rs">$316.23</span></div>
+  <div class="ln tot"><span class="lb">다음 V</span><span class="fm">10,000 + 150 + 316.23</span><span class="rs ${exV===10466.23?'pos':'neg'}">${usd(exV)} ${exV===10466.23?'✔':'✖'}</span></div>
+  <div class="ln"><span class="lb">기본공식이었다면</span><span class="fm">10,000 + 150</span><span class="rs" style="color:var(--mut)">$10,150.00</span></div></div>
+  <div class="bub kid"><b>쉽게 말하면:</b> 주식이 목표보다 2,000달러 더 올랐으니, 그중 약 16%(316달러)만큼 목표를 더 올려 줘요. 그래서 오를 때 너무 빨리 다 팔지 않고, 떨어질 때는 너무 빨리 현금을 다 쓰지 않아요.</div></div></div>
+ <div class="row c2"><div class="card"><h3>⚖️ 기본공식 vs 실력공식</h3><div class="tw"><table class="g"><thead><tr><th>상황</th><th>기본공식</th><th>실력공식</th></tr></thead><tbody>
+  <tr><td>평가금 = V</td><td colspan="2" class="c">두 공식 결과가 같음</td></tr>
+  <tr><td>크게 오름 (E &gt; V)</td><td>V가 천천히 올라 계속 팔게 됨 → 현금 비중 증가</td><td>V도 따라 올라 덜 팖 → 상승장을 더 탐</td></tr>
+  <tr><td>크게 빠짐 (E &lt; V)</td><td>V가 계속 올라 계속 사게 됨 → Pool 빨리 소진</td><td>V 상승이 줄거나 내려감 → Pool 보존</td></tr>
+  <tr><td>약점</td><td>긴 하락장에서 실탄 고갈</td><td>V가 내려간 뒤 반등하면 평단보다 낮게 팔 수 있음</td></tr></tbody></table></div></div>
+ <div class="card"><h3>🔄 2주 사이클 흐름</h3><div class="chev"><div>① 마지막 날 종가·체결 합계</div><div>② P · E 확정</div><div>③ 다음 V (실력공식)</div><div>④ 밴드 V×(1±${st.band}%)</div><div>⑤ 1주 단위 예약표</div></div>
+  <div class="tw" style="margin-top:12px"><table class="g"><tbody>
+  <tr><td>밴드</td><td>V × (1 ± ${st.band}%)</td></tr>
+  <tr><td>매수표 k번째 줄</td><td>하단 ÷ (보유 + k − 1), 1주</td></tr><tr><td>매도표 k번째 줄</td><td>상단 ÷ (보유 − k + 1), 1주</td></tr>
+  <tr><td>매수 한도</td><td>적립 후 Pool × ${st.lim.acc}% / 거치 ${st.lim.lump}% / 인출 후 ${st.lim.wd}%</td></tr></tbody></table></div></div></div>
+ <div class="card"><h3>🧪 매매표 검산 (원문 6기 23주차)</h3><p class="note">원문 실력공식 V $1,435.25 · 밴드 ±15% → 하단 $1,219.96, 상단 $1,650.54 · 보유 17주</p><div class="tw"><table class="g"><thead><tr><th>줄</th><th>매수가 (원문)</th><th>이 표 계산</th><th>매도가 (원문)</th><th>이 표 계산</th></tr></thead><tbody>
+  ${[[71.76,97.09],[67.78,103.16],[64.21,110.04],[61.00,117.90],[58.09,126.96]].map(([b,s],i)=>{const lo=1435.25*.85,hi=1435.25*1.15,cb=r2(lo/(17+i)),cs=r2(hi/(17-i));return `<tr><td class="c">${i+1}</td><td class="n">${usd(b)}</td><td class="n ${cb===b?'pos':'neg'}">${usd(cb)} ${cb===b?'✔':'✖'}</td><td class="n">${usd(s)}</td><td class="n ${cs===s?'pos':'neg'}">${usd(cs)} ${cs===s?'✔':'✖'}</td></tr>`}).join('')}</tbody></table></div></div>
+ <div class="bub info"><b>출처와 한계</b> · 실력공식은 책 『라오어의 미국주식 밸류 리밸런싱』 특별 수록 공식과 원저자 카페 자료를 대조·정리한 2차 자료(<code>V + P/G + (E−V)/(2√G) + 적립금</code>, P는 적립 전 Pool, E는 마지막 날 종가 기준)를 따릅니다. 원 저작권은 라오어에게 있으며, 실제 운용 전 원문을 확인하세요. 투자 권유가 아닌 계산 도구입니다.</div>`};
+
+
+
+/* ===== VR 실력공식을 이 시장 판단 파일에 연결 (2026-11-18 추가: 라오어 통합계산표의 VR 부분을 그대로 이식) ===== */
+APP.tabs.splice(1,0,...VRAPP.tabs.filter(t=>t.id!=='history').map(t=>({id:'v_'+t.id,label:t.label,grp:'VR 실력공식'})));
+Object.entries(VRAPP.views).forEach(([k,f])=>{if(k!=='history')APP.views['v_'+k]=f});
+{const d0=APP.defaults,s0=APP.sample,l0=APP.label,o0=APP.onChange,a0=APP.act,m0=APP.migrate,c0=APP.csv;
+ APP.defaults=function(){return Object.assign(d0()||{},{v:VRAPP.defaults()})};
+ APP.sample=function(){return Object.assign(s0()||{},{v:VRAPP.sample()})};
+ APP.label=function(k){return k.startsWith('v.')?'[VR] '+VRAPP.label(k.slice(2)):l0(k)};
+ APP.onChange=function(k,v,o){if(k.startsWith('v.')&&VRAPP.onChange)VRAPP.onChange(k.slice(2),v,o);return o0(k,v,o)};
+ APP.act=function(a,t){if(a.startsWith('v:'))return VRAPP.act(a.slice(2),t);return a0(a,t)};
+ APP.migrate=function(d){m0(d);if(!d.v)d.v=VRAPP.defaults();VRAPP.migrate(d.v)};
+ APP.csv=function(){let r=[];try{if(S.v&&S.v.cur&&S.v.cur.V!=null)r=[['[VR 밸류 리밸런싱 · 실력공식]'],...VRAPP.csv(),[],[]]}catch(e){}return r.concat(c0())};}
+
+
 /* ===================== 참고 분석: TQQQ 매수 시점 (첨부 자료 수록) ===================== */
 
 APP.views.timing=function(){
@@ -2327,7 +2550,7 @@ const CRASH={
 boot();LIVE.refresh();LIVE.auto();
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261117115840';
+const FILE_BUILD='20261118185500';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
