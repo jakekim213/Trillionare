@@ -2356,7 +2356,7 @@ saveWork=function(){PWA.save();toast('✔ 이 기기에 저장했습니다')};
 {const _o=openFile;openFile=async function(f){const r=await _o(f);setTimeout(PWA.save,50);return r}}
 
 /* 🔄 새 버전 알림: GitHub에 새 계산표가 올라오면(최대 몇 분) 화면 위에 알려 주고, 누르면 캐시를 피해 새로 엶 */
-const APP_BUILD='20261119123636';
+const APP_BUILD='20261119124030';
 async function chkUpd(){try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();
  if(/^\d{14}$/.test(v)&&v>APP_BUILD&&!document.getElementById('updBar')){const b=document.createElement('div');b.id='updBar';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:80;background:#1f6feb;color:#fff;padding:10px 16px;border-radius:24px;box-shadow:0 4px 14px rgba(0,0,0,.25);font-weight:700;cursor:pointer;max-width:calc(100vw - 24px)';b.textContent='🔄 새 버전이 있어요 — 눌러서 바로 적용';b.onclick=()=>{try{PWA.save()}catch(e){}location.replace(location.pathname+'?v='+v)};document.body.appendChild(b)}}catch(e){}}
 setTimeout(chkUpd,1500);setInterval(chkUpd,10*60e3);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')chkUpd()});
@@ -2380,16 +2380,21 @@ const CRASH={
    r._f=f;r._e=e});
   return{R,L:R[R.length-1],f,e,fS,eS,fl,el,src:o.src}},
  chart(R){const P=R.slice(-252),n=P.length;if(n<2)return '';
-  const W=760,H=150,pl=34,pr=8,pt=8,pb=18,vs=P.map(r=>(r.vol20||0)*100),mx=Math.max(50,Math.ceil(Math.max(...vs)/10)*10);
-  const X=i=>pl+i/(n-1)*(W-pl-pr),Y=v=>pt+(1-v/mx)*(H-pt-pb);
-  let bands='',i0=0;for(let i=1;i<=n;i++){if(i===n||P[i]._e!==P[i0]._e){const xa=X(i0),xb=X(Math.min(i,n-1));bands+=`<rect x="${xa.toFixed(1)}" y="${pt}" width="${Math.max(.8,xb-xa).toFixed(1)}" height="${H-pt-pb}" fill="${P[i0]._e?'#1c7a49':'#8a95a5'}" opacity=".13"/>`;i0=i}}
-  let p='';vs.forEach((v,i)=>{p+=(i?'L':'M')+X(i).toFixed(1)+','+Y(v).toFixed(1)});
-  const LV=[[35,'#c73f2e'],[30,'#b8860b'],[25,'#1c7a49']],ln=LV.map(([v,c])=>`<line x1="${pl}" x2="${W-pr}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" stroke="${c}" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/>`).join(''),
-   lab=LV.map(([v,c])=>`<span style="position:absolute;left:${((pl-4)/W*100).toFixed(2)}%;top:${(Y(v)/H*150).toFixed(0)}px;transform:translate(-100%,-50%);font-size:11px;color:${c}">${v}</span>`).join('');
-  return `<div class="note" style="margin-bottom:4px">최근 1년 나스닥100 흔들림(20일 변동성, %) · 초록 바탕 = 규칙 B(메인) 보유, 회색 = 현금</div>
-  <div style="position:relative"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:150px;display:block">${bands}${ln}<path d="${p}" fill="none" stroke="#2b5288" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>${lab}
-  <span style="position:absolute;right:0;top:${(Y(vs[n-1])/H*150).toFixed(0)}px;transform:translate(0,-130%);font-size:11.5px;font-weight:700;color:#2b5288">${vs[n-1].toFixed(1)}%</span></div>
-  <div class="note" style="display:flex;justify-content:space-between"><span>${P[0].date}</span><span>${P[n-1].date}</span></div>`},
+  const W=760,pl=34,pr=8,pt=8,pb=6;
+  const panel=(vs,H,lo,hi,LV,col,unit)=>{const X=i=>pl+i/(n-1)*(W-pl-pr),Y=v=>pt+(1-(v-lo)/(hi-lo))*(H-pt-pb);
+   let bands='',i0=0;for(let i=1;i<=n;i++){if(i===n||P[i]._e!==P[i0]._e){const xa=X(i0),xb=X(Math.min(i,n-1));bands+=`<rect x="${xa.toFixed(1)}" y="${pt}" width="${Math.max(.8,xb-xa).toFixed(1)}" height="${H-pt-pb}" fill="${P[i0]._e?'#1c7a49':'#8a95a5'}" opacity=".13"/>`;i0=i}}
+   let p='';vs.forEach((v,i)=>{p+=(i?'L':'M')+X(i).toFixed(1)+','+Y(v).toFixed(1)});
+   const ln=LV.map(([v,c])=>`<line x1="${pl}" x2="${W-pr}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" stroke="${c}" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/>`).join(''),
+    lab=LV.map(([v,c,t])=>`<span style="position:absolute;left:${((pl-4)/W*100).toFixed(2)}%;top:${Y(v).toFixed(0)}px;transform:translate(-100%,-50%);font-size:11px;color:${c};white-space:nowrap">${t}</span>`).join(''),last=vs[n-1];
+   return `<div style="position:relative"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:${H}px;display:block">${bands}${ln}<path d="${p}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>${lab}
+   <span style="position:absolute;right:0;top:${Y(last).toFixed(0)}px;transform:translate(0,-130%);font-size:11.5px;font-weight:700;color:${col}">${last>0&&unit?'+':''}${last.toFixed(1)}%</span></div>`};
+  const ds=P.map(r=>(r.dist||0)*100),dmx=Math.max(6,Math.ceil(Math.max(...ds.map(Math.abs))/2)*2);
+  const vs=P.map(r=>(r.vol20||0)*100),vmx=Math.max(45,Math.ceil(Math.max(...vs)/5)*5);
+  return `<div class="note" style="margin-bottom:4px"><b>① 추세(메인)</b> — 나스닥100이 200일선보다 몇 % 위/아래인지 · <span style="color:#c73f2e">빨간 점선(−3%)</span> 아래로 가면 매도, <span style="color:#1c7a49">초록 점선(+3%)</span> 위로 와야 매수 조건</div>
+  ${panel(ds,140,-dmx,dmx,[[3,'#1c7a49','+3'],[0,'#8a95a5',''],[-3,'#c73f2e','−3']],'#2b5288',1)}
+  <div class="note" style="margin:8px 0 4px"><b>② 흔들림(보조)</b> — 20일 변동성 · <span style="color:#c73f2e">빨간 점선(35%)</span> 넘으면 매도, 다시 사려면 <span style="color:#1c7a49">초록 점선(30%)</span> 아래여야 함 (25%는 참고용 규칙 A 기준이라 그래프에서 뺐어요)</div>
+  ${panel(vs,90,0,vmx,[[35,'#c73f2e','35'],[30,'#1c7a49','30']],'#7a4d9e',0)}
+  <div class="note" style="display:flex;justify-content:space-between"><span>${P[0].date}</span><span>초록 바탕 = 규칙 B(메인) 보유 · 회색 = 현금</span><span>${P[n-1].date}</span></div>`},
  card(){let c;try{c=CRASH.calc()}catch(err){return `<div class="bub warn">폭락 경보를 계산하지 못했습니다: ${esc(err.message)}</div>`}if(!c)return '';
   const {L,f,e,fS,eS,fl,el,src}=c,v=(L.vol20||0)*100,d=L.dist*100,f1=x=>x.toFixed(1),sg=x=>(x>0?'+':x<0?'−':'')+Math.abs(x).toFixed(1);
   const toSell=(L.sma200*0.97/L.ndx-1)*100,toBuy=(L.sma200*1.03/L.ndx-1)*100;
@@ -2406,9 +2411,9 @@ const CRASH={
   const gauge=(lab,val,min,max,marks,txt)=>{const P=x=>Math.max(0,Math.min(100,(x-min)/(max-min)*100));
    return `<div style="margin-top:8px"><div style="display:flex;justify-content:space-between;font-size:13px"><b>${lab}</b><span>${txt}</span></div>
    <div style="position:relative;height:14px;border-radius:7px;background:linear-gradient(90deg,${marks.grad});margin-top:4px">
-   ${marks.lines.map(([x,c,t])=>`<div style="position:absolute;left:${P(x)}%;top:-3px;bottom:-3px;border-left:2px dashed ${c}"></div><div style="position:absolute;left:${P(x)}%;top:16px;transform:translateX(-50%);font-size:11px;color:${c};white-space:nowrap">${t}</div>`).join('')}
+   ${marks.lines.map(([x,c,t,tx])=>`<div style="position:absolute;left:${P(x)}%;top:-3px;bottom:-3px;border-left:2px dashed ${c}"></div><div style="position:absolute;left:${P(x)}%;top:16px;transform:translateX(${tx||'-50%'});font-size:11px;color:${c};white-space:nowrap;padding:0 3px">${t}</div>`).join('')}
    <div style="position:absolute;left:${P(val)}%;top:50%;width:16px;height:16px;border-radius:50%;background:#17202e;border:2px solid #fff;transform:translate(-50%,-50%)"></div></div><div style="height:14px"></div></div>`};
-  const gV=gauge('② 흔들림 (20일 변동성 · 보조)',v,0,60,{grad:'#d6efe0 0%,#d6efe0 41%,#fbf0cf 50%,#fbf0cf 58%,#f8d7d2 59%,#f8d7d2 100%',lines:[[25,'#1c7a49','25 매수'],[30,'#b8860b','30'],[35,'#c73f2e','35 매도']]},`지금 <b>${f1(v)}%</b>`);
+  const gV=gauge('② 흔들림 (20일 변동성 · 보조)',v,0,60,{grad:'#d6efe0 0%,#d6efe0 50%,#fbf0cf 50%,#fbf0cf 58%,#f8d7d2 59%,#f8d7d2 100%',lines:[[30,'#1c7a49','30 매수조건','-100%'],[35,'#c73f2e','35 매도','0%']]},`지금 <b>${f1(v)}%</b>`);
   const gD=gauge('① 추세 (200일선 대비 · 메인)',d,-10,10,{grad:'#f8d7d2 0%,#f8d7d2 35%,#eef1f5 35%,#eef1f5 65%,#d6efe0 65%,#d6efe0 100%',lines:[[-3,'#c73f2e','−3 매도'],[0,'#8a95a5','0'],[3,'#1c7a49','+3 매수']]},`지금 <b>${sg(d)}%</b>`);
   const age=Math.round((new Date(today()+'T00:00:00Z')-new Date(L.date+'T00:00:00Z'))/864e5);
   return `<div class="card" id="crashCard" style="border:3px solid ${col};margin-bottom:18px;padding:14px">
@@ -2505,7 +2510,7 @@ boot();PWA.load();LIVE.refresh();LIVE.auto();
 {const _r=render;render=function(){_r();if(!DIRTY){const b=document.getElementById('stBadge');if(b&&!/저장됨/.test(b.textContent)){b.className='badge final';b.textContent='✔ 이 기기에 저장됨'}}}}
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261119123636';
+const FILE_BUILD='20261119124030';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
