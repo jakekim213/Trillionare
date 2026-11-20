@@ -106,6 +106,31 @@ for g in ['미국 언론', '레딧', '한국 언론', '디시인사이드']:
     S = [o for o in OUT['src'] if o['g'] == g]
     n, p, m = sum(o['n'] for o in S), sum(o['p'] for o in S), sum(o['m'] for o in S)
     OUT['grp'][g] = {'n': n, 'p': p, 'm': m, 'idx': round(p / (p + m) * 100) if p + m >= 5 else None}
+
+# ---- 대중 비관도: AAII 개인투자자 설문(매주) · 샌프란시스코 연준 뉴스 감정 지수 ----
+def aaii():
+    import xlrd
+    b = urllib.request.urlopen(urllib.request.Request('https://www.aaii.com/files/surveys/sentiment.xls', headers=UA), timeout=60).read()
+    sh = xlrd.open_workbook(file_contents=b).sheet_by_name('SENTIMENT'); R = []
+    for i in range(sh.nrows):
+        c = sh.row_values(i)
+        if isinstance(c[0], float) and c[0] > 30000 and all(isinstance(x, float) for x in c[1:4]):
+            R.append((xlrd.xldate_as_datetime(c[0], 0).strftime('%Y-%m-%d'), c[1], c[3]))
+    bears = sorted(r[2] for r in R); last = R[-1]
+    rank = lambda v: round(sum(1 for x in bears if x <= v) / len(bears) * 100)
+    return {'d': last[0], 'bear': round(last[2] * 100, 1), 'bull': round(last[1] * 100, 1), 'avg4': round(sum(r[2] for r in R[-4:]) / 4 * 100, 1),
+            'max4': round(max(r[2] for r in R[-4:]) * 100, 1), 'pct': rank(last[2]), 'mean': round(sum(bears) / len(bears) * 100, 1),
+            'w': [[r[0], round(r[2] * 100, 1)] for r in R[-12:]]}
+def sffed():
+    import openpyxl, io
+    b = urllib.request.urlopen(urllib.request.Request('https://www.frbsf.org/wp-content/uploads/news_sentiment_data.xlsx', headers=UA), timeout=60).read()
+    ws = openpyxl.load_workbook(io.BytesIO(b), read_only=True, data_only=True)['Data']
+    V = [(r[0], r[1]) for r in ws.iter_rows(min_row=2, values_only=True) if r[0] is not None and isinstance(r[1], (int, float))]
+    vs = sorted(v for _, v in V); last = V[-1]
+    return {'d': str(last[0])[:10], 'v': round(last[1], 3), 'negpct': round(sum(1 for x in vs if x >= last[1]) / len(vs) * 100)}
+for k, fn in (('aaii', aaii), ('sffed', sffed)):
+    try: OUT[k] = fn(); print(k, OUT[k])
+    except Exception as e: OUT[k] = {'err': str(e)[:120]}; print(k, 'fail', e)
 gi = [v['idx'] for v in OUT['grp'].values() if v['idx'] is not None]
 OUT['idx'] = round(sum(gi) / len(gi)) if gi else None
 hist = [h for h in prev if isinstance(h, dict) and h.get('at')] + [{'at': OUT['at'], 'idx': OUT['idx'], **{g: v['idx'] for g, v in OUT['grp'].items()}}]

@@ -18,6 +18,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: 이전 기록 가져오기
         run: git fetch -q --depth 1 origin news && git show FETCH_HEAD:news_hist.json > prev_news_hist.json || echo "이전 기록 없음"
+      - name: 엑셀 읽기 도구
+        run: pip install -q xlrd openpyxl
       - name: 수집 · 분류
         run: python3 .github/scripts/news.py
       - name: news 가지에 올리기
