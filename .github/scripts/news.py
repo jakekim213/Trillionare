@@ -26,8 +26,12 @@ def rss(u, strip_src=False, hours=48):
 
 def reddit(sub):
     after = (NOW - dt.timedelta(days=1)).strftime('%Y-%m-%dT%H:%M')
-    J = json.loads(get(f'https://arctic-shift.photon-reddit.com/api/posts/search?subreddit={sub}&limit=100&sort=desc&after={after}'))
-    return [clean(p.get('title', '')) for p in J.get('data', []) if not p.get('stickied') and p.get('title')]
+    try:
+        J = json.loads(get(f'https://arctic-shift.photon-reddit.com/api/posts/search?subreddit={sub}&limit=100&sort=desc&after={after}'))
+    except Exception:
+        time.sleep(3); J = json.loads(get(f'https://arctic-shift.photon-reddit.com/api/posts/search?subreddit={sub}&limit=100'))
+    lim = NOW.timestamp() - 86400
+    return [clean(p.get('title', '')) for p in J.get('data', []) if not p.get('stickied') and p.get('title') and (p.get('created_utc') or lim) >= lim]
 
 def dc(gid, pages=3, minor=True):
     out = []
@@ -40,13 +44,15 @@ def dc(gid, pages=3, minor=True):
             if num and a:
                 t = clean(a.group(1))
                 if t: out.append(t)
+        if pg == 1 and len(out) < 10:
+            rows = b.split('<tr class="ub-content')
+            open('out/dc_debug.txt', 'w').write(str(len(rows)) + '\n=====\n' + '\n=====\n'.join(r[:900] for r in rows[5:9]) + '\n=====TAIL\n' + b[-3000:])
         time.sleep(1.5)
     return out
 
 SRC = [
  ('cnbc', '미국 언론', 'CNBC', lambda: rss('https://www.cnbc.com/id/15839069/device/rss/rss.html') + rss('https://www.cnbc.com/id/100003114/device/rss/rss.html')),
  ('mw', '미국 언론', 'MarketWatch', lambda: rss('https://feeds.content.dowjones.io/public/rss/mw_topstories') + rss('https://feeds.content.dowjones.io/public/rss/mw_marketpulse')),
- ('wsj', '미국 언론', 'WSJ', lambda: rss('https://feeds.a.dj.com/rss/RSSMarketsMain.xml')),
  ('gnen', '미국 언론', '구글뉴스(영어)', lambda: rss('https://news.google.com/rss/search?q=stock+market+OR+nasdaq+OR+%22wall+street%22+when:1d&hl=en-US&gl=US&ceid=US:en', True)),
  ('wsb', '레딧', 'r/wallstreetbets', lambda: reddit('wallstreetbets')),
  ('stocks', '레딧', 'r/stocks', lambda: reddit('stocks')),
@@ -56,10 +62,10 @@ SRC = [
 ]
 
 # ---- 사전 (금융 기사·커뮤니티 제목용) ----
-EN_NEG = r"plunge|plunges|plunged|plunging|plummet\w*|tumble\w*|sink|sinks|sank|sinking|slump\w*|crash\w*|sell-?off\w*|rout|routs|loss|losses|lose|loses|losing|lost|fall|falls|fell|falling|drop|drops|dropped|dropping|decline\w*|slide|slides|slid|sliding|fear|fears|feared|panic\w*|worr(?:y|ies|ied)|concern\w*|recession\w*|bear|bears|bearish|bubble\w*|warn|warns|warned|warning\w*|crisis|crises|downgrade\w*|layoffs?|default\w*|bankrupt\w*|lawsuit\w*|probe|probes|investigat\w*|slowdown|weak|weaker|weakness|weakens|miss|misses|missed|terrified|scared|spooked|turmoil|collapse\w*|worst|lowest|wipe[sd]? out|wiped|short seller|bagholder\w*|rekt|tank|tanks|tanked|tanking|bleed\w*|red|plunging|selling|dump|dumps|dumped|underperform\w*|cut forecast|cuts forecast|hit hard|hits|hammered|slammed|jitters|anxiety|uncertain\w*|volatile|volatility|risk-off|capitulat\w*|puts|down \d"
-EN_POS = r"surge|surges|surged|surging|soar\w*|jump|jumps|jumped|jumping|rall(?:y|ies|ied|ying)|gain|gains|gained|rise|rises|rose|rising|climb\w*|rebound\w*|record high|all-time high|new high|highs|beat|beats|upgrade\w*|bullish|bull|bulls|boom\w*|strong|stronger|strength|optimis\w*|moon|mooning|tendies|profit|profits|profitable|growth|best|recover\w*|green|upside|outperform\w*|approv\w*|tops estimates|top estimates|buy the dip|buying opportunity|bargain|cheap|calls|lifts|lifted|boost\w*|advance\w*|higher|up \d"
-KO_NEG = ['폭락','급락','하락','약세','떨어','추락','붕괴','공포','패닉','손실','손절','물렸','물림','반토막','거품','버블','위기','경고','우려','쇼크','침체','떡락','나락','한강','깡통','망했','망함','망하','하방','불안','충격','최저','손해','빠졌','빠짐','털렸','곱버스','인버스','숏','폭탄','비상','악재','매도세','투매','내림세','휘청','먹구름','적신호','경계','조정','부진','급감','하향','곤두박질','출렁','털림','개박살','박살','좆','시발','ㅅㅂ','ㅠ','ㅜ','하락장','손실률','마이너스']
-KO_POS = ['폭등','급등','상승','강세','반등','회복','랠리','신고가','최고치','사상 최고','호재','매수','떡상','불장','돌파','수익','익절','오른다','올랐','오름','기회','줍줍','저점매수','풀매수','상방','훈풍','청신호','호실적','기대감','낙관','순항','껑충','치솟','상승세','오름세','플러스','대박','ㅋㅋ','가즈아','갓','존버 성공','불기둥','양전','신기록']
+EN_NEG = r"plunge|plunges|plunged|plunging|plummet\w*|tumble\w*|sink|sinks|sank|sinking|slump\w*|crash\w*|sell-?off\w*|rout|routs|loss|losses|lose|loses|losing|lost|fall|falls|fell|falling|drop|drops|dropped|dropping|decline\w*|slide|slides|slid|sliding|fear|fears|feared|panic\w*|worr(?:y|ies|ied)|concern\w*|recession\w*|bear|bears|bearish|bubble\w*|warn|warns|warned|warning\w*|crisis|crises|downgrade\w*|layoffs?|default\w*|bankrupt\w*|lawsuit\w*|probe|probes|investigat\w*|slowdown|weak|weaker|weakness|weakens|miss|misses|missed|terrified|scared|spooked|turmoil|collapse\w*|worst|lowest|wipe[sd]? out|wiped|short seller|bagholder\w*|rekt|tank|tanks|tanked|tanking|bleed\w*|red|plunging|selling|dump|dumps|dumped|underperform\w*|cut forecast|cuts forecast|hit hard|hits|hammered|slammed|jitters|anxiety|uncertain\w*|volatile|volatility|risk-off|capitulat\w*|down \d|dive|dives|dived|diving|slip|slips|slipped|slipping|wipeout\w*|troubl\w*|battered|fail|fails|failed|failing|gloom\w*|fade|fades|faded|fading|losing streak|sour|sours|soured|souring|retreat\w*|pullback\w*|correction|slash\w*|shorting|crater\w*|downbeat|grim|plight|scam|halted|bloodbath|meltdown|freefall|free fall"
+EN_POS = r"surge|surges|surged|surging|soar\w*|jump|jumps|jumped|jumping|rall(?:y|ies|ied|ying)|gain|gains|gained|rise|rises|rose|rising|climb\w*|rebound\w*|record high|all-time high|new high|highs|beat|beats|upgrade\w*|bullish|bull|bulls|boom\w*|strong|stronger|strength|optimis\w*|moon|mooning|tendies|profit|profits|profitable|growth|best|recover\w*|green|upside|outperform\w*|approv\w*|tops estimates|top estimates|buy the dip|buying opportunity|bargain|cheap|calls|lifts|lifted|boost\w*|advance\w*|higher|up \d|hikes outlook|raises outlook|raises guidance|raised guidance|success\w*|win|wins|winning|record gains|best day|bounce\w*|upbeat|relief"
+KO_NEG = ['폭락','급락','하락','약세','떨어','추락','붕괴','공포','패닉','손실','손절','물렸','물림','반토막','거품','버블','위기','경고','우려','쇼크','침체','떡락','나락','한강','깡통','망했','망함','망하','하방','불안','충격','최저','손해','빠졌','빠짐','털렸','곱버스','인버스','숏','폭탄','비상','악재','매도세','투매','내림세','휘청','먹구름','적신호','경계','조정','부진','급감','하향','곤두박질','출렁','털림','개박살','박살','좆','시발','ㅅㅂ','ㅠ','ㅜ','하락장','손실률','마이너스','역부족','울상','폭망','실패','하락 마감','급매','투매','공매도']
+KO_POS = ['폭등','급등','상승','강세','반등','회복','랠리','신고가','최고치','사상 최고','호재','매수','떡상','불장','돌파','수익','익절','오른다','올랐','오름','기회','줍줍','저점매수','풀매수','상방','훈풍','청신호','호실적','기대감','낙관','순항','껑충','치솟','상승세','오름세','플러스','대박','ㅋㅋ','가즈아','갓','존버 성공','불기둥','양전','신기록','성공','흥행','반색','안도']
 ENN = re.compile(r'\b(?:' + EN_NEG + r')\b', re.I); ENP = re.compile(r'\b(?:' + EN_POS + r')\b', re.I)
 def score(t):
     if re.search('[가-힣ㄱ-ㅎㅏ-ㅣ]', t):
@@ -68,9 +74,14 @@ def score(t):
         if re.search(r'(상승|반등|랠리)[^ ]{0,4}\s?(꺾|멈|끝|실패|제동)', t): p = [w for w in p if w not in ('상승','반등','랠리','상승세')]; n.append('상승 꺾임')
         if re.search(r'(하락|급락|약세)[^ ]{0,4}\s?(멈|끝|진정|탈출|딛고|만회)', t): n = [w for w in n if w not in ('하락','급락','약세')]; p.append('하락 멈춤')
     else:
-        n = [m.group(0).lower() for m in ENN.finditer(t)]; p = [m.group(0).lower() for m in ENP.finditer(t)]
+        N = [(m.start(), m.group(0).lower()) for m in ENN.finditer(t)]; P = [(m.start(), m.group(0).lower()) for m in ENP.finditer(t)]
+        n = [w for _, w in N]; p = [w for _, w in P]
+        if N or P:  # 영어 제목은 맨 앞 동사(주어의 움직임)가 핵심 → 가장 먼저 나온 단어에 가중치 2
+            first = min(N + P)[0]
+            return sum(2 if i == first else 1 for i, _ in P) - sum(2 if i == first else 1 for i, _ in N), p, n
     return len(p) - len(n), p, n
 
+os.makedirs('out', exist_ok=True)
 prev = []
 try: prev = json.load(open('prev_news_hist.json'))
 except Exception: pass
