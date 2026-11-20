@@ -40,7 +40,8 @@ def dc(gid, pages=3, minor=True):
         for row in b.split('<tr class="ub-content')[1:]:
             row = row.split('</tr>')[0]
             num = re.search(r'class="gall_num"[^>]*>\s*(\d+)\s*<', row)
-            a = re.search(r'class="gall_tit ub-word">\s*<a href="/(?:mgallery/)?board/view/[^"]*"[^>]*>(.*?)</a>', row, re.S)
+            a = re.search(r'class="gall_tit ub-word">\s*<a\s+href="/(?:mgallery/)?board/view/[^"]*"[^>]*>(.*?)</a>', row, re.S)
+            if 'icon_notice' in row[:200] or re.search(r'gall_subject"[^>]*>\s*(?:<b>)?\s*(공지|설문|AD|이슈)', row): continue
             if num and a:
                 t = clean(a.group(1))
                 if t: out.append(t)
