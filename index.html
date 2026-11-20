@@ -2356,7 +2356,7 @@ saveWork=function(){PWA.save();toast('✔ 이 기기에 저장했습니다')};
 {const _o=openFile;openFile=async function(f){const r=await _o(f);setTimeout(PWA.save,50);return r}}
 
 /* 🔄 새 버전 알림: GitHub에 새 계산표가 올라오면(최대 몇 분) 화면 위에 알려 주고, 누르면 캐시를 피해 새로 엶 */
-const APP_BUILD='20261120132254';
+const APP_BUILD='20261120134227';
 async function chkUpd(){try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();
  if(/^\d{14}$/.test(v)&&v>APP_BUILD&&!document.getElementById('updBar')){const b=document.createElement('div');b.id='updBar';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:80;background:#1f6feb;color:#fff;padding:10px 16px;border-radius:24px;box-shadow:0 4px 14px rgba(0,0,0,.25);font-weight:700;cursor:pointer;max-width:calc(100vw - 24px)';b.textContent='🔄 새 버전이 있어요 — 눌러서 바로 적용';b.onclick=()=>{try{PWA.save()}catch(e){}location.replace(location.pathname+'?v='+v)};document.body.appendChild(b)}}catch(e){}}
 setTimeout(chkUpd,1500);setInterval(chkUpd,10*60e3);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')chkUpd()});
@@ -2597,11 +2597,47 @@ const NEWS={K:'tqqq_news_v1',d:null,h:null,err:null,busy:0,
 {const _cc=CRASH.card;CRASH.card=function(){let b='',n='';try{b=BEAR.card()}catch(e){}try{n=NEWS.card()}catch(e){}return _cc()+b+n}}
 
 
+/* ===== 😟 대중 비관도 — 지금 vs 과거 바닥 (AAII 설문 · VIX · 연준 뉴스 감정, 2026-11-20 검증) ===== */
+const CROWD={
+ VQ:[[12.2,10],[13.4,20],[14.7,30],[16.1,40],[17.6,50],[19.4,60],[21.5,70],[24.2,80],[25.9,85],[28.5,90],[32.9,95],[37,97],[46.7,99]],
+ vpct(v){if(v==null)return null;let p=0;for(const [x,q] of CROWD.VQ)if(v>=x)p=q;return p},
+ /* 비관 신호 뒤 나스닥100 (1987~2026, 같은 신호 90일 안 재발은 1번): [신호, 횟수, 1년 안 더 빠진 폭 가운데, 20% 넘게 더 빠짐, 12개월 가운데, 12개월 플러스 비율] */
+ SIG:[['아무 날',null,null,null,'+18%','83%'],['비관 비율 50% 이상',20,'−9%','5번','+23%','80%'],['비관 비율 55% 이상',12,'−9%','3번','+28%','75%'],['VIX 40 이상',10,'−4%','2번','+33%','90%'],['비관 50% 이상 + VIX 30 이상',8,'−9%','2번','+32%','88%'],['연준 뉴스 비관 상위 5%',10,'−8%','2번','+32%','80%']],
+ html(){const o=(typeof NEWS!=='undefined'&&NEWS.d)||{},A=o.aaii&&!o.aaii.err?o.aaii:null,F=o.sffed&&!o.sffed.err?o.sffed:null;
+  let vx=null,vd='';try{const R=MKT.now().rule;for(let i=R.length-1;i>=0;i--)if(R[i].vix!=null&&isFinite(R[i].vix)){vx=R[i].vix;vd=R[i].date;break}}catch(e){}
+  const vp=CROWD.vpct(vx),b=A?A.bear:null,b4=A?A.avg4:null;
+  const lvl=(b!=null&&vx!=null&&(b>=50||b4>=50)&&vx>=40)?['🔴','하락장 바닥 수준의 비관','#b42318','과거 이런 때 산 경우 12개월 뒤 가운데 +32%·88% 플러스 — 그래도 그 뒤 −9% 더 빠지는 게 보통이었어요']
+   :(b!=null&&(b>=45||b4>=45))||(vx!=null&&vx>=30)?['🟠','조정 바닥에서 흔히 보던 비관','#e0602a','하락장 바닥(비관 51% · VIX 44)까지는 아직 — 작은 조정은 이 정도에서 끝나곤 했고, 큰 하락장은 더 겁먹은 뒤에 끝났어요']
+   :['🟢','평소 수준','#4c9a2a','대중이 크게 겁먹은 상태는 아니에요'];
+  const sp=A?(()=>{const W=A.w||[],n=W.length;if(n<2)return '';const X=i=>4+i/(n-1)*192,Y=v=>4+(1-(v-15)/55)*40;return `<svg viewBox="0 0 200 48" style="width:110px;height:32px;display:block;margin:2px 0 0 auto"><line x1="0" x2="200" y1="${Y(50)}" y2="${Y(50)}" stroke="#b42318" stroke-dasharray="3 3"/><line x1="0" x2="200" y1="${Y(31.5)}" y2="${Y(31.5)}" stroke="#8a95a5" stroke-dasharray="2 3"/><path d="${W.map((w,i)=>(i?'L':'M')+X(i).toFixed(1)+','+Y(w[1]).toFixed(1)).join('')}" fill="none" stroke="#2b5288" stroke-width="2"/></svg>`})():'';
+  const td=(t,me)=>`<td class="n" style="padding:6px 5px;white-space:normal;min-width:62px${me?';background:#fff4e5;font-weight:800':''}">${t}</td>`;
+  return `<div style="margin-top:12px;border-top:1px solid #e3e7ec;padding-top:10px">
+  <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;align-items:baseline"><b style="font-size:14.5px">😟 대중 비관도 — 지금 vs 과거 바닥</b><span class="note">AAII 개인투자자 설문(매주 목) · VIX · 샌프란시스코 연준 뉴스 감정</span></div>
+  <div style="display:flex;align-items:center;gap:8px;margin:6px 0"><span style="font-size:24px">${lvl[0]}</span><div><div style="font-size:17px;font-weight:900;color:${lvl[2]}">${lvl[1]}</div><div class="note" style="font-size:12.5px">${lvl[3]}</div></div></div>
+  <div class="tw"><table class="g" style="font-size:12.5px"><thead><tr><th style="padding:5px"></th><th class="n">지금</th><th class="n">조정 바닥 11번<br><span class="note">(−15~−19%)</span></th><th class="n">하락장 바닥 9번<br><span class="note">(−20% 이상)</span></th></tr></thead><tbody>
+  <tr><td style="padding:6px 5px;white-space:normal;min-width:100px"><b>"주가 내릴 것" 개인투자자 비율</b><div class="note">AAII · 평소 ${A?A.mean:31.5}%</div></td>${td(A?`${b}% <span class="note">(${esc(A.d)})</span><div class="note">4주 평균 ${b4}% · 순위 ${A.pct} ${sp}</div>`:'<span class="note">받는 중</span>',1)}${td('37%<div class="note">순위 71</div>')}${td('51%<div class="note">순위 96</div>')}</tr>
+  <tr><td style="padding:6px 5px;white-space:normal;min-width:100px"><b>VIX 공포지수</b><div class="note">옵션 시장의 공포 · 평소 18</div></td>${td(vx!=null?`${vx.toFixed(1)} <span class="note">(${esc(vd)})</span><div class="note">순위 약 ${vp}</div>`:'–',1)}${td('24')}${td('44')}</tr>
+  <tr><td style="padding:6px 5px;white-space:normal;min-width:100px"><b>경제 기사 논조 (비관 순위)</b><div class="note">미국 신문 24곳 · 연준 집계</div></td>${td(F?`${F.negpct} <span class="note">(${esc(F.d)})</span><div class="note">${F.negpct<40?'오히려 밝은 편':F.negpct<70?'보통':'어두움'}</div>`:'–',1)}${td('37')}${td('84')}</tr>
+  </tbody></table></div>
+  <div class="note" style="margin-top:3px">순위 = 0~100 · 100이면 역사상 가장 비관적 (AAII 1987~ · VIX 1990~ · 연준 1980~)</div>
+  <details style="margin-top:8px"><summary style="cursor:pointer;font-weight:700">🔬 검증 — 대중이 극도로 비관할 때가 바닥이었나</summary>
+   <div class="tw" style="margin-top:6px"><table class="g" style="font-size:12.5px"><thead><tr><th style="padding:5px">신호 (나스닥100 1987~2026)</th><th class="n">횟수</th><th class="n">그 뒤 1년 안<br>더 빠진 폭</th><th class="n">20% 넘게<br>더 빠짐</th><th class="n">12개월 뒤</th><th class="n">12개월<br>플러스</th></tr></thead>
+   <tbody>${CROWD.SIG.map(r=>`<tr${r[1]==null?' style="background:#f4f6f8"':''}><td style="padding:5px">${r[0]}</td><td class="n">${r[1]==null?'–':r[1]+'번'}</td><td class="n">${r[2]||'–'}</td><td class="n">${r[3]||'–'}</td><td class="n">${r[4]}</td><td class="n">${r[5]}</td></tr>`).join('')}</tbody></table></div>
+   <ul class="note" style="margin:6px 0 0;padding-left:18px;line-height:1.6">
+   <li><b>바닥 쪽에서 보면 맞아요</b>: 큰 하락장 바닥 9번은 모두 대중이 크게 겁먹은 때였어요(비관 순위 가운데 96 — 2008 57%, 2020 51%, 2022 52%, 2025 62%). S&P500 바닥 11번으로 교차검증해도 모두 순위 80 이상.</li>
+   <li><b>신호 쪽에서 보면 아니에요</b>: 비관 50% 이상에 산 20번은 1년 뒤 플러스 80% — 아무 날이나 산 것(83%)과 비슷했고, 5번은 20% 넘게 더 빠졌어요. 실패는 모두 천천히 빠지는 하락장 초반(2000·2007·2022)이었어요.</li>
+   <li><b>타이밍</b>: 설문·VIX가 가장 비관적인 날은 바닥과 거의 같은 때(가운데 +2~3일, −8일), 신문 논조는 바닥보다 <b>18일 늦게</b> 가장 어두워졌어요 — 뉴스가 가장 나쁠 땐 바닥이 이미 지났을 가능성이 커요.</li>
+   <li>나스닥 −9%는 TQQQ로 약 −27%. 그래서 이 칸은 참고용이고, 다시 사는 결정은 폭락 경보 규칙(흔들림·200일선)에 맡겨요.</li>
+   <li>판정 기준: 🔴 비관 50% 이상(이번 주 또는 4주 평균) 그리고 VIX 40 이상 · 🟠 비관 45% 이상 또는 VIX 30 이상 · 🟢 그 밖. 바닥 = 나스닥100 1년 고점 −15% 이상 하락 20번의 최저 종가. 출처: AAII Sentiment Survey · FRBSF Daily News Sentiment Index · Yahoo ^VIX. 투자 자문이 아니에요.</li></ul></details></div>`}
+};
+{const _nc=NEWS.card;NEWS.card=function(){let h=_nc(),x='';try{x=CROWD.html()}catch(e){}const k=h.lastIndexOf('</div>');return k>0?h.slice(0,k)+x+h.slice(k):h+x}}
+
+
 boot();PWA.load();LIVE.refresh();LIVE.auto();
 {const _r=render;render=function(){_r();if(!DIRTY){const b=document.getElementById('stBadge');if(b&&!/저장됨/.test(b.textContent)){b.className='badge final';b.textContent='✔ 이 기기에 저장됨'}}}}
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261120132254';
+const FILE_BUILD='20261120134227';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
