@@ -1,0 +1,31 @@
+name: 뉴스·커뮤니티 분위기 수집
+on:
+  schedule:
+    - cron: '23 */3 * * *'
+  push:
+    paths: ['.github/scripts/news.py', '.github/workflows/news.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: news
+  cancel-in-progress: false
+jobs:
+  news:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: 이전 기록 가져오기
+        run: git fetch -q --depth 1 origin news && git show FETCH_HEAD:news_hist.json > prev_news_hist.json || echo "이전 기록 없음"
+      - name: 수집 · 분류
+        run: python3 .github/scripts/news.py
+      - name: news 가지에 올리기
+        run: |
+          cd out
+          git init -q -b news
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -qm "뉴스 $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" news
