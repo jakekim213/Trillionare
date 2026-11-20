@@ -1,4 +1,4 @@
-name: 뉴스 출처 시험 (자동 1회) 2
+name: 뉴스 출처 시험 (자동 1회) 3
 on:
   push:
     paths: ['.github/workflows/newsprobe.yml']
@@ -17,14 +17,10 @@ jobs:
           import json,urllib.request,time,re
           UA={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36','Accept-Language':'ko-KR,ko;q=0.9,en;q=0.8'}
           C={
-           'r_wsb_rss_ua':'https://www.reddit.com/r/wallstreetbets/new/.rss',
-           'r_jina':'https://r.jina.ai/https://www.reddit.com/r/wallstreetbets/new/',
-           'r_pullpush':'https://api.pullpush.io/reddit/search/submission/?subreddit=wallstreetbets&size=50',
-           'r_arctic':'https://arctic-shift.photon-reddit.com/api/posts/search?subreddit=wallstreetbets&limit=50&sort=desc',
-           'r_json_script':'https://www.reddit.com/r/stocks/new.json?limit=50&raw_json=1',
-           'r_gnews':'https://news.google.com/rss/search?q=site:reddit.com+wallstreetbets+when:2d&hl=en-US&gl=US&ceid=US:en',
-           'dc_stockus':'https://gall.dcinside.com/mgallery/board/lists/?id=stockus',
-           'dc_neostock':'https://gall.dcinside.com/board/lists/?id=neostock',
+           'r_arctic1':'https://arctic-shift.photon-reddit.com/api/posts/search?subreddit=wallstreetbets&limit=100&sort=desc&after=2026-11-17',
+           'r_arctic2':'https://arctic-shift.photon-reddit.com/api/posts/search?subreddit=stocks&limit=100',
+           'r_pullpush':'https://api.pullpush.io/reddit/search/submission/?subreddit=stocks&size=50',
+           'dc_stockus':'https://gall.dcinside.com/mgallery/board/lists/?id=stockus&page=1',
           }
           R={}
           for n,u in C.items():
@@ -36,10 +32,10 @@ jobs:
               titles=re.findall(r'<title>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?</title>',b)[:6]
               dc=re.findall(r'class="gall_tit[^"]*"[^>]*>\s*<a[^>]*>(?:<em[^>]*></em>)?([^<]{2,80})',b)[:6]
               js=re.findall(r'"title": ?"([^"]{2,90})"',b)[:6]
-              R[n]={'st':r.status,'len':len(b),'s':round(time.time()-t0,1),'n_item':b.count('<item')+b.count('<entry'),'titles':titles,'dc':dc,'json':js,'head':b[:200] if not (titles or dc or js) else '','snip':(b[b.find('ub-content'):b.find('ub-content')+1500] if 'ub-content' in b else b[b.find('gall_tit'):b.find('gall_tit')+1200]) if n.startswith('dc') else b[:600]}
+              R[n]={'st':r.status,'len':len(b),'s':round(time.time()-t0,1),'n_item':b.count('<item')+b.count('<entry'),'titles':titles,'dc':dc,'json':js,'head':b[:200] if not (titles or dc or js) else '','snip':b[b.find('gall_tit ub-word'):b.find('gall_tit ub-word')+1400] if n.startswith('dc') else b[:600]}
             except Exception as e:
               R[n]={'err':str(e)[:160],'s':round(time.time()-t0,1)}
-            time.sleep(1)
+            time.sleep(4)
           json.dump(R,open('newsprobe.json','w'),ensure_ascii=False,indent=1)
           PY
           git init -q -b probe && git config user.name "github-actions[bot]" && git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
