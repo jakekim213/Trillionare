@@ -390,7 +390,7 @@ html[data-skin]:not([data-theme="dark"]) #toast{border-left-color:var(--sk-accen
 const SRC0='<!DOCTYPE html>\n'+document.documentElement.outerHTML.replace(/\x3cscript type="application\/json" id="savedData">[\s\S]*?<\/script>/,'');
 /* ===== 오프라인 보안: 외부 통신 API 원천 차단 ===== */
 (()=>{const blk=()=>{throw new Error('오프라인 보안 모드: 외부 통신 차단')};
-  try{{const _f=window.fetch.bind(window),ok=['https://raw.githubusercontent.com/jakekim213/Trillionare/data/','https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt','https://raw.githubusercontent.com/jakekim213/Trillionare/main/tqqq_market.html','https://query1.finance.yahoo.com/v8/finance/spark?','https://query2.finance.yahoo.com/v8/finance/spark?','https://query1.finance.yahoo.com/v8/finance/chart/','https://query2.finance.yahoo.com/v8/finance/chart/','https://api.allorigins.win/raw?url=https%3A%2F%2Fquery2.finance.yahoo.com','https://corsproxy.io/?url=https%3A%2F%2Fquery2.finance.yahoo.com','https://api.codetabs.com/v1/proxy?quest=https%3A%2F%2Fquery2.finance.yahoo.com','https://api.allorigins.win/raw?url=https%3A%2F%2Fquery1.finance.yahoo.com','https://corsproxy.io/?url=https%3A%2F%2Fquery1.finance.yahoo.com','https://api.codetabs.com/v1/proxy?quest=https%3A%2F%2Fquery1.finance.yahoo.com','https://api.allorigins.win/get?url=https%3A%2F%2Fquery1.finance.yahoo.com','https://api.allorigins.win/get?url=https%3A%2F%2Fquery2.finance.yahoo.com','https://r.jina.ai/https://query1.finance.yahoo.com/v8/finance/','https://r.jina.ai/https://query2.finance.yahoo.com/v8/finance/','https://quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol?'];window.fetch=(u,o)=>{const s=String(u);if(s==='https://api.anthropic.com/v1/messages'&&o&&o.method==='POST')return _f(s,{method:'POST',headers:o.headers,body:o.body,credentials:'omit',referrerPolicy:'no-referrer',signal:o.signal});if(!ok.some(p=>s.startsWith(p))||(o&&o.method&&o.method!=='GET'))return Promise.reject(new Error('오프라인 보안 모드: 시세·Claude 주소 말고는 외부 통신 차단'));return _f(s,{method:'GET',credentials:'omit',referrerPolicy:'no-referrer',signal:o&&o.signal})}};window.XMLHttpRequest=function(){blk()};window.WebSocket=function(){blk()};window.EventSource=function(){blk()};
+  try{{const _f=window.fetch.bind(window),ok=['https://raw.githubusercontent.com/jakekim213/Trillionare/data/','https://raw.githubusercontent.com/jakekim213/Trillionare/news/','https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt','https://raw.githubusercontent.com/jakekim213/Trillionare/main/tqqq_market.html','https://query1.finance.yahoo.com/v8/finance/spark?','https://query2.finance.yahoo.com/v8/finance/spark?','https://query1.finance.yahoo.com/v8/finance/chart/','https://query2.finance.yahoo.com/v8/finance/chart/','https://api.allorigins.win/raw?url=https%3A%2F%2Fquery2.finance.yahoo.com','https://corsproxy.io/?url=https%3A%2F%2Fquery2.finance.yahoo.com','https://api.codetabs.com/v1/proxy?quest=https%3A%2F%2Fquery2.finance.yahoo.com','https://api.allorigins.win/raw?url=https%3A%2F%2Fquery1.finance.yahoo.com','https://corsproxy.io/?url=https%3A%2F%2Fquery1.finance.yahoo.com','https://api.codetabs.com/v1/proxy?quest=https%3A%2F%2Fquery1.finance.yahoo.com','https://api.allorigins.win/get?url=https%3A%2F%2Fquery1.finance.yahoo.com','https://api.allorigins.win/get?url=https%3A%2F%2Fquery2.finance.yahoo.com','https://r.jina.ai/https://query1.finance.yahoo.com/v8/finance/','https://r.jina.ai/https://query2.finance.yahoo.com/v8/finance/','https://quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol?'];window.fetch=(u,o)=>{const s=String(u);if(s==='https://api.anthropic.com/v1/messages'&&o&&o.method==='POST')return _f(s,{method:'POST',headers:o.headers,body:o.body,credentials:'omit',referrerPolicy:'no-referrer',signal:o.signal});if(!ok.some(p=>s.startsWith(p))||(o&&o.method&&o.method!=='GET'))return Promise.reject(new Error('오프라인 보안 모드: 시세·Claude 주소 말고는 외부 통신 차단'));return _f(s,{method:'GET',credentials:'omit',referrerPolicy:'no-referrer',signal:o&&o.signal})}};window.XMLHttpRequest=function(){blk()};window.WebSocket=function(){blk()};window.EventSource=function(){blk()};
     if(navigator.sendBeacon)navigator.sendBeacon=()=>false;window.open=()=>null}catch(e){}})();
 
 /* ===== 공통 유틸 ===== */
@@ -2486,10 +2486,100 @@ const RSIC={
 };
 
 
+/* ===== 📉 하락장 판단 — 지금 하락은 조정일까, 하락장 입구일까 (2026-11-20 · 나스닥100 1985~2026 검증) ===== */
+const BEAR={
+ /* 1년 고점 대비 −15%에 처음 닿은 20번: [닿은 날, 고점, 결과(1=−20% 깨짐), 고점→−15% 거래일, 그날 흔들림%, 최종 바닥%] */
+ EV:[['1986-09-30','1986-07-03',0,61,23.1,-16],['1987-10-19','1987-10-05',1,10,63.2,-40],['1990-01-30','1989-10-09',0,78,18.6,-17],['1990-08-06','1990-07-16',1,15,24.6,-33],['1992-04-27','1992-02-12',0,51,28.8,-19],['1994-04-20','1994-03-17',0,23,22.4,-16],['1997-04-02','1997-01-22',0,48,23.7,-15],['1997-12-18','1997-10-09',0,49,29.1,-18],['1998-08-31','1998-07-20',1,30,48.7,-23],['2000-04-10','2000-03-27',1,10,61.3,-83],['2004-08-06','2004-01-26',0,134,22.3,-16],['2006-07-13','2006-01-11',0,126,23.2,-17],['2008-01-15','2007-10-31',1,51,28.8,-54],['2010-06-30','2010-04-23',0,47,26.5,-16],['2011-08-08','2011-07-22',0,11,32.3,-16],['2016-02-08','2015-11-03',0,65,30.3,-16],['2018-12-17','2018-08-29',1,75,30.9,-23],['2020-03-09','2020-02-19',1,13,45.4,-28],['2022-01-27','2021-11-19',1,46,22.1,-36],['2025-04-03','2025-02-19',1,31,31.8,-23]],
+ /* 공포 정점(흔들림 최고) vs 실제 바닥: [하락장, 흔들림 최고%, 그날 고점 대비%, 그 뒤 더 빠진 %, 걸린 날, 1년 뒤 %] */
+ PK:[['1987 블랙먼데이',101,-29,-13,22,16],['1990 걸프전',40,-21,-15,49,47],['1998 LTCM',63,-7,-17,14,77],['2008 금융위기',85,-45,-16,29,43],['2018 긴축',36,-9,-16,48,18],['2020 코로나',89,-28,0,3,87],['2025 관세',38,-22,-2,4,43],['2000~02 닷컴',106,-46,-68,642,-35],['2022 금리',47,-28,-10,224,16]],
+ FAST:40,ROUGH:30,
+ grp(days,vol){const f=days<=BEAR.FAST,r=vol>=BEAR.ROUGH;const E=BEAR.EV.filter(e=>(e[3]<=BEAR.FAST)===f&&(e[4]>=BEAR.ROUGH)===r);return{f,r,n:E.length,b:E.filter(e=>e[2]).length,E,nm:(f?'빠르고':'천천히')+' '+(r?'거칠게':'조용히')}},
+ calc(){const R=MKT.now().rule;if(!R||R.length<260)return null;const n=R.length,L=R[n-1],a=n-252;let hi=a;for(let i=a;i<n;i++)if(R[i].ndx>R[hi].ndx)hi=i;
+  const H=R[hi].ndx,dd=L.ndx/H-1;let j15=-1;for(let i=hi;i<n;i++)if(R[i].ndx/H-1<=-0.15){j15=i;break}
+  const days=n-1-hi,v=(L.vol20||0)*100,at=j15>=0?{days:j15-hi,vol:(R[j15].vol20||0)*100,date:R[j15].date}:null;
+  const g=at?BEAR.grp(at.days,at.vol):BEAR.grp(days,v);
+  let cyc=null;const c0=R.findIndex(r=>r.date>='2025-04-08');if(c0>=0){let pk=c0;for(let i=c0;i<n;i++)if(R[i].ndx>R[pk].ndx)pk=i;cyc={low:R[c0].date,pkd:R[pk].date,up:R[pk].ndx/R[c0].ndx-1,now:L.ndx/R[c0].ndx-1,yrs:(new Date(L.date)-new Date(R[c0].date))/3.156e10}}
+  return{L,H,hid:R[hi].date,dd,days,v,at,g,line20:H*0.8,to20:H*0.8/L.ndx-1,cyc}},
+ card(){let c;try{c=BEAR.calc()}catch(e){return ''}if(!c)return '';
+  const {L,H,hid,dd,days,v,at,g,line20,to20,cyc}=c,p=x=>(x>0?'+':x<0?'−':'')+Math.abs(x*100).toFixed(1)+'%',f0=x=>Math.round(x).toLocaleString();
+  const st=dd>-0.10?['🟢','평온 — 작은 흔들림 (고점 대비 −10% 안쪽)','var(--pos)']:dd>-0.15?['🟡','조정 구간 (−10%대) — −15%에 닿으면 갈림길','#b8860b']:dd>-0.20?['🟠','갈림길 (−15%대) — 조정으로 끝날지, 하락장이 될지','#e0602a']:['🔴','하락장 (−20% 넘게 빠짐)','var(--neg)'];
+  const odds=`과거 ${g.n}번 중 <b>${g.b}번</b> −20%를 깼어요`;
+  const judge=at?`고점(${hid})에서 <b>${at.days}거래일</b> 만에 −15%에 닿았고(${at.date}), 그날 흔들림 <b>${at.vol.toFixed(1)}%</b> → <b>"${g.nm}" 빠진 −15%</b>: ${odds}.`
+   :`아직 −15% 전이에요. 지금처럼 <b>${days}거래일</b> 만에 흔들림 <b>${v.toFixed(1)}%</b>로 −15%에 닿으면 → <b>"${g.nm}" 빠진 −15%</b> 쪽: ${odds}.`;
+  const cell=(f,r)=>{const x=BEAR.grp(f?1:999,r?99:0),me=x.f===g.f&&x.r===g.r;return `<td class="n" style="padding:6px 5px;${me?'background:#fdecea;font-weight:800;outline:2px solid #e0602a':''}">${x.b} / ${x.n}<div class="note" style="font-size:11px">${x.E.map(e=>e[0].slice(0,4)+(e[2]?'✕':'○')).join(' ')}</div></td>`};
+  const pk=BEAR.PK.map(r=>`<tr${r[5]<0||r[4]>100?' style="background:#fff4f2"':''}><td style="padding:5px">${r[0]}</td><td class="n">${r[1]}%</td><td class="n">${r[3]===0?'0%':r[3]+'%'}</td><td class="n">${r[4]}일</td><td class="n">${r[5]>0?'+':''}${r[5]}%</td></tr>`).join('');
+  return `<div class="card" id="bearCard" style="border:2px solid ${st[2]};margin-bottom:18px;padding:14px">
+  <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline"><b style="font-size:15px">📉 지금 하락, 조정일까 하락장 입구일까?</b><span class="note">나스닥100 · ${esc(L.date)} 종가 · 1985~2026 사례 20번으로 판정</span></div>
+  <div style="display:flex;align-items:center;gap:10px;margin:8px 0 4px"><span style="font-size:30px">${st[0]}</span><div><div style="font-size:20px;font-weight:900;color:${st[2]}">${st[1]}</div><div class="note" style="font-size:13px">1년 고점 ${f0(H)} (${esc(hid)}) 대비 <b>${p(dd)}</b> · 고점 뒤 ${days}거래일 · 흔들림 ${v.toFixed(1)}%</div></div></div>
+  <div style="font-size:14px;line-height:1.6;background:#f6f8fa;border-radius:8px;padding:8px 11px;margin:6px 0">${judge}</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-top:8px">
+   <div class="kpi" style="padding:10px 12px"><div class="note">공식 하락장 선 (고점 −20%)</div><div style="font-size:22px;font-weight:900">${f0(line20)}</div><div class="note">${to20<0?`지금보다 <b>${p(to20)}</b> 더 빠지면`:'이미 아래'}</div></div>
+   <div class="kpi" style="padding:10px 12px"><div class="note">조정으로 끝난 11번의 바닥</div><div style="font-size:22px;font-weight:900">−15~−19%</div><div class="note">가운데값 −16%</div></div>
+   <div class="kpi" style="padding:10px 12px"><div class="note">하락장이 된 9번의 바닥</div><div style="font-size:22px;font-weight:900">−23~−83%</div><div class="note">가운데값 −33%</div></div>
+   ${cyc?`<div class="kpi" style="padding:10px 12px"><div class="note">지금 상승 사이클 (${esc(cyc.low)} 바닥~)</div><div style="font-size:22px;font-weight:900">${p(cyc.now)}</div><div class="note">꼭대기 ${p(cyc.up)} (${esc(cyc.pkd)}) · ${cyc.yrs.toFixed(1)}년째</div></div>`:''}
+  </div>
+  <details style="margin-top:10px"><summary style="cursor:pointer;font-weight:700">🔬 판정 근거 — −15%에 닿은 20번, 어떻게 빠졌느냐로 갈렸어요</summary>
+   <div class="tw" style="margin-top:6px"><table class="g" style="font-size:12.5px"><thead><tr><th style="padding:5px">−15%까지 걸린 시간 \\ 그날 흔들림</th><th class="n">거칠게 (30% 이상)</th><th class="n">조용히 (30% 미만)</th></tr></thead>
+   <tbody><tr><td style="padding:6px 5px"><b>빠르게</b> (40거래일 이내)</td>${cell(1,1)}${cell(1,0)}</tr><tr><td style="padding:6px 5px"><b>천천히</b> (40거래일 넘게)</td>${cell(0,1)}${cell(0,0)}</tr></tbody></table></div>
+   <div class="note" style="margin-top:4px">칸 = −20%를 깬 횟수 / 사례 수 · ✕ 하락장이 됨 ○ 고점 회복 · 빨간 칸 = 지금 해당하는 칸</div>
+   <ul class="note" style="margin:6px 0 0;padding-left:18px;line-height:1.6">
+   <li><b>"−15%면 하락장 초입"은 아니에요.</b> 20번 중 11번(55%)은 −20%까지 안 가고 고점을 회복했어요.</li>
+   <li><b>빠르고 거칠게 빠진 −15%는 달랐어요</b> — 6번 중 5번이 하락장의 입구였어요(1987·1998·2000·2020·2025, 예외 2011). 천천히 조용히 빠진 경우는 10번 중 2번만.</li>
+   <li>급브레이크를 밟았다면 앞에 무슨 일이 생긴 경우가 많은 것과 같아요. 흔들림 30%는 폭락 경보의 B 매수 기준과 같은 선이에요.</li>
+   <li>조심할 점: 사례가 20번뿐이고, "빠르고 거친" 칸은 6번이에요. 경향은 분명하지만 확률을 정확히 말할 순 없어요(5/6 = 83%로 받아들이면 지나쳐요). 흔들림이 30% 근처였던 사례(2008 28.8%, 2016 30.3%, 2018 30.9%)도 있어 경계선은 흐릿해요. 40거래일 선은 빠른 쪽 최장 31일과 느린 쪽 최단 46일 사이 어디로 잡아도 결과가 같아요.</li></ul>
+   <div style="font-weight:700;margin:12px 0 4px">😱 가장 무서운 날은 대개 폭락의 끝 근처였어요 — 공포 정점(흔들림 최고) vs 실제 바닥</div>
+   <div class="tw"><table class="g" style="font-size:12.5px"><thead><tr><th style="padding:5px">하락장</th><th class="n">흔들림 최고</th><th class="n">그 뒤 더 빠진 폭</th><th class="n">바닥까지</th><th class="n">정점 1년 뒤</th></tr></thead><tbody>${pk}</tbody></table></div>
+   <ul class="note" style="margin:6px 0 0;padding-left:18px;line-height:1.6">
+   <li>9번 중 7번은 공포 정점에서 2달 안에 바닥이 왔고(남은 하락 0~−17%), 1년 뒤엔 모두 올라 있었어요 — 팔 사람이 다 팔고 나면 더 팔 사람이 없어요(투매·항복).</li>
+   <li>예외 2번이 가장 아팠어요: <b>닷컴</b>(정점 뒤 −68% 더, 642일)·<b>2022</b>(−10% 더, 224일) — 천천히 오래 빠지는 하락장. 그래서 공포 한가운데서 바로 사지 않고, A 몫은 흔들림이 가라앉을 때(25% 미만), B 몫은 추세가 돌아설 때(200일선 +3%)까지 기다려요.</li>
+   <li>지수의 남은 −15%는 TQQQ로 대략 −40% 이상이에요. 흔들림은 최근 20일 평균이라 실제 가장 무서운 날보다 조금 늦게 최고점이 찍혀요.</li></ul>
+   <div style="font-weight:700;margin:12px 0 4px">🔁 나스닥100 상승 사이클 (1985~2026, 고점 −20%로 구분 · 하락장 속 짧은 반등 제외)</div>
+   <div class="note" style="font-size:13px;line-height:1.6">완료된 8번: 평균 <b>4.0년 · +290%</b>, 가운데값 <b>2.4년 · +158%</b> (짧게는 1.2년 +65%, 길게는 9.8년 +639%). 상승장은 나이가 아니라 충격(금리·코로나·관세) 때문에 끝났어요 — 기간을 세는 것보다 흔들림·200일선을 보는 이유예요.</div>
+   <div class="note" style="margin-top:8px">계산: 나스닥100 종가 · 1년 고점 = 최근 252거래일 최고 종가 · 흔들림 = 20일 로그수익률 표준편차 × √252 · 배당 제외 · 과거 계산이며 투자 자문이 아니에요.</div>
+  </details></div>`}
+};
+
+/* ===== 📰 뉴스·커뮤니티 분위기 — GitHub가 3시간마다 제목을 모아 긍정/부정 단어로 분류한 news.json ===== */
+const NEWS={K:'tqqq_news_v1',d:null,h:null,err:null,busy:0,
+ GH:'https://raw.githubusercontent.com/jakekim213/Trillionare/news/',
+ G:[['미국 언론','🇺🇸','CNBC·MarketWatch·구글뉴스(영어)'],['레딧','👽','r/wallstreetbets·r/stocks·r/investing (최근 24시간)'],['한국 언론','🇰🇷','구글뉴스(한국) — 미국증시·뉴욕증시·나스닥'],['디시인사이드','💬','미국 주식 갤러리 최근 3쪽']],
+ async j(f){const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),8000);try{const r=await fetch(NEWS.GH+f+'?t='+Math.floor(Date.now()/600000),{signal:ac.signal,credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)throw new Error('HTTP '+r.status);return await r.json()}finally{clearTimeout(tm)}},
+ async load(){if(NEWS.busy)return;NEWS.busy=1;try{const [d,h]=await Promise.all([NEWS.j('news.json'),NEWS.j('news_hist.json').catch(()=>null)]);if(d&&d.v===1){NEWS.d=d;NEWS.h=h;NEWS.err=null;try{localStorage.setItem(NEWS.K,JSON.stringify({d,h}))}catch(e){}}}catch(e){NEWS.err=e.message}finally{NEWS.busy=0;try{render()}catch(e){}}},
+ boot(){if(NEWS._b)return;NEWS._b=1;try{const o=JSON.parse(localStorage.getItem(NEWS.K)||'null');if(o&&o.d){NEWS.d=o.d;NEWS.h=o.h}}catch(e){}NEWS.load();setInterval(()=>{if(document.visibilityState!=='hidden'&&(!NEWS.d||Date.now()/1000-NEWS.d.at>3*3600+900))NEWS.load()},10*60*1000)},
+ lab(x){return x==null?['자료 부족','#8a95a5']:x<20?['매우 부정','#b42318']:x<40?['부정','#e0602a']:x<60?['반반','#8a95a5']:x<80?['긍정','#4c9a2a']:['매우 긍정','#1a7f37']},
+ spark(){const H=(NEWS.h||[]).filter(x=>x.idx!=null);if(H.length<2)return `<div class="note">추이 그래프는 기록이 2번 이상 쌓이면 보여요 (3시간마다 1번 · 지금 ${H.length}번)</div>`;
+  const W=760,Hh=90,n=H.length,X=i=>6+i/(n-1)*(W-12),Y=v=>6+(1-v/100)*(Hh-12);let pth='';H.forEach((x,i)=>pth+=(i?'L':'M')+X(i).toFixed(1)+','+Y(x.idx).toFixed(1));
+  const d0=new Date(H[0].at*1000).toISOString().slice(5,10),d1=new Date(H[n-1].at*1000).toISOString().slice(5,10);
+  return `<div style="position:relative"><svg viewBox="0 0 ${W} ${Hh}" preserveAspectRatio="none" style="width:100%;height:${Hh}px;display:block;background:linear-gradient(180deg,#e8f5ec 0%,#f4f6f8 40%,#f4f6f8 60%,#fdecea 100%);border-radius:6px"><line x1="0" x2="${W}" y1="${Y(50)}" y2="${Y(50)}" stroke="#8a95a5" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/><path d="${pth}" fill="none" stroke="#2b5288" stroke-width="2" vector-effect="non-scaling-stroke"/></svg><div class="note" style="display:flex;justify-content:space-between"><span>${d0}</span><span>점선 = 50 (반반) · 위 = 긍정 · 아래 = 부정</span><span>${d1}</span></div></div>`},
+ card(){NEWS.boot();const o=NEWS.d;if(!o)return `<div class="card" style="margin-bottom:18px;padding:14px"><b style="font-size:15px">📰 뉴스·커뮤니티 분위기</b><p class="note">인터넷에 연결되면 GitHub가 3시간마다 모은 자료를 받아 보여 줘요${NEWS.err?' ('+esc(NEWS.err)+')':''}</p></div>`;
+  const [ln,lc]=NEWS.lab(o.idx),age=Math.round((Date.now()/1000-o.at)/3600);
+  const bar=(g)=>{const x=o.grp[g[0]]||{n:0,p:0,m:0,idx:null},z=x.n-x.p-x.m,[l2,c2]=NEWS.lab(x.idx),w=v=>x.n?(v/x.n*100).toFixed(1):0;
+   return `<div style="display:grid;grid-template-columns:118px 1fr 82px;gap:8px;align-items:center;margin-top:7px"><div style="font-size:13px;font-weight:700">${g[1]} ${g[0]}<div class="note" style="font-weight:400;font-size:11px">${x.n}건</div></div>
+   <div style="display:flex;height:22px;border-radius:4px;overflow:hidden;background:#eef1f5;font-size:11px;font-weight:700;color:#fff">${x.p?`<div style="width:${w(x.p)}%;background:#2f9e5b;display:flex;align-items:center;justify-content:center">${x.p}</div>`:''}${z?`<div style="width:${w(z)}%;background:#c9ced6;color:#444;display:flex;align-items:center;justify-content:center">${z}</div>`:''}${x.m?`<div style="width:${w(x.m)}%;background:#d6453a;display:flex;align-items:center;justify-content:center">${x.m}</div>`:''}</div>
+   <div style="text-align:right"><b style="font-size:17px;color:${c2}">${x.idx==null?'–':x.idx}</b> <span class="note" style="font-size:11px">${l2}</span></div></div>`};
+  const ex=o.src.map(s=>{const P=s.ex.filter(e=>e[1]==='p').slice(0,4),M=s.ex.filter(e=>e[1]==='m').slice(0,4);return `<div style="margin-top:8px"><b style="font-size:13px">${esc(s.nm)}</b> <span class="note">${s.n}건 · 긍정 ${s.p} · 부정 ${s.m}${s.err?' · ⚠ '+esc(s.err):''}</span>
+   ${M.map(e=>`<div style="font-size:12.5px;line-height:1.45;padding-left:10px;border-left:3px solid #d6453a;margin:3px 0">${esc(e[0])} <span class="note">(${esc(e[3].join(', '))})</span></div>`).join('')}${P.map(e=>`<div style="font-size:12.5px;line-height:1.45;padding-left:10px;border-left:3px solid #2f9e5b;margin:3px 0">${esc(e[0])} <span class="note">(${esc(e[2].join(', '))})</span></div>`).join('')}</div>`}).join('');
+  return `<div class="card" id="newsCard" style="margin-bottom:18px;padding:14px;border:2px solid ${lc}">
+  <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline"><b style="font-size:15px">📰 뉴스·커뮤니티 분위기 — 제목 속 긍정·부정 비율</b><span class="note">${esc(o.asof)} 수집${age>=1?` · ${age}시간 전`:''} · 3시간마다 자동</span></div>
+  <div style="display:flex;align-items:baseline;gap:10px;margin:8px 0 2px"><span style="font-size:34px;font-weight:900;color:${lc}">${o.idx==null?'–':o.idx}</span><span style="font-size:18px;font-weight:800;color:${lc}">${ln}</span><span class="note">긍정 ÷ (긍정+부정) × 100 · 0 = 모두 부정 · 50 = 반반 · 100 = 모두 긍정 · 4개 매체 묶음 평균</span></div>
+  ${NEWS.G.map(bar).join('')}
+  <div class="note" style="margin-top:4px">막대: <span style="color:#2f9e5b;font-weight:700">■ 긍정</span> <span style="color:#8a95a5;font-weight:700">■ 중립</span> <span style="color:#d6453a;font-weight:700">■ 부정</span> (제목 수)</div>
+  <div style="margin-top:10px">${NEWS.spark()}</div>
+  <div style="font-size:13.5px;line-height:1.6;background:#f6f8fa;border-radius:8px;padding:8px 11px;margin-top:8px">💡 <b>읽는 법</b>: 이건 <b>매매 신호가 아니라 사람들의 기분을 재는 온도계</b>예요. 막스·버핏이 말하는 "남들이 겁낼 때"를 숫자로 보는 용도예요. 아직 과거 검증이 없어서 폭락 경보 규칙에는 넣지 않았어요 — 기록이 3개월쯤 쌓이면 나스닥 움직임과 맞춰 검증할 수 있어요.</div>
+  <details style="margin-top:8px"><summary style="cursor:pointer;font-weight:700">🗞️ 실제 제목 예시와 분류 방법</summary>${ex}
+   <ul class="note" style="margin:10px 0 0;padding-left:18px;line-height:1.6">
+   <li><b>분류 방법</b>: 금융 기사·커뮤니티 제목용 단어 사전(영어·한국어)으로 긍정 단어(급등·반등·rally·surge…)와 부정 단어(급락·붕괴·plunge·crash…)를 세서, 많은 쪽으로 분류해요. 영어 제목은 맨 앞 동사(주어의 움직임)에 가중치 2를 줘요.</li>
+   <li><b>정확도 직접 확인 (2026-11-20)</b>: 사전을 다듬은 뒤 처음 보는 제목 60개를 사람이 직접 판정해 비교 → <b>50개 일치(83%)</b>, 긍정↔부정 정반대 오류는 2개(3%). 묶음별: 미국 언론 12/15 · 레딧 12/15 · 한국 언론 13/15 · 디시 13/15. 틀린 것은 대부분 "앤트로픽 흥행에도 증시 급락"처럼 좋은 말과 나쁜 말이 섞인 제목이었어요.</li>
+   <li><b>한계</b>: 반어·비꼼(특히 커뮤니티)은 못 알아들어요. 주식과 상관없는 글도 섞여 대부분 중립으로 빠져요. 레딧은 공식 접속이 막혀 있어 Arctic Shift(레딧 글 보관 서비스)로 받아요. WSJ는 피드가 오래된 기사만 줘서 뺐어요.</li>
+   <li>모은 자료: GitHub Actions가 3시간마다 실행 → <code>news</code> 가지의 news.json(최근 결과)·news_hist.json(약 90일 기록). 투자 자문이 아니에요.</li></ul></details></div>`}
+};
+{const _cc=CRASH.card;CRASH.card=function(){let b='',n='';try{b=BEAR.card()}catch(e){}try{n=NEWS.card()}catch(e){}return _cc()+b+n}}
+
+
 boot();LIVE.refresh();LIVE.auto();
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261119130039';
+const FILE_BUILD='20261120132254';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
