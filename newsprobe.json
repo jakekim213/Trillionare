@@ -1,0 +1,62 @@
+{
+ "r_arctic1": {
+  "st": 200,
+  "len": 368716,
+  "s": 1.4,
+  "n_item": 0,
+  "titles": [],
+  "dc": [],
+  "json": [
+   "Hey guys, what’s the next red hot rIP0???",
+   "Overall came into loss afterall",
+   "Thank you Dario…",
+   "US Approved AI Chip Sales to China’s Tencent, Alibaba, Data Show",
+   "IREN Gain Porn. Escaped the Neocloud Dumpster Fire",
+   "I’m a retarded or the market is just cooking us all"
+  ],
+  "head": "",
+  "snip": "{\"data\":[{\"all_awardings\":[],\"allow_live_comments\":false,\"approved_at_utc\":null,\"approved_by\":null,\"archived\":false,\"author\":\"Eastern-Joke-7537\",\"author_flair_background_color\":null,\"author_flair_css_class\":null,\"author_flair_richtext\":[],\"author_flair_template_id\":null,\"author_flair_text\":null,\"author_flair_text_color\":null,\"author_flair_type\":\"text\",\"author_fullname\":\"t2_144rrukwml\",\"author_is_blocked\":false,\"author_patreon_flair\":false,\"author_premium\":false,\"awarders\":[],\"banned_at_utc\":null,\"banned_by\":null,\"can_gild\":false,\"can_mod_post\":false,\"category\":null,\"clicked\":false,\"content_cat"
+ },
+ "r_arctic2": {
+  "st": 200,
+  "len": 302341,
+  "s": 2.1,
+  "n_item": 0,
+  "titles": [],
+  "dc": [],
+  "json": [
+   "Anyone buying SONY stock?",
+   "Please rate Portfolio",
+   "Ride the wave, dont be tricked",
+   "SoftBank plunges over 16% as AI sell-off hits Asian tech stocks following Anthropic debut",
+   "Anthropic was supposed to save the AI trade. What went wrong?",
+   "I haven’t opened my portfolio in 2 weeks."
+  ],
+  "head": "",
+  "snip": "{\"data\":[{\"all_awardings\":[],\"allow_live_comments\":false,\"approved_at_utc\":null,\"approved_by\":null,\"archived\":false,\"author\":\"FuelApprehensive1786\",\"author_flair_background_color\":null,\"author_flair_css_class\":null,\"author_flair_richtext\":[],\"author_flair_template_id\":null,\"author_flair_text\":null,\"author_flair_text_color\":null,\"author_flair_type\":\"text\",\"author_fullname\":\"t2_25k7lavrz6\",\"author_is_blocked\":false,\"author_patreon_flair\":false,\"author_premium\":false,\"awarders\":[],\"banned_at_utc\":null,\"banned_by\":null,\"can_gild\":false,\"can_mod_post\":false,\"category\":null,\"clicked\":false,\"content_"
+ },
+ "r_pullpush": {
+  "err": "HTTP Error 429: Too Many Requests",
+  "s": 2.8
+ },
+ "dc_stockus": {
+  "st": 200,
+  "len": 230928,
+  "s": 1.6,
+  "n_item": 0,
+  "titles": [
+   "미국 주식 마이너 갤러리 - 커뮤니티 포털 디시인사이드"
+  ],
+  "dc": [
+   "\r\n\t\t\t\t",
+   "\r\n\t\t\t\t",
+   "\r\n\t\t\t\t",
+   "\r\n\t\t\t\t\t\t\t\t\t",
+   "\r\n\t\t\t\t\t\t\t\t\t",
+   "\r\n\t\t\t\t\t\t\t\t\t"
+  ],
+  "json": [],
+  "head": "",
+  "snip": "gall_tit ub-word\"><a href=\"javascript:;\" class=\"font_orangefa6\" onclick=\"survey_layer('https://event.dcinside.com/survey/vote/?no=390');\"><em class=\"icon_img icon_n_survey\"></em><b>SNS로 소통하려고 찾아갔다가 광고만 보고 나오게 되는 스타는?</b></a></td>\r\n\t\t  \r\n\t<td class=\"gall_writer ub-writer\" user_name=\"운영자\" style=\"cursor: pointer;\"><b>운영자</b></td>\r\n\t<td class=\"gall_date\">26/11/16</td>\r\n\t<td class=\"gall_count\">-</td>\r\n\t<td class=\"gall_recommend\">-</td>\r\n</tr>\r\n<tr class=\"ub-content \">\r\n\t\r\n\t\t<td class=\"gall_num\" style=\"height:25px;\">-</td>\r\n\t<td class=\"gall_subject\"><b>AD</b></td>\r\n\t\t  \r\n\t\t<td class=\"gall_tit ub-word\"><a href=\"https://addc.dcinside.com/NetInsight/click/dcinside/adver/adver@text?ads_id=25223&creative_id=104578&click_id=103204\" target=\"_blank\"><em class=\"icon_img icon_ad\"></em><b>[NH선물] 코딩 몰라서 자동매매 포기했다면</b></a></td>\r\n\t\t  \r\n\t<td class=\"gall_writer ub-writer\" user_name=\"운영자\" style=\"cursor: pointer;\"><b>운영자</b></td>\r\n\t<td class=\"gall_date\">26/01/01</td>\r\n\t<td class=\"gall_count\">-</td>\r\n\t<td class=\"gall_recommend\">-</td>\r\n</tr>\r\n<tr class=\"ub-content \">\r\n\t\r\n\t\t<td class=\"gall_num\" style=\"height:25px;\">-</td>\r\n\t<td class=\"gall_subject\"><b>AD</b></td>\r\n\t\t  \r\n\t\t<td class=\"gall_tit ub-word\"><a href=\"https://addc.dcinside.com/NetInsight/click/dcinside/adver/adver@text?ads_id=25221&creative_id=105999&click_id=104656\" target=\"_blank\"><em class=\"icon_img icon_ad\"></em><b>[삼성선물 유튜브] 구리 주요 이슈와 향후 전망"
+ }
+}
