@@ -1,0 +1,26 @@
+{
+ "aaii.xls": {
+  "ok": 1319936
+ },
+ "sffed_news.xlsx": {
+  "ok": 419516
+ },
+ "umcsent.csv": {
+  "err": "The read operation timed out"
+ },
+ "vix.json": {
+  "ok": 974587
+ },
+ "vxn.json": {
+  "ok": 676251
+ },
+ "spx.json": {
+  "ok": 2656756
+ },
+ "cnnfg.json": {
+  "err": "HTTP Error 418: Unknown Error"
+ },
+ "putcall.csv": {
+  "ok": 139830
+ }
+}
