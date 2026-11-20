@@ -1,4 +1,4 @@
-name: 뉴스 출처 시험 (자동 1회)
+name: 뉴스 출처 시험 (자동 1회) 2
 on:
   push:
     paths: ['.github/workflows/newsprobe.yml']
@@ -17,32 +17,26 @@ jobs:
           import json,urllib.request,time,re
           UA={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36','Accept-Language':'ko-KR,ko;q=0.9,en;q=0.8'}
           C={
-           'gnews_en':'https://news.google.com/rss/search?q=stock+market+OR+nasdaq+OR+wall+street+when:1d&hl=en-US&gl=US&ceid=US:en',
-           'gnews_ko':'https://news.google.com/rss/search?q=%EB%AF%B8%EA%B5%AD%EC%A6%9D%EC%8B%9C+OR+%EB%82%98%EC%8A%A4%EB%8B%A5+when:1d&hl=ko&gl=KR&ceid=KR:ko',
-           'cnbc_mk':'https://www.cnbc.com/id/15839069/device/rss/rss.html',
-           'cnbc_top':'https://www.cnbc.com/id/100003114/device/rss/rss.html',
-           'mw_top':'https://feeds.content.dowjones.io/public/rss/mw_topstories',
-           'mw_pulse':'https://feeds.content.dowjones.io/public/rss/mw_marketpulse',
-           'wsj_mk':'https://feeds.a.dj.com/rss/RSSMarketsMain.xml',
-           'yahoo':'https://finance.yahoo.com/news/rssindex',
-           'nasdaq':'https://www.nasdaq.com/feed/rssoutbound?category=Markets',
-           'reddit_wsb_json':'https://www.reddit.com/r/wallstreetbets/new.json?limit=100',
-           'reddit_stocks_rss':'https://www.reddit.com/r/stocks/new/.rss',
-           'reddit_old_wsb':'https://old.reddit.com/r/wallstreetbets/new/.rss',
-           'reddit_api_inv':'https://api.reddit.com/r/investing/new?limit=50',
+           'r_wsb_rss_ua':'https://www.reddit.com/r/wallstreetbets/new/.rss',
+           'r_jina':'https://r.jina.ai/https://www.reddit.com/r/wallstreetbets/new/',
+           'r_pullpush':'https://api.pullpush.io/reddit/search/submission/?subreddit=wallstreetbets&size=50',
+           'r_arctic':'https://arctic-shift.photon-reddit.com/api/posts/search?subreddit=wallstreetbets&limit=50&sort=desc',
+           'r_json_script':'https://www.reddit.com/r/stocks/new.json?limit=50&raw_json=1',
+           'r_gnews':'https://news.google.com/rss/search?q=site:reddit.com+wallstreetbets+when:2d&hl=en-US&gl=US&ceid=US:en',
            'dc_stockus':'https://gall.dcinside.com/mgallery/board/lists/?id=stockus',
            'dc_neostock':'https://gall.dcinside.com/board/lists/?id=neostock',
-           'dc_m_stockus':'https://m.dcinside.com/board/stockus',
           }
           R={}
           for n,u in C.items():
             t0=time.time()
             try:
-              r=urllib.request.urlopen(urllib.request.Request(u,headers=UA),timeout=25);b=r.read().decode('utf8','replace')
+              H=dict(UA)
+              if n.startswith('r_json'):H['User-Agent']='script:trillionare-sentiment:v1.0 (research)'
+              r=urllib.request.urlopen(urllib.request.Request(u,headers=H),timeout=25);b=r.read().decode('utf8','replace')
               titles=re.findall(r'<title>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?</title>',b)[:6]
               dc=re.findall(r'class="gall_tit[^"]*"[^>]*>\s*<a[^>]*>(?:<em[^>]*></em>)?([^<]{2,80})',b)[:6]
               js=re.findall(r'"title": ?"([^"]{2,90})"',b)[:6]
-              R[n]={'st':r.status,'len':len(b),'s':round(time.time()-t0,1),'n_item':b.count('<item')+b.count('<entry'),'titles':titles,'dc':dc,'json':js,'head':b[:200] if not (titles or dc or js) else ''}
+              R[n]={'st':r.status,'len':len(b),'s':round(time.time()-t0,1),'n_item':b.count('<item')+b.count('<entry'),'titles':titles,'dc':dc,'json':js,'head':b[:200] if not (titles or dc or js) else '','snip':(b[b.find('ub-content'):b.find('ub-content')+1500] if 'ub-content' in b else b[b.find('gall_tit'):b.find('gall_tit')+1200]) if n.startswith('dc') else b[:600]}
             except Exception as e:
               R[n]={'err':str(e)[:160],'s':round(time.time()-t0,1)}
             time.sleep(1)
