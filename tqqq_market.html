@@ -2612,10 +2612,61 @@ const CROWD={
 {const _nc=NEWS.card;NEWS.card=function(){let h=_nc(),x='';try{x=CROWD.html()}catch(e){}const k=h.lastIndexOf('</div>');return k>0?h.slice(0,k)+x+h.slice(k):h+x}}
 
 
+/* ===== 📏 250일선 알림 — QQQ(나스닥100)가 250일 이동평균 아래로 내려가면 매도 신호 (2026-11-21 · 3개 시장 세후 검증) ===== */
+const MA250={L:250,
+ rows(){const m=MKT.now(),csv=m&&m.src&&m.src.csv;if(!csv)return (m.rule||[]).map(r=>({date:r.date,ndx:r.ndx,qqq:null}));const ln=csv.trim().split('\n'),h=ln[0].split(','),di=h.indexOf('date'),ni=h.indexOf('ndx'),qi=h.indexOf('qqq');
+  return ln.slice(1).map(l=>{const c=l.split(',');return{date:c[di],ndx:+c[ni],qqq:qi>=0&&c[qi]?+c[qi]:null}}).filter(r=>r.date&&r.ndx>0).sort((a,b)=>a.date<b.date?-1:1)},
+ calc(){const R=MA250.rows();if(!R||R.length<MA250.L+30)return null;const n=R.length,L=MA250.L;let sum=0;const out=[];
+  for(let i=0;i<n;i++){sum+=R[i].ndx;if(i>=L)sum-=R[i-L].ndx;if(i>=L-1)out.push({date:R[i].date,ndx:R[i].ndx,ma:sum/L})}
+  let st=null;const fl=[];out.forEach(o=>{const s=o.ndx>=o.ma?1:0;if(st!==null&&s!==st)fl.push([o.date,s]);st=s;o.s=s});
+  const last=out[out.length-1];let since=last.date;for(let i=out.length-1;i>=0&&out[i].s===last.s;i--)since=out[i].date;
+  let q=(typeof LIVE!=='undefined'&&LIVE.Q&&LIVE.Q['QQQ']&&LIVE.Q['QQQ'].p>0)?LIVE.Q['QQQ'].p:null,nq=(typeof LIVE!=='undefined'&&LIVE.Q&&LIVE.Q['^NDX']&&LIVE.Q['^NDX'].p>0)?LIVE.Q['^NDX'].p:last.ndx;
+  if(!q){for(let i=R.length-1;i>=0;i--)if(R[i].qqq>0){q=R[i].qqq;nq=R[i].ndx;break}}
+  const ratio=q?q/nq:null;const y=out.slice(-252),yr=fl.filter(f=>f[0]>=y[0].date).length;
+  return{out,last,since,fl,ratio,q,dist:last.ndx/last.ma-1,yr,days:out.length-1-out.findIndex(o=>o.date===since)}},
+ chart(c){const P=c.out.slice(-252),n=P.length,W=760,H=150,pl=6,pr=6,pt=8,pb=8;const all=P.flatMap(o=>[o.ndx,o.ma]),lo=Math.min(...all)*0.99,hi=Math.max(...all)*1.01;
+  const X=i=>pl+i/(n-1)*(W-pl-pr),Y=v=>pt+(1-(v-lo)/(hi-lo))*(H-pt-pb);let b='',i0=0;
+  for(let i=1;i<=n;i++)if(i===n||P[i].s!==P[i0].s){const xa=X(i0),xb=X(Math.min(i,n-1));b+=`<rect x="${xa.toFixed(1)}" y="${pt}" width="${Math.max(.8,xb-xa).toFixed(1)}" height="${H-pt-pb}" fill="${P[i0].s?'#1c7a49':'#c73f2e'}" opacity=".10"/>`;i0=i}
+  const ln=k=>P.map((o,i)=>(i?'L':'M')+X(i).toFixed(1)+','+Y(o[k]).toFixed(1)).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:${H}px;display:block">${b}<path d="${ln('ma')}" fill="none" stroke="#e0a020" stroke-width="2.5" vector-effect="non-scaling-stroke"/><path d="${ln('ndx')}" fill="none" stroke="#2b5288" stroke-width="1.8" vector-effect="non-scaling-stroke"/></svg>
+  <div class="note" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px"><span>${esc(P[0].date)}</span><span><b style="color:#2b5288">━ 나스닥100</b> · <b style="color:#e0a020">━ 250일선</b> · 초록 바탕 = 위(보유) · 빨강 바탕 = 아래(매도)</span><span>${esc(P[n-1].date)}</span></div>`},
+ card(){let c;try{c=MA250.calc()}catch(e){return ''}if(!c)return '';const L=c.last,up=L.s===1,col=up?'var(--pos)':'var(--neg)';
+  const f=x=>Math.round(x).toLocaleString(),p=x=>(x>0?'+':x<0?'−':'')+Math.abs(x*100).toFixed(1)+'%';
+  const qline=c.ratio?`QQQ 기준 약 <b>$${(L.ma*c.ratio).toFixed(2)}</b> (지금 $${c.q.toFixed(2)})`:'';
+  const recent=c.fl.slice(-6).reverse().map(([d,s])=>`<span style="display:inline-block;margin:2px 8px 2px 0">${s?'🟢 위로 회복':'🔴 아래로 이탈'} ${esc(d)}</span>`).join('');
+  return `<div class="card" id="ma250Card" style="border:2px solid ${col};margin-bottom:18px;padding:14px">
+  <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline"><b style="font-size:15px">📏 250일선 알림 — QQQ가 250일선 아래면 매도</b><span class="note">나스닥100 종가 기준 (QQQ와 같은 지수) · ${esc(L.date)}</span></div>
+  <div style="display:flex;align-items:center;gap:10px;margin:8px 0 4px"><span style="font-size:30px">${up?'🟢':'🔴'}</span><div><div style="font-size:21px;font-weight:900;color:${col}">${up?'250일선 위 — 보유':'250일선 아래 — 매도 신호'}</div><div class="note" style="font-size:13px">${esc(c.since)}부터 이 상태 (${c.days}거래일째) · 다시 ${up?'250일선 아래로 내려가면 매도':'250일선 위로 올라오면 매수'}</div></div></div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:8px 0">
+   <div class="kpi" style="padding:10px 12px"><div class="note">나스닥100 vs 250일선</div><div style="font-size:22px;font-weight:900;color:${col}">${p(c.dist)}</div><div class="note">${f(L.ndx)} / 250일선 ${f(L.ma)}</div></div>
+   <div class="kpi" style="padding:10px 12px"><div class="note">250일선 위치</div><div style="font-size:22px;font-weight:900">${f(L.ma)}</div><div class="note">${qline||'QQQ 시세를 받으면 QQQ 가격으로도 표시'}</div></div>
+   <div class="kpi" style="padding:10px 12px"><div class="note">최근 1년 신호 횟수</div><div style="font-size:22px;font-weight:900">${c.yr}번</div><div class="note">선을 넘나들 때마다 매매 (과거 평균 1년 6번)</div></div>
+  </div>
+  ${MA250.chart(c)}
+  <div class="note" style="margin-top:6px">최근 신호: ${recent||'없음'}</div>
+  <div style="font-size:13.5px;line-height:1.6;background:#fff8e6;border-radius:8px;padding:8px 11px;margin-top:8px">⚠️ <b>이 알림은 반반 운용(A·B)과 따로 움직여요.</b> 3개 시장 검증에서 나스닥에선 성적이 좋았지만 매매가 1년 6번으로 잦고, 닷컴 때 −76%, 닛케이에선 운 나쁜 16년이 B보다 크게 나빴어요. 그래서 폭락 경보의 비중 판정에는 넣지 않고 <b>추가 경고등</b>으로 보여 줘요.</div>
+  <details style="margin-top:8px"><summary style="cursor:pointer;font-weight:700">🔬 검증 — 250일선 규칙 vs 지금 규칙 (세후 · 2만 달러 · 가상 3배 · 16년 투자)</summary>
+   <div class="tw" style="margin-top:6px"><table class="g" style="font-size:12.5px"><thead><tr><th style="padding:5px">규칙</th><th class="n">나스닥100<br><span class="note">가운데 / 운 나쁜 10%</span></th><th class="n">S&amp;P500<br><span class="note">1950~</span></th><th class="n">닛케이</th><th class="n">매매<br>(나스닥)</th><th class="n">닷컴<br>손실</th><th class="n">2022<br>손실</th></tr></thead><tbody>
+   <tr><td style="padding:5px">그냥 보유</td><td class="n">1.1배 / 0.09</td><td class="n">4.4 / 0.70</td><td class="n">0.7 / 0.01</td><td class="n">0</td><td class="n">−100%</td><td class="n">−80%</td></tr>
+   <tr style="background:#fff8e6"><td style="padding:5px"><b>250일선 걸치면 매매 (이 알림)</b></td><td class="n"><b>17.5배</b> / 5.97</td><td class="n">5.1 / 2.51</td><td class="n">3.4 / <span class="neg">0.62</span></td><td class="n"><b>1년 6.2번</b></td><td class="n neg">−76%</td><td class="n">−53%</td></tr>
+   <tr><td style="padding:5px">250일선 ±3% (3% 넘게 벗어날 때만)</td><td class="n">15.8배 / 4.90</td><td class="n">9.3 / 4.20</td><td class="n">1.7 / <span class="neg">0.60</span></td><td class="n">1.5번</td><td class="n neg">−76%</td><td class="n">−38%</td></tr>
+   <tr style="background:#eef7f1"><td style="padding:5px">B: 200일선 ±3% + 흔들림 (지금 B 몫)</td><td class="n">10.4배 / 4.80</td><td class="n">7.4 / 3.31</td><td class="n"><b>3.3 / 1.39</b></td><td class="n">1.9번</td><td class="n"><b>−38%</b></td><td class="n"><b>−31%</b></td></tr>
+   <tr><td style="padding:5px">A: 흔들림만 (지금 A 몫)</td><td class="n">27.9배 / 10.99</td><td class="n">4.0 / 0.91</td><td class="n">0.8 / 0.01</td><td class="n">1.1번</td><td class="n">−36%</td><td class="n">−69%</td></tr>
+   </tbody></table></div>
+   <ul class="note" style="margin:6px 0 0;padding-left:18px;line-height:1.6">
+   <li><b>나스닥에선 B보다 많이 벌었어요</b>(17.5배 vs 10.4배) — 250일선은 200일선보다 느려서 작은 조정에 덜 흔들려 팔고, 회복 때 빨리 다시 타요.</li>
+   <li><b>대신 큰 폭락은 못 막았어요</b>: 흔들림 경보가 없어서 닷컴 −76%(B −38%), 2022 −53%(B −31%). 하락장 속 반등 때 250일선 위로 잠깐 올라오면 다시 샀다가 물렸어요.</li>
+   <li><b>매매가 잦아요</b>: 선 근처에서 오르내리면 1년 평균 6번 사고팔아요 — 매번 세금·체결 손실이 생겨요. ±3% 여유를 두면 1.5번으로 줄지만 닛케이 성적은 더 나빠져요.</li>
+   <li><b>다른 시장에선 일관되지 않았어요</b>: S&amp;P500은 B보다 나빴고(5.1배 vs 7.4배), 닛케이는 운 나쁜 16년이 0.62배로 B(1.39배)의 절반 — 규칙 A처럼 "나스닥에서만 좋은" 모양이에요.</li>
+   <li>계산: 신호는 나스닥100 종가 기준, 다음 날 종가에 매매 · 한국 해외주식 양도세 22%(연 250만 원 공제) · 현금 이자 세후 · QQQ 가격선은 나스닥100 250일선 × (QQQ ÷ 나스닥100 현재가) · 과거 계산이며 투자 자문이 아니에요.</li></ul></details></div>`}
+};
+{const _c2=CRASH.card;CRASH.card=function(){let h=_c2(),x='';try{x=MA250.card()}catch(e){}const k=h.indexOf('<div class="card" id="bearCard"');return k>=0?h.slice(0,k)+x+h.slice(k):h+x}}
+
+
 boot();LIVE.refresh();LIVE.auto();
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261120134227';
+const FILE_BUILD='20261121091712';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
