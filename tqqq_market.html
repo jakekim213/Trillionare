@@ -2404,7 +2404,7 @@ const SONG={L:250,T:0.15,V:30,
   const recent=c.fl.slice(-6).reverse().map(([d,s])=>`<span style="display:inline-block;margin:2px 8px 2px 0">${s?'🟢 적립 재개':'🔴 브레이크'} ${esc(d)}</span>`).join('');
   const act=go?(L.slow?`🐢 이번 달 넣을 돈의 <b>절반만 TQQQ</b>로 사고, 나머지 절반은 현금으로 들고 있다가 VIX 10일 평균이 ${V} 아래로 내려오면 사기. 가진 TQQQ는 그대로.`:`🛒 이번 달 넣을 돈으로 <b>TQQQ 사기</b>. 가진 TQQQ는 그대로 들고 가기.`)
    :`✂️ 가진 <b>TQQQ를 모두 팔고 현금</b>(파킹통장·단기 국채)으로. 매달 넣는 돈도 현금으로 모아 두기. 다시 🟢가 되면 모은 현금을 한꺼번에 TQQQ로.`;
-  const box=typeof MARKS!=='undefined'&&MARKS.gBox?MARKS.gBox(go?1:0):'';
+  const box='';
   const tr=(cells,bg)=>`<tr${bg?` style="background:${bg}"`:''}>${cells.map((x,i)=>i?`<td class="n">${x}</td>`:`<td style="padding:5px">${x}</td>`).join('')}</tr>`;
   const th=a=>`<thead><tr>${a.map((x,i)=>`<th${i?' class="n"':' style="padding:5px"'}>${x}</th>`).join('')}</tr></thead>`;
   return `<div class="card" id="songCard" style="border:3px solid ${col};margin-bottom:18px;padding:14px">
@@ -2589,7 +2589,7 @@ const CROWD={
 boot();LIVE.refresh();LIVE.auto();
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261121093951';
+const FILE_BUILD='20261121173513';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
