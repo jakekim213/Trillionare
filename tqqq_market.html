@@ -2586,10 +2586,86 @@ const CROWD={
 {const _nc=NEWS.card;NEWS.card=function(){let h=_nc(),x='';try{x=CROWD.html()}catch(e){}const k=h.lastIndexOf('</div>');return k>0?h.slice(0,k)+x+h.slice(k):h+x}}
 
 
+/* ===== 🧭 하워드 막스의 두 가지 평가 — 매수·매도 기준 ② (2026-11-22 · 『투자와 마켓 사이클의 법칙』 · 나스닥100 1993~2026 세후 검증) =====
+   ① 계량 평가: 밸류에이션이 역사적 수준과 비교해 어디인가 (CAPE·PER 백분위)
+   ② 질적 평가: 투자자들이 어떻게 행동하고 있나 (자동 온도 + 내가 체크하는 시장 특징표)
+   송팀장 브레이크(기준 ①)가 '들고 있을지'를 정하고, 막스 평가(기준 ②)는 '얼마나 적극적으로 더 살지'를 정함 */
+const MK2={K:'tqqq_mk2chk',
+ R:[['경제','활기참','부진함'],['전망','긍정적','부정적'],['돈 빌려주는 곳(은행)','적극적','소극적'],['자본시장','돈이 잘 돎','돈이 막힘'],['자본','넘침','모자람'],['대출 조건','느슨함','까다로움'],['금리','낮음','높음'],['수익률 스프레드(회사채−국채)','좁음','넓음'],['투자자 기분','낙관적','비관적'],['투자자 마음','자신만만','낙담'],['투자자 매수','사려고 안달','관심 없음'],['주식 가진 사람','행복함','빨리 팔고 나가려 함'],['파는 사람','거의 없음','많음'],['시장 분위기','북적임','썰렁함'],['새 펀드·상품','매일 새로 나옴·들어가기 어려움','최고의 펀드만 겨우 돈을 모음'],['최근 실적','강함','약함'],['자산 가격','높음','낮음'],['앞으로 기대 수익','낮음','높음'],['리스크','높음','낮음']],
+ g(){try{return JSON.parse(localStorage.getItem(MK2.K)||'{}')||{}}catch(e){return {}}},
+ set(i,v){const o=MK2.g();if(o[i]===v)delete o[i];else o[i]=v;try{localStorage.setItem(MK2.K,JSON.stringify(o))}catch(e){}MK2.rr()},
+ clr(){try{localStorage.removeItem(MK2.K)}catch(e){}MK2.rr()},
+ rr(){const el=document.getElementById('mk2Card');if(!el)return;const op=[...el.querySelectorAll('details')].map(d=>d.open);el.outerHTML=MK2.card();const m=document.getElementById('mk2Card');if(m)[...m.querySelectorAll('details')].forEach((d,i)=>{if(op[i])d.open=true})},
+ calc(){if(typeof MARKS==='undefined')return null;try{MARKS.boot&&MARKS.boot()}catch(e){}let n;try{n=MARKS.now()}catch(e){return null}
+  const o=MK2.g(),ks=Object.keys(o),L=ks.filter(k=>o[k]==='L').length,Rn=ks.filter(k=>o[k]==='R').length,cnt=L+Rn,chk=cnt?L/cnt*100:null;
+  const T=n.T==null?null:n.T,qual=chk!=null&&cnt>=5?(T==null?chk:(T+chk)/2):T;
+  const val=n.cp==null?null:n.cp; // CAPE 백분위 (1871~)
+  const ql=qual==null?null:qual<=30?'cold':qual>=70?'hot':'mid',vl=val==null?null:val>=80?'exp':'ok';
+  let go=true;try{go=SONG.calc().L.y}catch(e){}
+  return {n,T,chk,cnt,L,Rn,qual,val,ql,vl,go,o}},
+ card(){const c=MK2.calc();if(!c)return '';const n=c.n,f1=x=>x==null?'—':Math.round(x);
+  const M={cold:{ok:['🟢🟢','적극 추가 매수','하락 때 쓰려고 모아 둔 여윳돈을 넣을 때예요. 막스: "이럴 땐 공격성이 필요하다."','#1a7f37'],exp:['🟢','조금 추가 매수','사람들은 겁먹었지만 가격은 아직 역사적으로 비싸요. 여윳돈의 일부(절반 이하)만.','#4c9a2a']},
+   mid:{ok:['⚪','정해진 적립대로','매달 넣기로 한 돈만 꾸준히.','#5b6573'],exp:['⚪','정해진 적립대로 (추가 매수 보류)','가격이 비싸니 추가로 더 사지는 않아요.','#5b6573']},
+   hot:{ok:['🟠','신중과 절제','정해진 적립만. 추가 매수·빚투 금지.','#d9822b'],exp:['🔴','신중과 절제 — 지갑을 꽉 닫기','가격도 비싸고 사람들도 들떴어요. 추가 매수·빚투 금지, 새 상품 유혹 피하기. 파는 건 브레이크(기준 ①)에 맡겨요.','#b42318']}};
+  let v;if(!c.go)v=['⛔','매수 안 함 (브레이크 우선)','송팀장 브레이크가 걸려 있으면 막스 평가가 아무리 차가워도 사지 않아요. 검증해 보니 "차가우니까 브레이크 무시하고 들고 가기"는 16년 결과를 크게 망쳤어요.','#b42318'];
+  else if(c.ql&&c.vl)v=M[c.ql][c.vl];else v=['⚪','계산 재료 부족','온도나 CAPE 값을 아직 못 받았어요.','#5b6573'];
+  const bar=(p,lab,lo,hi)=>{const x=p==null?null:Math.max(0,Math.min(100,p));return `<div style="position:relative;height:16px;border-radius:8px;background:linear-gradient(90deg,#2b6cb0,#8fb3d9 30%,#d5dbe2 50%,#f0b27a 70%,#c0392b);margin:6px 0 2px">${x==null?'':`<div style="position:absolute;left:${x}%;top:-4px;width:4px;height:24px;background:#17202e;border-radius:2px;transform:translateX(-50%)"></div>`}</div><div class="note" style="display:flex;justify-content:space-between"><span>${lo}</span><span>${lab}</span><span>${hi}</span></div>`};
+  const p=n.p||{},comp=[['나스닥100이 200일선보다 얼마나 위',p.dist],['최근 1년 수익률',p.ret],['CNN 공포·탐욕',p.fg],['VXN(나스닥 공포지수, 낮을수록 들뜸)',p.vxn],['회사채 신용(좁을수록 들뜸)',p.cr]].map(([a,b])=>`<tr><td style="padding:4px">${a}</td><td class="n">${b==null?'—':Math.round(b)}</td></tr>`).join('');
+  const cl=x=>x==null?'—':x<=30?'🧊 차가움':x>=70?'🔥 뜨거움':'🌤 보통';
+  const rows=MK2.R.map((r,i)=>{const s=c.o[i],b=(side,txt)=>`<button onclick="MK2.set(${i},'${side}')" style="flex:1;min-width:0;padding:7px 6px;border-radius:7px;border:2px solid ${s===side?(side==='L'?'#c0392b':'#2b6cb0'):'#dfe4ea'};background:${s===side?(side==='L'?'#fdecea':'#e8f0fb'):'#fff'};font:inherit;font-size:13px;font-weight:${s===side?800:400};cursor:pointer">${txt}</button>`;
+   return `<div style="display:flex;gap:6px;align-items:center;margin:4px 0"><div style="flex:0 0 30%;font-size:12.5px;font-weight:700">${r[0]}</div>${b('L',r[1])}${b('R',r[2])}</div>`}).join('');
+  const hot=c.qual!=null&&c.qual>=50;
+  const need=hot?['신중과 절제','고르고 골라서 (선별)','많이 사기 · 오를수록 더 비싸게 쫓아 사기 · 위험을 너무 많이 지기']:['공격성','넓게 (다양하게)','거의 안 사기 · 아예 안 사기 · 위험을 너무 적게 지기'];
+  const th=a=>`<thead><tr>${a.map((x,i)=>`<th${i?' class="n"':' style="padding:5px"'}>${x}</th>`).join('')}</tr></thead>`,tr=(a,bg)=>`<tr${bg?` style="background:${bg}"`:''}>${a.map((x,i)=>i?`<td class="n">${x}</td>`:`<td style="padding:5px">${x}</td>`).join('')}</tr>`;
+  return `<div class="card" id="mk2Card" style="border:3px solid ${v[3]};margin-bottom:18px;padding:14px">
+  <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline"><b style="font-size:15px">🧭 하워드 막스의 두 가지 평가 — 매수·매도 기준 ②</b><span class="note">기준 ① 브레이크 = 들고 있을까? · 기준 ② 막스 = 얼마나 더 살까?</span></div>
+  <div style="font-size:13.5px;line-height:1.6;margin:6px 0 8px;color:#3d4756">막스는 시장을 두 가지로 봐요. <b>① 가격이 역사에 비해 비싼가</b>(숫자로 재기), <b>② 사람들이 어떻게 행동하나</b>(눈으로 보기). 숫자로 안 되는 것도 연습하면 잘 볼 수 있대요.</div>
+  <div style="display:flex;align-items:center;gap:12px;margin:8px 0"><span style="font-size:36px;line-height:1">${v[0]}</span><div><div style="font-size:clamp(20px,5.5vw,28px);font-weight:900;color:${v[3]};line-height:1.2">${v[1]}</div><div style="font-size:13.5px;line-height:1.55">${v[2]}</div></div></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+   <div style="flex:1 1 260px;min-width:0;background:#fff;border:1px solid #dfe4ea;border-radius:9px;padding:9px 11px"><div style="font-weight:800">① 계량 평가 — 가격이 역사에 비해 어디쯤?</div>
+    <div style="font-size:14px;margin-top:4px">S&amp;P500 CAPE <b>${n.cape?n.cape.toFixed(1):'—'}</b> → 1871년 이후 <b>${f1(c.val)}%</b> 위치 (${c.vl==='exp'?'🔴 비쌈':'🟢 역사적 수준 근처'})</div>
+    ${bar(c.val,'역사 가운데','쌈','비쌈')}
+    <div class="note" style="line-height:1.5">PER ${n.pe?n.pe.toFixed(1):'—'} → 1990년 이후 ${f1(n.pp)}% 위치. 막스: 가격이 역사적 수준과 비슷할 때가 좋은 출발점. 80% 넘으면 '비쌈'으로 봐요.</div></div>
+   <div style="flex:1 1 260px;min-width:0;background:#fff;border:1px solid #dfe4ea;border-radius:9px;padding:9px 11px"><div style="font-weight:800">② 질적 평가 — 사람들이 들떴나, 겁먹었나?</div>
+    <div style="font-size:14px;margin-top:4px">합친 온도 <b>${f1(c.qual)}</b> ${cl(c.qual)} <span class="note">(자동 온도 ${f1(c.T)}${c.cnt>=5?` + 내 체크 ${f1(c.chk)}`:' · 아래 표를 5칸 이상 체크하면 함께 반영'})</span></div>
+    ${bar(c.qual,'보통','겁먹음 (30↓)','들뜸 (70↑)')}
+    <details><summary class="note" style="cursor:pointer">자동 온도는 이렇게 계산 (각각 과거 대비 백분위, 0=가장 차가움)</summary><table class="g" style="font-size:12.5px;margin-top:4px"><tbody>${comp}</tbody></table></details></div></div>
+  <div class="tw" style="margin-top:10px"><table class="g" style="font-size:12.5px">${th(['계량 \\ 질적','🧊 겁먹음 (30↓)','🌤 보통','🔥 들뜸 (70↑)'])}<tbody>
+   ${tr(['🟢 가격 보통·쌈 (80%↓)',(c.vl==='ok'&&c.ql==='cold'?'👉 ':'')+'적극 추가 매수',(c.vl==='ok'&&c.ql==='mid'?'👉 ':'')+'정해진 적립',(c.vl==='ok'&&c.ql==='hot'?'👉 ':'')+'신중과 절제'])}
+   ${tr(['🔴 가격 비쌈 (80%↑)',(c.vl==='exp'&&c.ql==='cold'?'👉 ':'')+'조금 추가 매수',(c.vl==='exp'&&c.ql==='mid'?'👉 ':'')+'정해진 적립',(c.vl==='exp'&&c.ql==='hot'?'👉 ':'')+'지갑 꽉 닫기'])}
+   </tbody></table></div>
+  <div class="note" style="margin-top:4px">브레이크(기준 ①)가 🔴이면 이 표와 상관없이 매수 안 함 · 매도는 언제나 브레이크가 정해요.</div>
+  <div style="margin-top:10px;padding:10px 12px;background:${hot?'#fdf3ec':'#eef4fb'};border-radius:9px;font-size:13.5px;line-height:1.65">${hot?'🔥 지금처럼 들뜬 쪽이면':'🧊 지금처럼 겁먹은 쪽이면'} 막스가 말하는 <b>필요한 태도</b>: ${need[0]} · ${need[1]}<br>⚠️ <b>이럴 때 흔히 하는 실수</b>: ${need[2]}</div>
+  <details style="margin-top:10px"${c.cnt?'':' open'}><summary style="cursor:pointer;font-weight:700">📝 내가 체크하는 시장 특징표 — 지금 시장에 더 가까운 쪽을 눌러요 (${c.cnt}/${MK2.R.length}칸)</summary>
+   <div class="note" style="margin:6px 0">막스: 왼쪽(빨강)에 많이 표시되면 지갑을 닫고, 오른쪽(파랑)에 많으면 지갑을 열어라. 다시 누르면 지워져요. 이 기기에만 저장.</div>
+   ${rows}
+   <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:13px"><span>왼쪽 ${c.L}칸 · 오른쪽 ${c.Rn}칸 → ${c.cnt?(c.L>c.Rn?'🔥 들뜬 쪽':c.L<c.Rn?'🧊 겁먹은 쪽':'반반'):'아직 체크 없음'}</span>${c.cnt?'<button onclick="MK2.clr()" style="font:inherit;font-size:12.5px;padding:4px 10px;border-radius:6px;border:1px solid #cfd6df;background:#fff;cursor:pointer">모두 지우기</button>':''}</div></details>
+  <details style="margin-top:10px"><summary style="cursor:pointer;font-weight:700">🔬 검증 — 막스 평가를 규칙으로 바꾸면 돈이 더 벌렸을까? (나스닥100 · 1993~2010년 출발 214개 16년 · 세후)</summary>
+   <div class="note" style="margin:6px 0">모두 송팀장 브레이크 위에 막스 평가를 얹어 계산. 적립 = 1만 달러 + 매달 470달러, 넣은 돈의 몇 배 (가운데 / 운 나쁜 10%).</div>
+   <div class="tw"><table class="g" style="font-size:12.5px">${th(['방법','적립식','일시금','판정'])}<tbody>
+   ${tr(['송팀장 브레이크만','10.7 / 4.99','26.7 / 10.4','기준선'],'#f3f5f8')}
+   ${tr(['들떴을 때(온도 70↑) 새 돈 절반만 사기','10.7 / 4.97','26.7 / 10.4','차이 없음'])}
+   ${tr(['비쌀 때(CAPE 80~95%↑) 새 돈 절반만','10.5~10.8 / 4.8','같음','차이 없음'])}
+   ${tr(['겁먹었을 때(온도 30↓) 모아둔 여윳돈 투입','10.8 / 4.98','—','차이 없음 (조금 +)'])}
+   ${tr(['들떴을 때(온도 70↑) TQQQ 절반 팔기','8.7 / 3.59','19.7 / 7.0','❌ 나빠짐'])}
+   ${tr(['비쌀 때(CAPE 90%↑) TQQQ 절반 팔기','3.8 / 3.17','9.5 / 5.2','❌ 크게 나빠짐'])}
+   ${tr(['겁먹었을 때(온도 30↓) 브레이크 무시하고 보유','6.5 / 마이너스','6.7 / 마이너스','❌❌ 최악'],'#fdecea')}
+   </tbody></table></div>
+   <ul class="note" style="margin:8px 0 0;padding-left:18px;line-height:1.65">
+   <li><b>막스 평가로 '팔지'를 정하면 손해였어요.</b> 1993년 이후 CAPE가 '비쌈(90%↑)'이었던 날이 66%나 돼서, 비쌀 때 팔면 오르는 시간 대부분을 놓쳐요. 막스 본인도 "밸류에이션은 출발점이지 타이밍 도구가 아니다"라고 해요.</li>
+   <li><b>'얼마나 더 살지'에 쓰면 손해는 없고 실수를 막아 줘요.</b> 새 돈 속도나 여윳돈 투입을 막스 평가로 조절해도 결과는 ±1% 안이었어요. 대신 들뜬 장에서 몰빵·빚투하는 실수, 겁먹은 장에서 아예 안 사는 실수를 막아 줘요. 그래서 기준 ②는 '매수 강도'만 정해요.</li>
+   <li><b>"겁먹었으니 브레이크를 무시하자"는 가장 위험했어요.</b> 2000년 닷컴 때 차가워진 뒤에도 계속 떨어졌고, 전년도에 판 이익의 세금(22%)은 그대로 내야 해서 재산보다 세금이 커지는 경우까지 나왔어요.</li>
+   <li>온도 80 이상일 때 절반 팔기는 조금 좋아 보였지만(11.2배), 75나 85로 바꾸면 오히려 나빠져서 우연으로 판단했어요.</li>
+   <li>자동 온도는 1993년부터의 주간 기록(과거 전체와 비교한 백분위라 약간 '미래를 아는' 계산), CAPE 백분위는 그 시점까지의 과거만 사용 · 과거 계산이며 투자 자문이 아니에요.</li></ul></details></div>`},
+ csv(){const c=MK2.calc();if(!c)return [];return [['[하워드 막스 두 가지 평가]'],['CAPE',c.n.cape?c.n.cape.toFixed(1):'','CAPE 백분위',Math.round(c.val||0),'자동 온도',c.T==null?'':Math.round(c.T),'내 체크(왼쪽%)',c.chk==null?'':Math.round(c.chk),'합친 온도',c.qual==null?'':Math.round(c.qual)],[]]}
+};
+{const _s=SONG.card;SONG.card=function(){const h=_s();let m='';try{m=MK2.card()}catch(e){}const k=h.indexOf('<div class="card" id="newsCard"');return k>=0?h.slice(0,k)+m+h.slice(k):h+m}}
+{const _cM=APP.csv;APP.csv=function(){let r=[];try{r=MK2.csv()}catch(e){}return _cM().concat(r)}}
+
 boot();LIVE.refresh();LIVE.auto();
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261121173513';
+const FILE_BUILD='20261122224751';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
