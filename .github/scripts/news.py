@@ -131,6 +131,32 @@ def sffed():
 for k, fn in (('aaii', aaii), ('sffed', sffed)):
     try: OUT[k] = fn(); print(k, OUT[k])
     except Exception as e: OUT[k] = {'err': str(e)[:120]}; print(k, 'fail', e)
+
+# ---- 막스 시장 특징표용 경제·신용 자료 (FRED, 키 없이 CSV) ----
+def fred():
+    import csv, io
+    def ser(i):
+        t = get('https://fred.stlouisfed.org/graph/fredgraph.csv?id=' + i, 40)
+        rows = list(csv.reader(io.StringIO(t)))[1:]
+        return [(r[0], float(r[1])) for r in rows if len(r) > 1 and r[1] not in ('', '.')]
+    S, H = {}, {}
+    for i in ['CFNAIMA3', 'SAHMREALTIME', 'DRTSCILM', 'NFCI', 'NFCICREDIT', 'M2SL', 'FEDFUNDS', 'CPIAUCSL', 'DGS10', 'BAMLH0A0HYM2']:
+        try:
+            v = ser(i); S[i] = v; H[i] = v if i not in ('DGS10', 'BAMLH0A0HYM2') else v[::5]
+        except Exception as e: print('FRED 실패', i, e)
+    o = {}
+    for i, v in S.items(): o[i] = [v[-1][0], v[-1][1]]
+    def yoy(v):
+        return round((v[-1][1] / v[-13][1] - 1) * 100, 2) if len(v) > 13 else None
+    if 'M2SL' in S: o['m2yoy'] = [S['M2SL'][-1][0], yoy(S['M2SL'])]
+    if 'FEDFUNDS' in S and 'CPIAUCSL' in S: o['realff'] = [S['FEDFUNDS'][-1][0], round(S['FEDFUNDS'][-1][1] - yoy(S['CPIAUCSL']), 2)]
+    if 'BAMLH0A0HYM2' in S:
+        a = [x for _, x in S['BAMLH0A0HYM2']]; o['hypct'] = [S['BAMLH0A0HYM2'][-1][0], round(sum(1 for x in a if x < a[-1]) / len(a) * 100)]
+    return o, H
+try:
+    OUT['fred'], FH = fred(); print('fred', OUT['fred'])
+    os.makedirs('out', exist_ok=True); json.dump(FH, open('out/fred_hist.json', 'w'), separators=(',', ':'))
+except Exception as e: OUT['fred'] = {'err': str(e)[:120]}; print('fred fail', e)
 gi = [v['idx'] for v in OUT['grp'].values() if v['idx'] is not None]
 OUT['idx'] = round(sum(gi) / len(gi)) if gi else None
 hist = [h for h in prev if isinstance(h, dict) and h.get('at')] + [{'at': OUT['at'], 'idx': OUT['idx'], **{g: v['idx'] for g, v in OUT['grp'].items()}}]
