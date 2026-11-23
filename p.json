@@ -1,0 +1,93 @@
+{
+ "fred_csv#0": {
+  "err": "The read operation timed out"
+ },
+ "fred_csv#1": {
+  "st": 200,
+  "len": 51636,
+  "head": "observation_date,NFCI\n1971-01-08,0.604\n1971-01-15,0.637\n1971-01-22,0.675\n1971-01-29,0.716\n1971-02-05,0.759\n1971-02-12,0."
+ },
+ "fred_csv#2": {
+  "st": 200,
+  "len": 51636,
+  "head": "observation_date,NFCI\n1971-01-08,0.604\n1971-01-15,0.637\n1971-01-22,0.675\n1971-01-29,0.716\n1971-02-05,0.759\n1971-02-12,0."
+ },
+ "fred_csv2#0": {
+  "err": "The read operation timed out"
+ },
+ "fred_csv2#1": {
+  "st": 200,
+  "len": 6476,
+  "head": "observation_date,NFCI\n2020-01-03,-0.573\n2020-01-10,-0.594\n2020-01-17,-0.616\n2020-01-24,-0.629\n2020-01-31,-0.626\n2020-02-"
+ },
+ "fred_csv2#2": {
+  "st": 200,
+  "len": 6476,
+  "head": "observation_date,NFCI\n2020-01-03,-0.573\n2020-01-10,-0.594\n2020-01-17,-0.616\n2020-01-24,-0.629\n2020-01-31,-0.626\n2020-02-"
+ },
+ "fred_txt#0": {
+  "err": "The read operation timed out"
+ },
+ "fred_txt#1": {
+  "st": 200,
+  "len": 234103,
+  "head": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">\n    <meta charset=\"utf"
+ },
+ "fred_txt#2": {
+  "st": 200,
+  "len": 234103,
+  "head": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">\n    <meta charset=\"utf"
+ },
+ "fred_dl#0": {
+  "err": "The read operation timed out"
+ },
+ "fred_dl#1": {
+  "err": "<urlopen error [Errno -3] Temporary failure in name resolution>"
+ },
+ "fred_dl#2": {
+  "err": "<urlopen error [Errno -3] Temporary failure in name resolution>"
+ },
+ "chi_nfci#0": {
+  "st": 200,
+  "len": 147619,
+  "head": "Friday_of_Week,NFCI,ANFCI,Risk,Credit,Leverage,Nonfinancial_Leverage\r\n01/08/1971,0.594,0.588,0.622,-1.114,-1.024,-1.407\r"
+ },
+ "chi_nfci#1": {
+  "st": 200,
+  "len": 147619,
+  "head": "Friday_of_Week,NFCI,ANFCI,Risk,Credit,Leverage,Nonfinancial_Leverage\r\n01/08/1971,0.594,0.588,0.622,-1.114,-1.024,-1.407\r"
+ },
+ "chi_nfci#2": {
+  "st": 200,
+  "len": 147619,
+  "head": "Friday_of_Week,NFCI,ANFCI,Risk,Credit,Leverage,Nonfinancial_Leverage\r\n01/08/1971,0.594,0.588,0.622,-1.114,-1.024,-1.407\r"
+ },
+ "chi_cfnai#0": {
+  "st": 200,
+  "len": 43989,
+  "head": "PK\u0003\u0004\u0014\u0000\u0006\u0000\b\u0000\u0000\u0000!\u0000!\ufffdF:s\u0001\u0000\u0000\ufffd\u0005\u0000\u0000\u0013\u0000\b\u0002[Content_Types].xml \ufffd\u0004\u0002(\ufffd\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"
+ },
+ "chi_cfnai#1": {
+  "st": 200,
+  "len": 43989,
+  "head": "PK\u0003\u0004\u0014\u0000\u0006\u0000\b\u0000\u0000\u0000!\u0000!\ufffdF:s\u0001\u0000\u0000\ufffd\u0005\u0000\u0000\u0013\u0000\b\u0002[Content_Types].xml \ufffd\u0004\u0002(\ufffd\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"
+ },
+ "chi_cfnai#2": {
+  "st": 200,
+  "len": 43989,
+  "head": "PK\u0003\u0004\u0014\u0000\u0006\u0000\b\u0000\u0000\u0000!\u0000!\ufffdF:s\u0001\u0000\u0000\ufffd\u0005\u0000\u0000\u0013\u0000\b\u0002[Content_Types].xml \ufffd\u0004\u0002(\ufffd\u0000\u0002\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"
+ },
+ "alfred#0": {
+  "err": "The read operation timed out"
+ },
+ "alfred#1": {
+  "st": 200,
+  "len": 51645,
+  "head": "observation_date,NFCI_20261119\n1971-01-08,0.604\n1971-01-15,0.637\n1971-01-22,0.675\n1971-01-29,0.716\n1971-02-05,0.759\n1971"
+ },
+ "alfred#2": {
+  "st": 200,
+  "len": 51645,
+  "head": "observation_date,NFCI_20261119\n1971-01-08,0.604\n1971-01-15,0.637\n1971-01-22,0.675\n1971-01-29,0.716\n1971-02-05,0.759\n1971"
+ }
+}
