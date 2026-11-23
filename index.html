@@ -2356,7 +2356,7 @@ saveWork=function(){PWA.save();toast('✔ 이 기기에 저장했습니다')};
 {const _o=openFile;openFile=async function(f){const r=await _o(f);setTimeout(PWA.save,50);return r}}
 
 /* 🔄 새 버전 알림: GitHub에 새 계산표가 올라오면(최대 몇 분) 화면 위에 알려 주고, 누르면 캐시를 피해 새로 엶 */
-const APP_BUILD='20261123060517';
+const APP_BUILD='20261123095424';
 async function chkUpd(){try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();
  if(/^\d{14}$/.test(v)&&v>APP_BUILD&&!document.getElementById('updBar')){const b=document.createElement('div');b.id='updBar';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:80;background:#1f6feb;color:#fff;padding:10px 16px;border-radius:24px;box-shadow:0 4px 14px rgba(0,0,0,.25);font-weight:700;cursor:pointer;max-width:calc(100vw - 24px)';b.textContent='🔄 새 버전이 있어요 — 눌러서 바로 적용';b.onclick=()=>{try{PWA.save()}catch(e){}location.replace(location.pathname+'?v='+v)};document.body.appendChild(b)}}catch(e){}}
 setTimeout(chkUpd,1500);setInterval(chkUpd,10*60e3);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')chkUpd()});
@@ -2611,21 +2611,46 @@ const CROWD={
    ① 계량 평가: 밸류에이션이 역사적 수준과 비교해 어디인가 (CAPE·PER 백분위)
    ② 질적 평가: 투자자들이 어떻게 행동하고 있나 (자동 온도 + 내가 체크하는 시장 특징표)
    송팀장 브레이크(기준 ①)가 '들고 있을지'를 정하고, 막스 평가(기준 ②)는 '얼마나 적극적으로 더 살지'를 정함 */
-const MK2={K:'tqqq_mk2chk',EPS:{s:'1990-01',v:[21.79,22.13,21.79,21.07,22.03,21.18,21.2,21.08,21.11,21.41,21.92,21.44,22.48,21.34,21.08,20.18,20.52,19.03,19.29,18.65,17.87,17.44,16.1,17.16,15.78,16.12,16.02,16.8,16.75,17.08,17.75,17.54,18.01,18.69,19.09,19.11,19.5,19.62,19.9,19.56,19.75,19.42,19.74,20.51,20.4,21.07,21.38,21.9,22.61,22.24,21.85,23.73,24.68,24.55,26.34,27.33,27.06,28.98,29.08,30.82,31.57,32.28,32.94,33.64,34.41,34.7,34.91,35.12,35.63,34.61,34.99,34.03,35.14,33.53,33.97,34.61,35.03,35.11,34.97,35.05,36.56,37.12,39.02,38.58,40.32,39.34,38.43,42.4,41.18,40.98,41.86,39.45,41.01,38.76,40.66,40.1,40.34,40.52,40.51,39.28,38.54,39.92,37.48,34.19,37.95,40.39,38.53,38.9,38.89,37.87,38.51,39.27,39.21,42.63,40.39,42.73,42.76,47.49,46.76,49.47,48.08,49.15,52.95,50.96,51.66,51.58,50.92,54.2,52.62,53.94,48.88,49.63,49.49,44.6,44.46,44.62,39.24,36.33,34.12,29.91,28.21,26.69,26.13,24.74,24.46,24.81,24.57,24.59,25.78,26.12,28.05,29.08,28.21,30.33,29.26,26.99,27.25,29.51,30.4,32.63,34.17,34.07,35.88,37.9,37.73,42.37,45.81,50.09,49.83,50.89,52.14,52.23,55.76,56.48,56.5,58.12,57.45,58.86,58.4,59.12,59.06,59.88,59.63,60.89,63.04,62.7,64.96,65.26,66.78,68.58,69.42,68.97,70.72,71.95,72.75,73.63,72.58,75.61,76.91,78.07,79.51,80.58,81.43,81.51,82.66,80.39,84.07,84.71,85.51,84.46,79.09,81.89,79.93,74.85,71.21,65.55,64.12,61.32,60.67,57.97,54.28,49.04,49.9,47.87,44.01,35.62,25.61,15.31,11.65,8.7,7.23,7.29,7.43,7.46,9.69,10.97,12.69,24.61,38.44,51.15,51.88,58.44,61.87,62.46,62.97,64.02,70.17,67.7,73.15,74.42,74.25,78.11,78.9,80.44,82.86,84.17,83.55,86.32,82.84,88.33,83.81,90.17,88.44,87.94,88.08,88.68,89.71,89.04,86.21,90.21,88.42,87.37,86.27,85.07,87.96,86.96,88.12,87.55,88.65,90.26,89.6,90.24,93.13,91.23,93.94,98.13,99.77,102.69,98.49,102.73,101.21,102.39,103.98,103.72,101.61,107.13,104.91,109.08,104.42,102.43,99.75,101.18,98.47,97.45,96.23,93.35,93.92,89.24,89.72,91.6,87.78,86.24,87.4,87.83,88.02,86.05,88.11,87.45,88.72,88.25,89.6,90.09,93.97,94.07,96.56,99.73,100.12,102.77,103.51,103.56,105.57,106.54,108.13,108.66,111.24,110.48,112.95,114.03,112.86,117.69,120.23,120.82,126.29,129.53,131.26,127.91,133.34,129.22,137.96,135.17,135.62,136.38,130.43,137.47,133.65,134.86,132.89,138.07,138.98,141.7,129.54,111.9,113.36,116.5,109.51,99.05,100.96,101.75,98.05,92.63,97.36,95.57,103.17,114.79,130.26,139.84,149.61,160.96,165.24,172.62,169.59,188.75,186.41,201.96,195.48,195.27,204.07,184.46,198.66,186.47,201.48,179.77,174.06,189.8,184.62,169.89,178.8,169.66,181.03,178.95,180.95,185.43,185.04,186.27,179.42,183.94,194.37,195.48,193.83,195.26,194.61,190.75,196.19,197.84,196.52,203.91,205.07,200.9,210.19,205.65,214.2,211.9,214.19,226.38,224.78,228.96,228.04,232.38,238.02,240.85,242.88,240.19,247.82,253.83,257.03,282.71,290.42,297.59,296.04,294.49,294.29,289.32,285.62]},
+const MK2={K:'tqqq_mk2ov',EPS:{s:'1990-01',v:[21.79,22.13,21.79,21.07,22.03,21.18,21.2,21.08,21.11,21.41,21.92,21.44,22.48,21.34,21.08,20.18,20.52,19.03,19.29,18.65,17.87,17.44,16.1,17.16,15.78,16.12,16.02,16.8,16.75,17.08,17.75,17.54,18.01,18.69,19.09,19.11,19.5,19.62,19.9,19.56,19.75,19.42,19.74,20.51,20.4,21.07,21.38,21.9,22.61,22.24,21.85,23.73,24.68,24.55,26.34,27.33,27.06,28.98,29.08,30.82,31.57,32.28,32.94,33.64,34.41,34.7,34.91,35.12,35.63,34.61,34.99,34.03,35.14,33.53,33.97,34.61,35.03,35.11,34.97,35.05,36.56,37.12,39.02,38.58,40.32,39.34,38.43,42.4,41.18,40.98,41.86,39.45,41.01,38.76,40.66,40.1,40.34,40.52,40.51,39.28,38.54,39.92,37.48,34.19,37.95,40.39,38.53,38.9,38.89,37.87,38.51,39.27,39.21,42.63,40.39,42.73,42.76,47.49,46.76,49.47,48.08,49.15,52.95,50.96,51.66,51.58,50.92,54.2,52.62,53.94,48.88,49.63,49.49,44.6,44.46,44.62,39.24,36.33,34.12,29.91,28.21,26.69,26.13,24.74,24.46,24.81,24.57,24.59,25.78,26.12,28.05,29.08,28.21,30.33,29.26,26.99,27.25,29.51,30.4,32.63,34.17,34.07,35.88,37.9,37.73,42.37,45.81,50.09,49.83,50.89,52.14,52.23,55.76,56.48,56.5,58.12,57.45,58.86,58.4,59.12,59.06,59.88,59.63,60.89,63.04,62.7,64.96,65.26,66.78,68.58,69.42,68.97,70.72,71.95,72.75,73.63,72.58,75.61,76.91,78.07,79.51,80.58,81.43,81.51,82.66,80.39,84.07,84.71,85.51,84.46,79.09,81.89,79.93,74.85,71.21,65.55,64.12,61.32,60.67,57.97,54.28,49.04,49.9,47.87,44.01,35.62,25.61,15.31,11.65,8.7,7.23,7.29,7.43,7.46,9.69,10.97,12.69,24.61,38.44,51.15,51.88,58.44,61.87,62.46,62.97,64.02,70.17,67.7,73.15,74.42,74.25,78.11,78.9,80.44,82.86,84.17,83.55,86.32,82.84,88.33,83.81,90.17,88.44,87.94,88.08,88.68,89.71,89.04,86.21,90.21,88.42,87.37,86.27,85.07,87.96,86.96,88.12,87.55,88.65,90.26,89.6,90.24,93.13,91.23,93.94,98.13,99.77,102.69,98.49,102.73,101.21,102.39,103.98,103.72,101.61,107.13,104.91,109.08,104.42,102.43,99.75,101.18,98.47,97.45,96.23,93.35,93.92,89.24,89.72,91.6,87.78,86.24,87.4,87.83,88.02,86.05,88.11,87.45,88.72,88.25,89.6,90.09,93.97,94.07,96.56,99.73,100.12,102.77,103.51,103.56,105.57,106.54,108.13,108.66,111.24,110.48,112.95,114.03,112.86,117.69,120.23,120.82,126.29,129.53,131.26,127.91,133.34,129.22,137.96,135.17,135.62,136.38,130.43,137.47,133.65,134.86,132.89,138.07,138.98,141.7,129.54,111.9,113.36,116.5,109.51,99.05,100.96,101.75,98.05,92.63,97.36,95.57,103.17,114.79,130.26,139.84,149.61,160.96,165.24,172.62,169.59,188.75,186.41,201.96,195.48,195.27,204.07,184.46,198.66,186.47,201.48,179.77,174.06,189.8,184.62,169.89,178.8,169.66,181.03,178.95,180.95,185.43,185.04,186.27,179.42,183.94,194.37,195.48,193.83,195.26,194.61,190.75,196.19,197.84,196.52,203.91,205.07,200.9,210.19,205.65,214.2,211.9,214.19,226.38,224.78,228.96,228.04,232.38,238.02,240.85,242.88,240.19,247.82,253.83,257.03,282.71,290.42,297.59,296.04,294.49,294.29,289.32,285.62]},
  R:[['경제','활기참','부진함'],['전망','긍정적','부정적'],['돈 빌려주는 곳(은행)','적극적','소극적'],['자본시장','돈이 잘 돎','돈이 막힘'],['자본','넘침','모자람'],['대출 조건','느슨함','까다로움'],['금리','낮음','높음'],['수익률 스프레드(회사채−국채)','좁음','넓음'],['투자자 기분','낙관적','비관적'],['투자자 마음','자신만만','낙담'],['투자자 매수','사려고 안달','관심 없음'],['주식 가진 사람','행복함','빨리 팔고 나가려 함'],['파는 사람','거의 없음','많음'],['시장 분위기','북적임','썰렁함'],['새 펀드·상품','매일 새로 나옴·들어가기 어려움','최고의 펀드만 겨우 돈을 모음'],['최근 실적','강함','약함'],['자산 가격','높음','낮음'],['앞으로 기대 수익','낮음','높음'],['리스크','높음','낮음']],
  g(){try{return JSON.parse(localStorage.getItem(MK2.K)||'{}')||{}}catch(e){return {}}},
  set(i,v){const o=MK2.g();if(o[i]===v)delete o[i];else o[i]=v;try{localStorage.setItem(MK2.K,JSON.stringify(o))}catch(e){}MK2.rr()},
  clr(){try{localStorage.removeItem(MK2.K)}catch(e){}MK2.rr()},
  rr(){const el=document.getElementById('mk2Card');if(!el)return;const op=[...el.querySelectorAll('details')].map(d=>d.open);el.outerHTML=MK2.card();const m=document.getElementById('mk2Card');if(m)[...m.querySelectorAll('details')].forEach((d,i)=>{if(op[i])d.open=true})},
+ auto(n,T){const D=MARKS.D||{},cy=D.cy||{},nd=(typeof NEWS!=='undefined'&&NEWS.d)||{},F=nd.fred||{},A=nd.aaii||{},r=n.raw||{},p=n.p||{},o=[];
+  const lr=(v,lo,hi,hotHigh,fmt,src)=>{if(v==null||!isFinite(v))return {v:null,w:'자료 없음'};const x=hotHigh?(v>=hi?'L':v<=lo?'R':null):(v<=lo?'L':v>=hi?'R':null);return {v:x,w:fmt(v)+(src?' · '+src:'')}};
+  const pc=(v,src)=>lr(v,35,65,true,x=>`과거 대비 ${Math.round(x)}%`,src);
+  const fv=k=>F[k]&&F[k][1]!=null?+F[k][1]:null,fd=k=>F[k]?String(F[k][0]).slice(0,7):'';
+  {const cf=fv('CFNAIMA3'),sa=fv('SAHMREALTIME');o.push(cf==null?{v:null,w:'자료 없음'}:{v:(cf<=-0.35||(sa!=null&&sa>=0.5))?'R':cf>=0.1?'L':null,w:`시카고 연준 경기지수 ${cf>=0?'+':''}${cf.toFixed(2)} · 실업 경보 ${sa==null?'—':sa.toFixed(2)} (${fd('CFNAIMA3')})`})}
+  o.push(pc(cy.um&&cy.um[1],'미시간대 소비자 심리 '+(cy.um?cy.um[0]:'')));
+  o.push(lr(fv('DRTSCILM'),-5,10,false,x=>`대출 기준 강화한 은행 ${x>0?'+':''}${x.toFixed(1)}%p`,fd('DRTSCILM')));
+  o.push(lr(fv('NFCI'),-0.583,-0.42,false,x=>`시카고 연준 금융여건 ${x.toFixed(2)} (낮을수록 돈이 잘 돎)`,fd('NFCI')));
+  o.push(lr(F.m2yoy&&F.m2yoy[1],4.59,6.3,true,x=>`시중 통화량(M2) 1년 ${x>=0?'+':''}${x.toFixed(1)}%`,F.m2yoy?String(F.m2yoy[0]).slice(0,7):''));
+  o.push(lr(fv('NFCICREDIT'),-0.115,0.02,false,x=>`신용 여건 ${x.toFixed(2)} (낮을수록 느슨)`,fd('NFCICREDIT')));
+  o.push(lr(F.realff&&F.realff[1],-0.73,1.18,false,x=>`실질 기준금리(기준금리−물가) ${x>=0?'+':''}${x.toFixed(1)}%`,F.realff?String(F.realff[0]).slice(0,7):''));
+  o.push(pc(p.cr,'회사채 신용'));
+  o.push(A.pct==null?{v:null,w:'자료 없음'}:{v:A.pct<=35?'L':A.pct>=65?'R':null,w:`AAII 비관 응답 ${A.bear}% (과거 대비 ${A.pct}%) · ${A.d||''}`});
+  o.push(pc(p.fg,'CNN 공포·탐욕 '+(r.fg!=null?Math.round(r.fg):'')));
+  o.push(pc(p.ret,'나스닥100 1년 수익률'));
+  o.push(pc(p.dist,'200일선 거리'));
+  {let dd=null;try{const R=SONG.rows().slice(-252),hi=Math.max(...R.map(x=>x.ndx));dd=R[R.length-1].ndx/hi-1}catch(e){}o.push(dd==null?{v:null,w:'자료 없음'}:{v:dd>=-0.05?'L':dd<=-0.10?'R':null,w:`나스닥100 1년 최고가 대비 ${(dd*100).toFixed(1)}% (−5% 안이면 거의 없음, −10% 넘으면 많음)`})}
+  o.push(pc(p.vxn,'나스닥 공포지수 VXN(반대로)'));
+  o.push(pc(cy.ipo&&cy.ipo[1],'IPO 주식 vs 시장 1년'));
+  o.push(lr(r.ret,0,0.15,true,x=>`나스닥100 1년 ${x>=0?'+':''}${(x*100).toFixed(0)}% (+15%↑ 강함, 0%↓ 약함)`));
+  o.push(pc(n.cp,'CAPE '+(n.cape?n.cape.toFixed(1):'')));
+  {const g=fv('DGS10');o.push(lr(n.cape&&g!=null?100/n.cape-g:null,-1.49,0.72,false,x=>`주식 기대수익(1/CAPE) − 10년 국채 ${g==null?'':g.toFixed(2)+'%'} = ${x>=0?'+':''}${x.toFixed(1)}%p`))}
+  o.push(T==null||n.cp==null?{v:null,w:'자료 없음'}:lr((T+n.cp)/2,35,65,true,x=>`가격 위치와 온도를 합친 값 ${Math.round(x)}`));
+  return o},
  calc(){if(typeof MARKS==='undefined')return null;try{MARKS.boot&&MARKS.boot()}catch(e){}let n;try{n=MARKS.now()}catch(e){return null}
-  const o=MK2.g(),ks=Object.keys(o),L=ks.filter(k=>o[k]==='L').length,Rn=ks.filter(k=>o[k]==='R').length,cnt=L+Rn,chk=cnt?L/cnt*100:null;
-  const T=n.T==null?null:n.T,qual=chk!=null&&cnt>=5?(T==null?chk:(T+chk)/2):T;
+  const T=n.T==null?null:n.T,ov=MK2.g(),au=MK2.auto(n,T),fin=au.map((a,i)=>ov[i]==='L'||ov[i]==='R'?ov[i]:ov[i]==='N'?null:a.v),o=ov;
+  const L=fin.filter(x=>x==='L').length,Rn=fin.filter(x=>x==='R').length,cnt=L+Rn,chk=cnt?L/cnt*100:null,nov=Object.keys(ov).length;
+  const qual=chk!=null&&cnt>=5?(T==null?chk:(T+chk)/2):T;
   const val=n.cp==null?null:n.cp; // CAPE 백분위 (1871~)
   const ql=qual==null?null:qual<=30?'cold':qual>=70?'hot':'mid',vl=val==null?null:val>=80?'exp':'ok';
   let go=true;try{go=SONG.calc().L.y}catch(e){}
   let ey=null;try{const D=MARKS.D,dt=D.peD||D.end,k=(+dt.slice(0,4)-1-1990)*12+(+dt.slice(5,7)-1),b=MK2.EPS.v[Math.min(k,MK2.EPS.v.length-1)];if(D.spx&&D.pe&&b)ey=D.spx/D.pe/b-1}catch(e){}
   const a3=[ey==null?null:ey>0,qual==null?null:qual<50,n.pp==null?null:n.pp<50];
-  return {n,T,chk,cnt,L,Rn,qual,val,ql,vl,go,o,ey,a3}},
+  return {n,T,chk,cnt,L,Rn,qual,val,ql,vl,go,o,ey,a3,au,fin,nov}},
  card(){const c=MK2.calc();if(!c)return '';const n=c.n,f1=x=>x==null?'—':Math.round(x);
   const M={cold:{ok:['🟢🟢','적극 추가 매수','하락 때 쓰려고 모아 둔 여윳돈을 넣을 때예요. 막스: "이럴 땐 공격성이 필요하다."','#1a7f37'],exp:['🟢','조금 추가 매수','사람들은 겁먹었지만 가격은 아직 역사적으로 비싸요. 여윳돈의 일부(절반 이하)만.','#4c9a2a']},
    mid:{ok:['⚪','정해진 적립대로','매달 넣기로 한 돈만 꾸준히.','#5b6573'],exp:['⚪','정해진 적립대로 (추가 매수 보류)','가격이 비싸니 추가로 더 사지는 않아요.','#5b6573']},
@@ -2635,8 +2660,8 @@ const MK2={K:'tqqq_mk2chk',EPS:{s:'1990-01',v:[21.79,22.13,21.79,21.07,22.03,21.
   const bar=(p,lab,lo,hi)=>{const x=p==null?null:Math.max(0,Math.min(100,p));return `<div style="position:relative;height:16px;border-radius:8px;background:linear-gradient(90deg,#2b6cb0,#8fb3d9 30%,#d5dbe2 50%,#f0b27a 70%,#c0392b);margin:6px 0 2px">${x==null?'':`<div style="position:absolute;left:${x}%;top:-4px;width:4px;height:24px;background:#17202e;border-radius:2px;transform:translateX(-50%)"></div>`}</div><div class="note" style="display:flex;justify-content:space-between"><span>${lo}</span><span>${lab}</span><span>${hi}</span></div>`};
   const p=n.p||{},comp=[['나스닥100이 200일선보다 얼마나 위',p.dist],['최근 1년 수익률',p.ret],['CNN 공포·탐욕',p.fg],['VXN(나스닥 공포지수, 낮을수록 들뜸)',p.vxn],['회사채 신용(좁을수록 들뜸)',p.cr]].map(([a,b])=>`<tr><td style="padding:4px">${a}</td><td class="n">${b==null?'—':Math.round(b)}</td></tr>`).join('');
   const cl=x=>x==null?'—':x<=30?'🧊 차가움':x>=70?'🔥 뜨거움':'🌤 보통';
-  const rows=MK2.R.map((r,i)=>{const s=c.o[i],b=(side,txt)=>`<button onclick="MK2.set(${i},'${side}')" style="flex:1;min-width:0;padding:7px 6px;border-radius:7px;border:2px solid ${s===side?(side==='L'?'#c0392b':'#2b6cb0'):'#dfe4ea'};background:${s===side?(side==='L'?'#fdecea':'#e8f0fb'):'#fff'};font:inherit;font-size:13px;font-weight:${s===side?800:400};cursor:pointer">${txt}</button>`;
-   return `<div style="display:flex;gap:6px;align-items:center;margin:4px 0"><div style="flex:0 0 30%;font-size:12.5px;font-weight:700">${r[0]}</div>${b('L',r[1])}${b('R',r[2])}</div>`}).join('');
+  const rows=MK2.R.map((r,i)=>{const s=c.fin[i],man=c.o[i]!=null,b=(side,txt)=>`<button onclick="MK2.set(${i},'${side}')" style="flex:1;min-width:0;padding:7px 6px;border-radius:7px;border:2px solid ${s===side?(side==='L'?'#c0392b':'#2b6cb0'):'#dfe4ea'};background:${s===side?(side==='L'?'#fdecea':'#e8f0fb'):'#fff'};font:inherit;font-size:13px;font-weight:${s===side?800:400};cursor:pointer">${txt}</button>`;
+   return `<div style="margin:6px 0 8px"><div style="display:flex;gap:6px;align-items:center"><div style="flex:0 0 30%;font-size:12.5px;font-weight:700">${r[0]}</div>${b('L',r[1])}${b('R',r[2])}</div><div class="note" style="margin:2px 0 0 31%;line-height:1.4">${man?'✋ 내가 바꿈 · ':'🤖 '}${s?'':'중간(표시 안 함) · '}${esc(c.au[i].w)}</div></div>`}).join('');
   const hot=c.qual!=null&&c.qual>=50;
   const need=hot?['신중과 절제','고르고 골라서 (선별)','많이 사기 · 오를수록 더 비싸게 쫓아 사기 · 위험을 너무 많이 지기']:['공격성','넓게 (다양하게)','거의 안 사기 · 아예 안 사기 · 위험을 너무 적게 지기'];
   const th=a=>`<thead><tr>${a.map((x,i)=>`<th${i?' class="n"':' style="padding:5px"'}>${x}</th>`).join('')}</tr></thead>`,tr=(a,bg)=>`<tr${bg?` style="background:${bg}"`:''}>${a.map((x,i)=>i?`<td class="n">${x}</td>`:`<td style="padding:5px">${x}</td>`).join('')}</tr>`;
@@ -2650,7 +2675,7 @@ const MK2={K:'tqqq_mk2chk',EPS:{s:'1990-01',v:[21.79,22.13,21.79,21.07,22.03,21.
     ${bar(c.val,'역사 가운데','쌈','비쌈')}
     <div class="note" style="line-height:1.5">PER ${n.pe?n.pe.toFixed(1):'—'} → 1990년 이후 ${f1(n.pp)}% 위치. 막스: 가격이 역사적 수준과 비슷할 때가 좋은 출발점. 80% 넘으면 '비쌈'으로 봐요.</div></div>
    <div style="flex:1 1 260px;min-width:0;background:#fff;border:1px solid #dfe4ea;border-radius:9px;padding:9px 11px"><div style="font-weight:800">② 질적 평가 — 사람들이 들떴나, 겁먹었나?</div>
-    <div style="font-size:14px;margin-top:4px">합친 온도 <b>${f1(c.qual)}</b> ${cl(c.qual)} <span class="note">(자동 온도 ${f1(c.T)}${c.cnt>=5?` + 내 체크 ${f1(c.chk)}`:' · 아래 표를 5칸 이상 체크하면 함께 반영'})</span></div>
+    <div style="font-size:14px;margin-top:4px">합친 온도 <b>${f1(c.qual)}</b> ${cl(c.qual)} <span class="note">(자동 온도 ${f1(c.T)}${c.cnt>=5?` + 특징표 왼쪽 비율 ${f1(c.chk)}의 평균`:''})</span></div>
     ${bar(c.qual,'보통','겁먹음 (30↓)','들뜸 (70↑)')}
     <details><summary class="note" style="cursor:pointer">자동 온도는 이렇게 계산 (각각 과거 대비 백분위, 0=가장 차가움)</summary><table class="g" style="font-size:12.5px;margin-top:4px"><tbody>${comp}</tbody></table></details></div></div>
   <div class="tw" style="margin-top:10px"><table class="g" style="font-size:12.5px">${th(['계량 \\ 질적','🧊 겁먹음 (30↓)','🌤 보통','🔥 들뜸 (70↑)'])}<tbody>
@@ -2665,10 +2690,10 @@ const MK2={K:'tqqq_mk2chk',EPS:{s:'1990-01',v:[21.79,22.13,21.79,21.07,22.03,21.
    <div style="flex:1 1 220px;font-size:13px;line-height:1.6">막스 그림처럼 공격적인 투자자는 결과가 <b>양쪽으로 넓게</b> 퍼져요. 좋으면 훨씬 크게 벌고, 나쁘면 훨씬 크게 잃어요. <b>TQQQ는 이미 항상 이 점선</b>이에요. 그래서 우리에게 '공격'은 레버리지를 더 키우는 게 아니라 <b>여윳돈을 더 넣는 것</b>뿐이에요.</div></div>
    <div class="note" style="margin-top:6px;line-height:1.55">이 3조건은 판정을 바꾸지 않는 참고 체크예요. 검증해 보니 3개가 다 맞을 때만 여윳돈을 넣으면 기회가 너무 드물어서(1993년 이후 12%, CAPE 기준이면 0%) 오히려 결과가 나빴어요(아래 🔬).</div></div>
   <div style="margin-top:10px;padding:10px 12px;background:${hot?'#fdf3ec':'#eef4fb'};border-radius:9px;font-size:13.5px;line-height:1.65">${hot?'🔥 지금처럼 들뜬 쪽이면':'🧊 지금처럼 겁먹은 쪽이면'} 막스가 말하는 <b>필요한 태도</b>: ${need[0]} · ${need[1]}<br>⚠️ <b>이럴 때 흔히 하는 실수</b>: ${need[2]}</div>
-  <details style="margin-top:10px"${c.cnt?'':' open'}><summary style="cursor:pointer;font-weight:700">📝 내가 체크하는 시장 특징표 — 지금 시장에 더 가까운 쪽을 눌러요 (${c.cnt}/${MK2.R.length}칸)</summary>
-   <div class="note" style="margin:6px 0">막스: 왼쪽(빨강)에 많이 표시되면 지갑을 닫고, 오른쪽(파랑)에 많으면 지갑을 열어라. 다시 누르면 지워져요. 이 기기에만 저장.</div>
+  <details style="margin-top:10px"><summary style="cursor:pointer;font-weight:700">📝 막스 시장 특징표 — 🤖 자동으로 채워짐 (표시 ${c.cnt}/${MK2.R.length}칸 · 왼쪽 ${c.cnt?Math.round(c.chk):'—'}%)</summary>
+   <div class="note" style="margin:6px 0;line-height:1.55">막스: 왼쪽(빨강)에 많이 표시되면 지갑을 닫고, 오른쪽(파랑)에 많으면 지갑을 열어라. <b>앱이 자료로 자동 판정</b>해요 — 시세·공포지수는 열 때마다, 경제·신용(미국 연준 FRED)·AAII는 3시간마다 새로 받아요. 애매한 칸(과거 대비 35~65%)은 표시하지 않아요. 내 생각이 다르면 눌러서 바꾸고, 같은 쪽을 다시 누르면 자동으로 돌아가요.${c.nov?` 지금 ${c.nov}칸을 내가 바꿨어요.`:''}</div>
    ${rows}
-   <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:13px"><span>왼쪽 ${c.L}칸 · 오른쪽 ${c.Rn}칸 → ${c.cnt?(c.L>c.Rn?'🔥 들뜬 쪽':c.L<c.Rn?'🧊 겁먹은 쪽':'반반'):'아직 체크 없음'}</span>${c.cnt?'<button onclick="MK2.clr()" style="font:inherit;font-size:12.5px;padding:4px 10px;border-radius:6px;border:1px solid #cfd6df;background:#fff;cursor:pointer">모두 지우기</button>':''}</div></details>
+   <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:13px"><span>왼쪽 ${c.L}칸 · 오른쪽 ${c.Rn}칸 → ${c.cnt?(c.L>c.Rn?'🔥 들뜬 쪽':c.L<c.Rn?'🧊 겁먹은 쪽':'반반'):'표시 없음'}</span>${c.nov?'<button onclick="MK2.clr()" style="font:inherit;font-size:12.5px;padding:4px 10px;border-radius:6px;border:1px solid #cfd6df;background:#fff;cursor:pointer">내가 바꾼 것 모두 자동으로</button>':''}</div></details>
   <details style="margin-top:10px"><summary style="cursor:pointer;font-weight:700">🔬 검증 — 막스 평가를 규칙으로 바꾸면 돈이 더 벌렸을까? (나스닥100 · 1993~2010년 출발 214개 16년 · 세후)</summary>
    <div class="note" style="margin:6px 0">모두 송팀장 브레이크 위에 막스 평가를 얹어 계산. 적립 = 1만 달러 + 매달 470달러, 넣은 돈의 몇 배 (가운데 / 운 나쁜 10%).</div>
    <div class="tw"><table class="g" style="font-size:12.5px">${th(['방법','적립식','일시금','판정'])}<tbody>
@@ -2682,6 +2707,12 @@ const MK2={K:'tqqq_mk2chk',EPS:{s:'1990-01',v:[21.79,22.13,21.79,21.07,22.03,21.
    ${tr(['비쌀 때(CAPE 90%↑) TQQQ 절반 팔기','3.8 / 3.17','9.5 / 5.2','❌ 크게 나빠짐'])}
    ${tr(['겁먹었을 때(온도 30↓) 브레이크 무시하고 보유','6.5 / 마이너스','6.7 / 마이너스','❌❌ 최악'],'#fdecea')}
    </tbody></table></div>
+   <div class="note" style="margin:10px 0 4px"><b>자동 특징표를 과거 고점·저점에 돌려 보면</b> (오래된 자료가 있는 10칸만 · 왼쪽 비율이 높을수록 들뜬 장)</div>
+   <div class="tw"><table class="g" style="font-size:12.5px">${th(['때','왼쪽 비율','실제로는'])}<tbody>
+   ${tr(['2000.3 닷컴 꼭대기','56%','고점'],'#fdecea')}${tr(['2007.10 금융위기 직전','50%','고점'],'#fdecea')}${tr(['2018.9','86%','고점'],'#fdecea')}${tr(['2020.2 코로나 직전','83%','고점'],'#fdecea')}${tr(['2021.11','88%','고점'],'#fdecea')}
+   ${tr(['2009.3 금융위기 바닥','12%','저점'],'#e8f0fb')}${tr(['2018.12','33%','저점'],'#e8f0fb')}${tr(['2020.3 코로나 바닥','33%','저점'],'#e8f0fb')}${tr(['2022.10','25%','저점'],'#e8f0fb')}
+   </tbody></table></div>
+   <div class="note" style="margin:4px 0 0">고점 5번은 모두 50% 이상(평균 73%), 저점 4번은 모두 33% 이하(평균 26%)로 갈렸어요. 다만 닷컴·금융위기 직전처럼 50% 근처에서 꼭대기가 온 적도 있어서, 특징표만으로 '팔 때'를 맞히지는 못해요.</div>
    <ul class="note" style="margin:8px 0 0;padding-left:18px;line-height:1.65">
    <li><b>막스 평가로 '팔지'를 정하면 손해였어요.</b> 1993년 이후 CAPE가 '비쌈(90%↑)'이었던 날이 66%나 돼서, 비쌀 때 팔면 오르는 시간 대부분을 놓쳐요. 막스 본인도 "밸류에이션은 출발점이지 타이밍 도구가 아니다"라고 해요.</li>
    <li><b>'얼마나 더 살지'에 쓰면 손해는 없고 실수를 막아 줘요.</b> 새 돈 속도나 여윳돈 투입을 막스 평가로 조절해도 결과는 ±1% 안이었어요. 대신 들뜬 장에서 몰빵·빚투하는 실수, 겁먹은 장에서 아예 안 사는 실수를 막아 줘요. 그래서 기준 ②는 '매수 강도'만 정해요.</li>
@@ -2691,6 +2722,7 @@ const MK2={K:'tqqq_mk2chk',EPS:{s:'1990-01',v:[21.79,22.13,21.79,21.07,22.03,21.
    <li>자동 온도는 1993년부터의 주간 기록(과거 전체와 비교한 백분위라 약간 '미래를 아는' 계산), CAPE 백분위는 그 시점까지의 과거만 사용 · 과거 계산이며 투자 자문이 아니에요.</li></ul></details></div>`},
  csv(){const c=MK2.calc();if(!c)return [];return [['[하워드 막스 두 가지 평가]'],['CAPE',c.n.cape?c.n.cape.toFixed(1):'','CAPE 백분위',Math.round(c.val||0),'자동 온도',c.T==null?'':Math.round(c.T),'내 체크(왼쪽%)',c.chk==null?'':Math.round(c.chk),'합친 온도',c.qual==null?'':Math.round(c.qual)],[]]}
 };
+{const _nl=NEWS.load;NEWS.load=async function(){const r=await _nl.apply(this,arguments);try{MK2.rr()}catch(e){}return r}}
 {const _s=SONG.card;SONG.card=function(){const h=_s();let m='';try{m=MK2.card()}catch(e){}const k=h.indexOf('<div class="card" id="newsCard"');return k>=0?h.slice(0,k)+m+h.slice(k):h+m}}
 {const _cM=APP.csv;APP.csv=function(){let r=[];try{r=MK2.csv()}catch(e){}return _cM().concat(r)}}
 
@@ -2698,7 +2730,7 @@ boot();PWA.load();LIVE.refresh();LIVE.auto();
 {const _r=render;render=function(){_r();if(!DIRTY){const b=document.getElementById('stBadge');if(b&&!/저장됨/.test(b.textContent)){b.className='badge final';b.textContent='✔ 이 기기에 저장됨'}}}}
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261123060517';
+const FILE_BUILD='20261123095424';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
