@@ -1,0 +1,29 @@
+name: FRED 주소 시험 (1회)
+on:
+  push:
+    paths: ['.github/workflows/probe3.yml']
+permissions:
+  contents: write
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - run: |
+          mkdir out && cd out
+          python3 - <<'PY'
+          import json,urllib.request
+          U={'fred_csv':'https://fred.stlouisfed.org/graph/fredgraph.csv?id=NFCI','fred_csv2':'https://fred.stlouisfed.org/graph/fredgraph.csv?id=NFCI&cosd=2020-01-01',
+             'fred_txt':'https://fred.stlouisfed.org/data/NFCI.txt','fred_dl':'https://fred.stlouisfed.org/series/NFCI/downloaddata/NFCI.csv',
+             'chi_nfci':'https://www.chicagofed.org/-/media/publications/nfci/nfci-data-series-csv.csv','chi_cfnai':'https://www.chicagofed.org/-/media/publications/cfnai/cfnai-data-series-xlsx.xlsx',
+             'alfred':'https://alfred.stlouisfed.org/graph/alfredgraph.csv?id=NFCI'}
+          H=[{'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36','Accept':'text/csv,*/*'},{'User-Agent':'curl/8.5.0','Accept':'*/*'},{'User-Agent':'Trillionare research noreply@anthropic.com'}]
+          R={}
+          for k,u in U.items():
+            for j,h in enumerate(H):
+              try:
+                r=urllib.request.urlopen(urllib.request.Request(u,headers=h),timeout=30);b=r.read();R[f'{k}#{j}']={'st':r.status,'len':len(b),'head':b[:120].decode('utf8','replace')}
+              except Exception as e:R[f'{k}#{j}']={'err':str(e)[:150]}
+          json.dump(R,open('p.json','w'),indent=1);print(json.dumps(R,indent=1))
+          PY
+          git init -q -b probe3 && git config user.name bot && git config user.email b@b && git add -A && git commit -qm p && git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" probe3
