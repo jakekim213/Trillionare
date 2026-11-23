@@ -136,7 +136,7 @@ for k, fn in (('aaii', aaii), ('sffed', sffed)):
 def fred():
     import csv, io
     def ser(i):
-        t = get('https://fred.stlouisfed.org/graph/fredgraph.csv?id=' + i, 40)
+        t = urllib.request.urlopen(urllib.request.Request('https://fred.stlouisfed.org/graph/fredgraph.csv?id=' + i, headers={'User-Agent': 'curl/8.5.0', 'Accept': '*/*'}), timeout=40).read().decode('utf8', 'replace')  # FRED는 브라우저 UA를 막음
         rows = list(csv.reader(io.StringIO(t)))[1:]
         return [(r[0], float(r[1])) for r in rows if len(r) > 1 and r[1] not in ('', '.')]
     S, H = {}, {}
