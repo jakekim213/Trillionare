@@ -2356,7 +2356,7 @@ saveWork=function(){PWA.save();toast('✔ 이 기기에 저장했습니다')};
 {const _o=openFile;openFile=async function(f){const r=await _o(f);setTimeout(PWA.save,50);return r}}
 
 /* 🔄 새 버전 알림: GitHub에 새 계산표가 올라오면(최대 몇 분) 화면 위에 알려 주고, 누르면 캐시를 피해 새로 엶 */
-const APP_BUILD='20261125073600';
+const APP_BUILD='20261125074051';
 async function chkUpd(){try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();
  if(/^\d{14}$/.test(v)&&v>APP_BUILD&&!document.getElementById('updBar')){const b=document.createElement('div');b.id='updBar';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:80;background:#1f6feb;color:#fff;padding:10px 16px;border-radius:24px;box-shadow:0 4px 14px rgba(0,0,0,.25);font-weight:700;cursor:pointer;max-width:calc(100vw - 24px)';b.textContent='🔄 새 버전이 있어요 — 눌러서 바로 적용';b.onclick=()=>{try{PWA.save()}catch(e){}location.replace(location.pathname+'?v='+v)};document.body.appendChild(b)}}catch(e){}}
 setTimeout(chkUpd,1500);setInterval(chkUpd,10*60e3);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')chkUpd()});
@@ -2647,7 +2647,7 @@ const MK2={K:'tqqq_mk2ov',EPS:{s:'1990-01',v:[21.79,22.13,21.79,21.07,22.03,21.1
   const qual=chk!=null&&cnt>=5?(T==null?chk:(T+chk)/2):T;
   const val=n.cp==null?null:n.cp; // CAPE 백분위 (1871~)
   const ql=qual==null?null:qual<=30?'cold':qual>=70?'hot':'mid',vl=val==null?null:val>=80?'exp':'ok';
-  let go=true;try{go=SONG.calc().L.y}catch(e){}
+  let go=true;try{go=typeof FINAL!=='undefined'&&FINAL.calc()?FINAL.calc().w>0:SONG.calc().L.y}catch(e){}
   let ey=null;try{const D=MARKS.D,dt=D.peD||D.end,k=(+dt.slice(0,4)-1-1990)*12+(+dt.slice(5,7)-1),b=MK2.EPS.v[Math.min(k,MK2.EPS.v.length-1)];if(D.spx&&D.pe&&b)ey=D.spx/D.pe/b-1}catch(e){}
   const a3=[ey==null?null:ey>0,qual==null?null:qual<50,n.pp==null?null:n.pp<50];
   return {n,T,chk,cnt,L,Rn,qual,val,ql,vl,go,o,ey,a3,au,fin,nov}},
@@ -2655,7 +2655,7 @@ const MK2={K:'tqqq_mk2ov',EPS:{s:'1990-01',v:[21.79,22.13,21.79,21.07,22.03,21.1
   const M={cold:{ok:['🟢🟢','적극 추가 매수','하락 때 쓰려고 모아 둔 여윳돈을 넣을 때예요. 막스: "이럴 땐 공격성이 필요하다."','#1a7f37'],exp:['🟢','조금 추가 매수','사람들은 겁먹었지만 가격은 아직 역사적으로 비싸요. 여윳돈의 일부(절반 이하)만.','#4c9a2a']},
    mid:{ok:['⚪','정해진 적립대로','매달 넣기로 한 돈만 꾸준히.','#5b6573'],exp:['⚪','정해진 적립대로 (추가 매수 보류)','가격이 비싸니 추가로 더 사지는 않아요.','#5b6573']},
    hot:{ok:['🟠','신중과 절제','정해진 적립만. 추가 매수·빚투 금지.','#d9822b'],exp:['🔴','신중과 절제 — 지갑을 꽉 닫기','가격도 비싸고 사람들도 들떴어요. 추가 매수·빚투 금지, 새 상품 유혹 피하기. 파는 건 브레이크(기준 ①)에 맡겨요.','#b42318']}};
-  let v;if(!c.go)v=['⛔','매수 안 함 (브레이크 우선)','송팀장 브레이크가 걸려 있으면 막스 평가가 아무리 차가워도 사지 않아요. 검증해 보니 "차가우니까 브레이크 무시하고 들고 가기"는 16년 결과를 크게 망쳤어요.','#b42318'];
+  let v;if(!c.go)v=['⛔','매수 안 함 (브레이크 우선)','최종 판정이 TQQQ 0%(송팀장·흔들림 모두 현금)이면 막스 평가가 아무리 차가워도 사지 않아요. 검증해 보니 "차가우니까 브레이크 무시하고 들고 가기"는 16년 결과를 크게 망쳤어요.','#b42318'];
   else if(c.ql&&c.vl)v=M[c.ql][c.vl];else v=['⚪','계산 재료 부족','온도나 CAPE 값을 아직 못 받았어요.','#5b6573'];
   const bar=(p,lab,lo,hi)=>{const x=p==null?null:Math.max(0,Math.min(100,p));return `<div style="position:relative;height:16px;border-radius:8px;background:linear-gradient(90deg,#2b6cb0,#8fb3d9 30%,#d5dbe2 50%,#f0b27a 70%,#c0392b);margin:6px 0 2px">${x==null?'':`<div style="position:absolute;left:${x}%;top:-4px;width:4px;height:24px;background:#17202e;border-radius:2px;transform:translateX(-50%)"></div>`}</div><div class="note" style="display:flex;justify-content:space-between"><span>${lo}</span><span>${lab}</span><span>${hi}</span></div>`};
   const p=n.p||{},comp=[['나스닥100이 200일선보다 얼마나 위',p.dist],['최근 1년 수익률',p.ret],['CNN 공포·탐욕',p.fg],['VXN(나스닥 공포지수, 낮을수록 들뜸)',p.vxn],['회사채 신용(좁을수록 들뜸)',p.cr]].map(([a,b])=>`<tr><td style="padding:4px">${a}</td><td class="n">${b==null?'—':Math.round(b)}</td></tr>`).join('');
@@ -2817,11 +2817,52 @@ const CRASH={
 {const _sC=SONG.card;SONG.card=function(){const h=_sC();let x='';try{x=CRASH.card()}catch(err){}const k=h.indexOf('<div class="card" id="mk2Card"');return k>=0?h.slice(0,k)+x+h.slice(k):h+x}}
 {const _cC=APP.csv;APP.csv=function(){let r=[];try{const c=CRASH.calc();if(c)r=[['[폭락 경보]'],['기준일',c.L.date,'20일 변동성(%)',Math.round((c.L.vol20||0)*1000)/10,'200일선 대비(%)',Math.round(c.L.dist*1000)/10,'규칙 A(흔들림만)',c.f?'보유':'현금','규칙 B(흔들림+추세)',c.e?'보유':'현금','TQQQ 비중(A 50%+B 50%)',(c.f+c.e)*50+'%'],[]]}catch(err){}return r.concat(_cC())}}
 
+/* ===== 🎯 최종 판정 — 돈 반반: 송팀장 50% + 흔들림 폭락 경보 50% (2026-11-25 · 3개 시장 세후 검증) ===== */
+const FINAL={
+ calc(){let s=null,c=null;try{s=SONG.calc()}catch(e){}try{c=CRASH.calc()}catch(e){}if(!s||!c)return null;
+  const S=s.L.y?1:0,A=c.f?1:0,B=c.e?1:0,w=0.5*S+0.25*A+0.25*B;return{s,c,S,A,B,w}},
+ card(){const z=FINAL.calc();if(!z)return '';const{s,c,S,A,B,w}=z,L=c.L,pc=Math.round(w*100);
+  const col=w>=0.75?'var(--pos)':w>=0.25?'#b7791f':'var(--neg)',ic=w>=0.75?'🟢':w>=0.25?'🟡':'🔴';
+  const f=x=>Math.round(x).toLocaleString('en-US'),pp=x=>(x>=0?'+':'−')+Math.abs(x*100).toFixed(1)+'%';
+  const row=(nm,share,on,why,next)=>`<tr><td style="padding:6px"><b>${nm}</b><div class="note">${why}</div></td><td class="n">${share}</td><td class="n" style="font-weight:800;color:${on?'#1a7f37':'#b42318'}">${on?'🟢 보유':'🔴 현금'}</td><td style="padding:6px;font-size:12.5px;line-height:1.5">${next}</td></tr>`;
+  const sL=s.L,lvl=sL.ath*(1-SONG.T);
+  const sNext=S?`둘 다 깨지면 현금: 50일선이 200일선 아래로(지금 ${pp(sL.m50/sL.m200-1)}) ${sL.c2?`+ 나스닥 ${f(lvl)} 아래로`:'(② 이미 깨짐)'}${sL.a?' + 250일선 아래로':''}`:`하나만 살아나면 보유: 나스닥 ${f(lvl)} 위 또는 250일선 ${f(sL.m250)} 위 또는 50일선 > 200일선`;
+  const v=(L.vol20||0)*100,d=(L.dist||0);
+  const aNext=A?`흔들림 35% 넘으면 현금 (지금 ${v.toFixed(0)}%)`:`흔들림 25% 아래로 내려오면 보유 (지금 ${v.toFixed(0)}%)`;
+  const bNext=B?`흔들림 35% 넘거나 200일선 −3% 아래면 현금 (지금 ${v.toFixed(0)}%, ${pp(d)})`:`200일선 +3% 위 그리고 흔들림 30% 아래면 보유 (지금 ${pp(d)}, ${v.toFixed(0)}%)`;
+  return `<div class="card" id="finalCard" style="border:4px solid ${col};margin-bottom:18px;padding:14px;background:linear-gradient(180deg,#fff,#f7f9fb)">
+  <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline"><b style="font-size:15px">🎯 최종 판정 — TQQQ 돈을 반반: 송팀장 50% + 흔들림 폭락 경보 50%</b><span class="note">${esc(sL.date)} 미국 종가 기준 · 다음 날 종가에 맞추기</span></div>
+  <div style="display:flex;align-items:center;gap:14px;margin:10px 0 6px"><span style="font-size:44px;line-height:1">${ic}</span><div>
+   <div style="font-size:clamp(26px,7vw,40px);font-weight:900;color:${col};line-height:1.1">TQQQ ${pc}%</div>
+   <div style="font-size:14px">TQQQ 계좌의 ${pc}%는 TQQQ, 나머지 ${100-pc}%는 현금(파킹통장·단기 국채)</div></div></div>
+  <div class="tw"><table class="g" style="font-size:13px">${'<thead><tr><th style="padding:6px">누가 정하나</th><th class="n">몫</th><th class="n">지금</th><th style="padding:6px">다음에 바뀌는 조건</th></tr></thead>'}<tbody>
+   ${row('🚦 송팀장 레버리지 브레이크','50%',S,'느린 추세 — 긴 하락장을 피함',sNext)}
+   ${row('🚨 흔들림 규칙 A','25%',A,'빠른 폭락을 피함 (흔들림만 봄)',aNext)}
+   ${row('🚨 흔들림 규칙 B','25%',B,'흔들림 + 200일선',bNext)}
+  </tbody></table></div>
+  <div style="margin-top:10px;padding:10px 12px;background:#fff;border:2px solid #17202e;border-radius:10px;font-size:14px;line-height:1.7">📅 <b>지금 할 일</b> — 내일 미국 종가 무렵 TQQQ 비중을 <b>${pc}%</b>에 맞추기 (더 많으면 팔고, 적으면 사기). 매달 넣는 돈도 넣은 뒤 TQQQ가 ${pc}%가 되도록 나눠요. 비중은 0·25·50·75·100% 다섯 단계로만 바뀌어요.${w>0?' 여윳돈으로 더 살지는 아래 🧭 막스 카드가 정해요.':' 비중이 0%일 땐 막스 카드와 상관없이 사지 않아요.'}</div>
+  <details style="margin-top:10px"><summary style="cursor:pointer;font-weight:700">🔬 왜 반반인가 — 섞는 방법 비교 (세후 · 16년 · 2만 달러 일시금)</summary>
+   <div class="tw"><table class="g" style="font-size:12.5px;margin-top:6px"><thead><tr><th style="padding:5px">방법</th><th class="n">나스닥100<br><span class="note">가운데 / 운 나쁜 10%</span></th><th class="n">닷컴</th><th class="n">코로나</th><th class="n">2022</th><th class="n">S&amp;P500<br><span class="note">가운데 / 운 나쁜 10%</span></th><th class="n">닛케이<br><span class="note">가운데 / 운 나쁜 10%</span></th><th class="n">매매<br>1년</th></tr></thead><tbody>
+   <tr><td style="padding:5px">송팀장만</td><td class="n">38.8 / 11.9</td><td class="n">−75%</td><td class="n">−70%</td><td class="n">−54%</td><td class="n">7.0 / 1.98</td><td class="n">2.9 / 0.32</td><td class="n">2.7번</td></tr>
+   <tr><td style="padding:5px">흔들림 반반만</td><td class="n">18.5 / 8.9</td><td class="n">−10%</td><td class="n">−24%</td><td class="n">−55%</td><td class="n">7.2 / 2.34</td><td class="n">2.5 / 0.22</td><td class="n">2.8번</td></tr>
+   <tr style="background:#eef7f1"><td style="padding:5px"><b>✅ 돈 반반 (채택)</b></td><td class="n"><b>31.6 / 13.2</b></td><td class="n">−46%</td><td class="n">−47%</td><td class="n">−54%</td><td class="n">7.5 / 2.21</td><td class="n">3.1 / 0.29</td><td class="n">5.5번</td></tr>
+   <tr><td style="padding:5px">둘 다 🟢일 때만 보유</td><td class="n">16.2 / 6.4</td><td class="n">−9%</td><td class="n">−24%</td><td class="n">−43%</td><td class="n">6.5 / 1.85</td><td class="n">3.0 / 0.37</td><td class="n">3.0번</td></tr>
+   </tbody></table></div>
+   <ul class="note" style="margin:8px 0 0;padding-left:18px;line-height:1.65">
+   <li><b>운 나쁜 16년(10번 중 가장 나빴던 1번)이 가장 좋았어요.</b> 송팀장은 빠른 폭락에, 흔들림 규칙은 긴 상승장에 약해서 서로 다른 때에 틀려요. 섞으면 한쪽의 실수를 다른 쪽이 메워 줘요.</li>
+   <li>대신 가장 많이 버는 쪽(송팀장만 38.8배)보다는 덜 벌고, 큰 폭락 때 −46~47%는 맞을 수 있어요. 매매도 1년 5~6번으로 늘어요(한 번에 25% 또는 50%씩).</li>
+   <li>"둘 다 🟢일 때만"은 폭락은 잘 피했지만 오르는 시간을 너무 많이 놓쳐서 탈락했어요.</li>
+   <li>계산: 신호는 나스닥100 종가, 다음 날 종가에 매매 · 양도세 22%(연 250만 원 공제) · 가상 TQQQ · 과거 계산이며 투자 자문이 아니에요.</li></ul></details></div>`},
+ csv(){const z=FINAL.calc();if(!z)return [];return [['[최종 판정 — 돈 반반]'],['기준일',z.s.L.date,'송팀장(50%)',z.S?'보유':'현금','흔들림 A(25%)',z.A?'보유':'현금','흔들림 B(25%)',z.B?'보유':'현금','TQQQ 비중(%)',Math.round(z.w*100)],[]]}
+};
+{const _fS=SONG.card;SONG.card=function(){let x='';try{x=FINAL.card()}catch(e){}return x+_fS()}}
+{const _fC=APP.csv;APP.csv=function(){let r=[];try{r=FINAL.csv()}catch(e){}return r.concat(_fC())}}
+
 boot();PWA.load();LIVE.refresh();LIVE.auto();
 {const _r=render;render=function(){_r();if(!DIRTY){const b=document.getElementById('stBadge');if(b&&!/저장됨/.test(b.textContent)){b.className='badge final';b.textContent='✔ 이 기기에 저장됨'}}}}
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261125073600';
+const FILE_BUILD='20261125074051';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
