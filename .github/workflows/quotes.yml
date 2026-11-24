@@ -1,17 +1,22 @@
 name: 시세 자동 수집
 on:
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '*/5 * * * *'          # GitHub가 자주 건너뜀 → 아래 '이어 달리기'가 주 엔진, 이건 끊겼을 때 다시 살리는 용도
+    - cron: '7,23,41 21 * * 1-5'   # 미국 장 마감(한국 06:00) 직후
+    - cron: '13,47 22 * * 1-5'
+  push:
+    paths: ['.github/workflows/quotes.yml']
   workflow_dispatch:
 permissions:
   contents: write
+  actions: write
 concurrency:
   group: quotes
   cancel-in-progress: false
 jobs:
   fetch:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
       - name: 이전 그래프 자료 가져오기
@@ -27,3 +32,18 @@ jobs:
           git add -A
           git commit -qm "시세 $(date -u +%Y-%m-%dT%H:%MZ)"
           git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" data
+      - name: 이어 달리기 — 잠깐 쉬고 스스로 다음 실행 예약 (장중 약 5분, 그 외 약 25분 간격) · 뉴스도 3시간 넘었으면 깨움
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          H=$(date -u +%H); D=$(date -u +%u)
+          if [ "$D" -le 5 ] && [ "$H" -ge 12 ] && [ "$H" -le 22 ]; then W=210; else W=1440; fi
+          if [ "$D" -eq 6 ] && [ "$H" -le 1 ]; then W=210; fi
+          A="Authorization: Bearer $GH_TOKEN"
+          NT=$(curl -s -H "$A" "https://api.github.com/repos/$REPO/commits/news" | python3 -c "import json,sys,datetime as d;c=json.load(sys.stdin)['commit']['committer']['date'];print(int((d.datetime.now(d.timezone.utc)-d.datetime.fromisoformat(c.replace('Z','+00:00'))).total_seconds()/60))" || echo 999)
+          echo "뉴스 마지막 수집 ${NT}분 전"
+          if [ "$NT" -ge 175 ]; then curl -s -X POST -H "$A" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/$REPO/actions/workflows/news.yml/dispatches" -d '{"ref":"main"}' && echo "뉴스 깨움"; fi
+          echo "${W}초 쉬고 다음 실행 예약"; sleep $W
+          curl -s -X POST -H "$A" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/$REPO/actions/workflows/quotes.yml/dispatches" -d '{"ref":"main"}' && echo "다음 실행 예약됨"
