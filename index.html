@@ -1862,11 +1862,11 @@ let i1=-1;for(let i=W.length-1;i>=0;i--)if(W[i].d<=e){i1=i;break}if(i1<=i0)i1=Ma
   if(!S.length)return `<div class="bub warn">이 기간에 그릴 수 있는 종목이 없습니다 (고른 종목이 이 기간 뒤에 상장했거나 종목을 하나도 고르지 않음).</div>`;
   const sm=typeof innerWidth==='number'&&innerWidth<640,Wd=sm?360:760,H=sm?330:300,pl=sm?52:54,pr=(sm?86:150)+(S.length>5?(sm?60:50):0),pt=12,pb=26,fs=sm?12.5:11;const t0=+new Date(P[0].d),t1=+new Date(P[n-1].d);const X=d=>pl+(+new Date(d)-t0)/(t1-t0||1)*(Wd-pl-pr);
   /* 이동평균선: 첫 '그냥 들고 있기' 종목의 실제 가격으로 N 거래일 평균(주간 구간은 같은 달력 길이 평균) → 그래프 선과 같은 눈금으로 옮겨 그림(가격이 평균보다 몇 % 위·아래인지 그대로) */
-  const MAK=({off:[],'200':[200],'3':[60,120,200],all:[20,60,120,200]})[LT.ma||'3']||[],MAC={20:'#e67e22',60:'#27ae60',120:'#0fa3b1',200:'#8e44ad'};
+  const MAK=({off:[],'200':[200],'3':[60,120,200,250],all:[20,60,120,200,250]})[LT.ma||'3']||[],MAC={20:'#e67e22',60:'#27ae60',120:'#0fa3b1',200:'#8e44ad',250:'#795548'};
   const maS=S.find(s=>s.mode==='hold'&&!TK[s.key].re);let MA=[];
   if(maS&&MAK.length){const key=maS.key,ck=key+'|'+LT._dk;LT._mac=LT._mac||{};
    if(!LT._mac[ck]){const T=W.map(w=>Date.parse(w.d)),cs=[0];W.forEach((w,i)=>cs.push(cs[i]+(w[key]>0?w[key]:0)));const cn=[0];W.forEach((w,i)=>cn.push(cn[i]+(w[key]>0?1:0)));let f0=W.findIndex(w=>w[key]>0);
-    LT._mac[ck]={};for(const N of [20,60,120,200]){const span=N*365.25/252*864e5,o=new Array(W.length).fill(null);let a=0;for(let i=0;i<W.length;i++){if(!(W[i][key]>0))continue;while(T[a]<=T[i]-span)a++;if(f0<0||T[i]-T[f0]<span*0.98)continue;const c=cn[i+1]-cn[a];if(c)o[i]=(cs[i+1]-cs[a])/c}LT._mac[ck][N]=o}}
+    LT._mac[ck]={};for(const N of [20,60,120,200,250]){const span=N*365.25/252*864e5,o=new Array(W.length).fill(null);let a=0;for(let i=0;i<W.length;i++){if(!(W[i][key]>0))continue;while(T[a]<=T[i]-span)a++;if(f0<0||T[i]-T[f0]<span*0.98)continue;const c=cn[i+1]-cn[a];if(c)o[i]=(cs[i+1]-cs[a])/c}LT._mac[ck][N]=o}}
    MA=MAK.map(N=>{const raw=LT._mac[ck][N].slice(i0,i1+1),pv=P.map(w=>w[key]),v=P.map((w,i)=>i<maS.j||raw[i]==null||!(pv[i]>0)||maS.v[i]==null?null:raw[i]*maS.v[i]/pv[i]);return {N,c:MAC[N],v,raw,pv}}).filter(m=>m.v.some(x=>x!=null))}
   let mn=Infinity,mx=-Infinity;S.concat(MA).forEach(s=>s.v.forEach(x=>{if(x!=null&&x>0){mn=Math.min(mn,x);mx=Math.max(mx,x)}}));mn=Math.min(mn,1);mx=Math.max(mx,1);
   const pad=Math.max(0.01,(Math.log10(mx)-Math.log10(mn))*0.06),lmn=Math.log10(mn)-pad,lmx=Math.log10(mx)+pad,Y=v=>pt+(1-(Math.log10(v)-lmn)/(lmx-lmn))*(H-pt-pb);
@@ -1977,7 +1977,7 @@ let i1=-1;for(let i=W.length-1;i>=0;i--)if(W[i].d<=e){i1=i;break}if(i1<=i0)i1=Ma
    <div class="noprint" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0"><span class="note" style="min-width:34px">기간</span>${['1m','3m','6m','ytd','1y','2y','3y','5y','10y','all'].map(k=>B('p',k,LT.PRESET[k][0],LT.p)).join('')}</div>
    <div class="noprint" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0"><span class="note" style="min-width:34px">사건</span>${['c20','c22','c25','b3','w3'].map(k=>B('p',k,LT.PRESET[k][0],LT.p)).join('')}
     <span style="display:inline-flex;gap:6px;align-items:center;margin-left:8px;flex-wrap:wrap"><span class="note">직접</span>${LT.dateBox('ltFrom',W[rg[0]].d,W)}<span class="note">~</span>${LT.dateBox('ltTo',W[rg[1]].d,W)}<span class="note">키보드로 입력 후 Enter</span></span></div>${LT.adjNote(W,rg)}
-   <div class="noprint" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0 2px"><span class="note" style="min-width:34px">이평선</span>${B('ma','off','끄기',LT.ma||'3')}${B('ma','200','200일',LT.ma||'3')}${B('ma','3','60·120·200일',LT.ma||'3')}${B('ma','all','20~200일 모두',LT.ma||'3')}${LT.abBtn()}<span class="note" style="margin-left:6px">💡 그래프 위를 <b>마우스로 끌면</b> 그 구간만 크게 · 두 번 누르면 전체로</span></div>
+   <div class="noprint" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0 2px"><span class="note" style="min-width:34px">이평선</span>${B('ma','off','끄기',LT.ma||'3')}${B('ma','200','200일',LT.ma||'3')}${B('ma','3','60·120·200·250일',LT.ma||'3')}${B('ma','all','20~250일 모두',LT.ma||'3')}${LT.abBtn()}<span class="note" style="margin-left:6px">💡 그래프 위를 <b>마우스로 끌면</b> 그 구간만 크게 · 두 번 누르면 전체로</span></div>
    ${LT.nav()}
    <div id="ltBox">${LT.chart()}</div>
    <p class="note" style="margin:4px 0 10px">로그 눈금: 위로 한 칸 올라갈 때마다 같은 '몇 배'입니다 ($10만 → $100만 → $1,000만). 그래서 오래된 시기의 오르내림도 지금처럼 크게 보입니다. 마우스를 올리면 그날 금액이 나옵니다. 어느 기간이든 <b>시작일에 10만 달러를 넣었다고 보고</b> 다시 계산합니다.<br>🚨 <b>초록 굵은 선</b> = 맨 위 '폭락 경보'(돈 반반)대로 한 결과: 10만 달러의 <b>절반은 규칙 A(흔들림), 절반은 규칙 B(200일선+흔들림)</b>가 사고팔라는 대로 TQQQ를 사고 현금으로 쉬기. 신호 다음 날 종가에 체결, 세금 22%·연 250만 원 공제 반영, 수수료·현금 이자는 뺐어요(이 그래프의 다른 선과 같은 기준).</p>
@@ -2010,7 +2010,7 @@ let i1=-1;for(let i=W.length-1;i>=0;i--)if(W[i].d<=e){i1=i;break}if(i1<=i0)i1=Ma
    <div class="noprint" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0"><span class="note" style="min-width:34px">기간</span>${['1m','3m','6m','ytd','1y','2y','3y','5y','10y','all'].map(k=>B('p',k,LT.PRESET[k][0],LT.p)).join('')}</div>
    <div class="noprint" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0"><span class="note" style="min-width:34px">사건</span>${['c20','c22','c25','b3','w3'].map(k=>B('p',k,LT.PRESET[k][0],LT.p)).join('')}
     <span style="display:inline-flex;gap:6px;align-items:center;margin-left:8px;flex-wrap:wrap"><span class="note">직접</span>${LT.dateBox('ltFrom',W[rg[0]].d,W)}<span class="note">~</span>${LT.dateBox('ltTo',W[rg[1]].d,W)}<span class="note">키보드로 입력 후 Enter</span></span></div>${LT.adjNote(W,rg)}
-   <div class="noprint" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0 2px"><span class="note" style="min-width:34px">보기</span>${B('m','hold','그냥 들고 있기',LT.m)}${B('m','rule','200일선 규칙 따르기',LT.m)}${B('m','both','둘 다 보기',LT.m)}<span class="note" style="margin-left:8px">이평선</span>${B('ma','off','끄기',LT.ma||'3')}${B('ma','200','200일',LT.ma||'3')}${B('ma','3','60·120·200일',LT.ma||'3')}${B('ma','all','20~200일 모두',LT.ma||'3')}${LT.abBtn()}<span class="note" style="margin-left:6px">💡 그래프 위를 <b>마우스로 끌면</b> 그 구간만 크게 · 두 번 누르면 전체로</span></div>
+   <div class="noprint" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0 2px"><span class="note" style="min-width:34px">보기</span>${B('m','hold','그냥 들고 있기',LT.m)}${B('m','rule','200일선 규칙 따르기',LT.m)}${B('m','both','둘 다 보기',LT.m)}<span class="note" style="margin-left:8px">이평선</span>${B('ma','off','끄기',LT.ma||'3')}${B('ma','200','200일',LT.ma||'3')}${B('ma','3','60·120·200·250일',LT.ma||'3')}${B('ma','all','20~250일 모두',LT.ma||'3')}${LT.abBtn()}<span class="note" style="margin-left:6px">💡 그래프 위를 <b>마우스로 끌면</b> 그 구간만 크게 · 두 번 누르면 전체로</span></div>
    ${LT.nav()}
    <div id="ltBox">${LT.chart()}</div>
    <p class="note" style="margin:4px 0 10px">로그 눈금: 위로 한 칸 올라갈 때마다 같은 '몇 배'입니다 ($10만 → $100만 → $1,000만). 그래서 오래된 시기의 오르내림도 지금처럼 크게 보입니다. 마우스를 올리면 그날 금액이 나옵니다. 어느 기간이든 <b>시작일에 10만 달러를 넣었다고 보고</b> 다시 계산합니다.<br>🚨 <b>초록 굵은 선</b> = 맨 위 '폭락 경보'(돈 반반)대로 한 결과: 10만 달러의 <b>절반은 규칙 A(흔들림), 절반은 규칙 B(200일선+흔들림)</b>가 사고팔라는 대로 TQQQ를 사고 현금으로 쉬기. 신호 다음 날 종가에 체결, 세금 22%·연 250만 원 공제 반영, 수수료·현금 이자는 뺐어요(이 그래프의 다른 선과 같은 기준).</p>
@@ -2376,7 +2376,7 @@ saveWork=function(){PWA.save();toast('✔ 이 기기에 저장했습니다')};
 {const _o=openFile;openFile=async function(f){const r=await _o(f);setTimeout(PWA.save,50);return r}}
 
 /* 🔄 새 버전 알림: GitHub에 새 계산표가 올라오면(최대 몇 분) 화면 위에 알려 주고, 누르면 캐시를 피해 새로 엶 */
-const APP_BUILD='20261126073125';
+const APP_BUILD='20261126073339';
 async function chkUpd(){try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();
  if(/^\d{14}$/.test(v)&&v>APP_BUILD&&!document.getElementById('updBar')){const b=document.createElement('div');b.id='updBar';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:80;background:#1f6feb;color:#fff;padding:10px 16px;border-radius:24px;box-shadow:0 4px 14px rgba(0,0,0,.25);font-weight:700;cursor:pointer;max-width:calc(100vw - 24px)';b.textContent='🔄 새 버전이 있어요 — 눌러서 바로 적용';b.onclick=()=>{try{PWA.save()}catch(e){}location.replace(location.pathname+'?v='+v)};document.body.appendChild(b)}}catch(e){}}
 setTimeout(chkUpd,1500);setInterval(chkUpd,10*60e3);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')chkUpd()});
@@ -2883,7 +2883,7 @@ boot();PWA.load();LIVE.refresh();LIVE.auto();
 {const _r=render;render=function(){_r();if(!DIRTY){const b=document.getElementById('stBadge');if(b&&!/저장됨/.test(b.textContent)){b.className='badge final';b.textContent='✔ 이 기기에 저장됨'}}}}
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261126073125';
+const FILE_BUILD='20261126073339';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
