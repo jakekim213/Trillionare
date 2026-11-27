@@ -2819,8 +2819,17 @@ const CRASH={
 /* ===== 🎯 최종 판정 — 송팀장 50% + 흔들림 폭락 경보 50%(A 35% + B 15%) (2026-11-26 A:B 7:3으로 변경 · 2026-11-25 · 3개 시장 세후 검증) ===== */
 const FINAL={
  calc(){let s=null,c=null;try{s=SONG.calc()}catch(e){}try{c=CRASH.calc()}catch(e){}if(!s||!c)return null;
-  const S=s.L.y?1:0,A=c.f?1:0,B=c.e?1:0,w=0.5*S+0.35*A+0.15*B;return{s,c,S,A,B,w}},
- card(){const z=FINAL.calc();if(!z)return '';const{s,c,S,A,B,w}=z,L=c.L,pc=Math.round(w*100);
+  const S=s.L.y?1:0,A=c.f?1:0,B=c.e?1:0,w=0.5*S+0.35*A+0.15*B;
+  /* 💵 현금 30% 규칙 (2026-11-27): 평소엔 판정 비중×70%만 TQQQ, 30%는 예비 현금. 나스닥100이 사상 최고가 대비 −30% 이상 빠지면 '투입 상태'가 되고(새 최고가 회복 때 해제), 투입 상태이면서 판정 비중이 0보다 클 때만 예비 30%도 TQQQ로 */
+  let D=0,Dd=null,ath=0,dd=s.L.dd;try{const X=LT.nx();for(let i=0;i<X.D.length;i++){ath=Math.max(ath,X.V[i]);const q=X.V[i]/ath-1;dd=q;if(!D&&q<=-FINAL.RT){D=1;Dd=X.D[i]}else if(D&&q>=-0.0005){D=0;Dd=X.D[i]}}}catch(e){}  /* 내장된 나스닥100 일간 기록(2009~) + 받은 시세로 최고가 계산 · 2015년 이후 최고가는 모두 이 안에 있음 */
+  const res=D&&w>0?0.3:0,act=0.7*w+res;return{s,c,S,A,B,w,D,Dd,res,act,dd}},
+ RT:0.30,
+ ckL:['오늘 비중이 위 판정 숫자 그대로인가요? (기분·뉴스로 바꾸지 않았나요)','예비 현금 30%를 남겼나요? (투입 상태가 아니라면)','사는 이유가 미리 적어 둔 규칙 안에 있나요?','이 돈이 TQQQ에서 −80%가 돼도 생활비·가족 계획은 괜찮나요?','급하게 "지금 안 사면 늦는다"는 마음은 아닌가요?'],
+ ckK(){return 'laoer_ck_'+(FINAL._ckd||'')},
+ ckG(){try{return JSON.parse(localStorage.getItem(FINAL.ckK())||'[]')}catch(e){return []}},
+ ck(i,el){const a=FINAL.ckG();a[i]=!!el.checked;try{localStorage.setItem(FINAL.ckK(),JSON.stringify(a))}catch(e){}FINAL.ckc()},
+ ckc(){const b=[...document.querySelectorAll('#finalCk input')],n=b.filter(x=>x.checked).length,e=document.getElementById('finalCkN');if(e){e.textContent=n===b.length?'✅ 모두 확인 — 판정대로 사고팔아도 돼요':`${n} / ${b.length} 확인 — 다 체크되기 전엔 사지 않기`;e.style.color=n===b.length?'#1a7f37':'#b42318'}},
+ card(){const z=FINAL.calc();if(!z)return '';const{s,c,S,A,B,w,D,Dd,act,dd}=z,L=c.L,pc=Math.round(w*100),ap=Math.round(act*100);FINAL._ckd=s.L.date;const ckA=FINAL.ckG();
   const col=w>=0.75?'var(--pos)':w>=0.25?'#b7791f':'var(--neg)',ic=w>=0.75?'🟢':w>=0.25?'🟡':'🔴';
   const f=x=>Math.round(x).toLocaleString('en-US'),pp=x=>(x>=0?'+':'−')+Math.abs(x*100).toFixed(1)+'%';
   const row=(nm,share,on,why,next)=>`<tr><td style="padding:6px"><b>${nm}</b><div class="note">${why}</div></td><td class="n">${share}</td><td class="n" style="font-weight:800;color:${on?'#1a7f37':'#b42318'}">${on?'🟢 보유':'🔴 현금'}</td><td style="padding:6px;font-size:12.5px;line-height:1.5">${next}</td></tr>`;
@@ -2833,13 +2842,13 @@ const FINAL={
   <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline"><b style="font-size:15px">🎯 최종 판정 — TQQQ 돈 나누기: 송팀장 50% + 흔들림 폭락 경보 50%(A 35% + B 15%)</b><span class="note">${esc(sL.date)} 미국 종가 기준 · 다음 날 종가에 맞추기</span></div>
   <div style="display:flex;align-items:center;gap:14px;margin:10px 0 6px"><span style="font-size:44px;line-height:1">${ic}</span><div>
    <div style="font-size:clamp(26px,7vw,40px);font-weight:900;color:${col};line-height:1.1">TQQQ ${pc}%</div>
-   <div style="font-size:14px">TQQQ 계좌의 ${pc}%는 TQQQ, 나머지 ${100-pc}%는 현금(파킹통장·단기 국채)</div></div></div>
+   <div style="font-size:14px">규칙 판정 비중 — 아래 💵 현금 30% 규칙을 적용하면 전체 투자금의 TQQQ는 <b>${ap}%</b></div></div></div>
   <div class="tw"><table class="g" style="font-size:13px">${'<thead><tr><th style="padding:6px">누가 정하나</th><th class="n">몫</th><th class="n">지금</th><th style="padding:6px">다음에 바뀌는 조건</th></tr></thead>'}<tbody>
    ${row('🚦 송팀장 레버리지 브레이크','50%',S,'느린 추세 — 긴 하락장을 피함',sNext)}
    ${row('🚨 흔들림 규칙 A','35%',A,'빠른 폭락을 피함 (흔들림만 봄)',aNext)}
    ${row('🚨 흔들림 규칙 B','15%',B,'흔들림 + 200일선',bNext)}
   </tbody></table></div>
-  <div style="margin-top:10px;padding:10px 12px;background:#fff;border:2px solid #17202e;border-radius:10px;font-size:14px;line-height:1.7">📅 <b>지금 할 일</b> — 내일 미국 종가 무렵 TQQQ 비중을 <b>${pc}%</b>에 맞추기 (더 많으면 팔고, 적으면 사기). 매달 넣는 돈도 넣은 뒤 TQQQ가 ${pc}%가 되도록 나눠요. 비중은 0·15·35·50·65·85·100% 일곱 단계로만 바뀌어요.${w>0?' 여윳돈으로 더 살지는 아래 🧭 막스 카드가 정해요.':' 비중이 0%일 땐 막스 카드와 상관없이 사지 않아요.'}</div>
+  <div style="margin-top:10px;padding:10px 12px;background:#fffbea;border:2px solid #b7791f;border-radius:10px;font-size:14px;line-height:1.7">💵 <b>현금 30% 규칙 적용 — 전체 투자금의 TQQQ <span style="font-size:20px;color:${col}">${ap}%</span> · 현금 ${100-ap}%</b><br>${D?`🔻 <b>예비 현금 투입 상태</b> (나스닥100이 최고가 대비 −30% 넘게 빠짐, ${esc(Dd)}부터 · 새 최고가 회복 때 다시 30% 현금으로) — ${w>0?'판정이 보유라서 예비 30%도 TQQQ에 넣어요.':'하지만 판정이 0%라서 예비 현금도 넣지 않아요.'}`:`평소 상태: 판정 ${pc}% × 70% = ${ap}%만 TQQQ, <b>30%는 하락 대비 예비 현금</b>. 나스닥100이 최고가 대비 −30%(지금 ${pp(dd)}) 넘게 빠지고 판정이 보유일 때만 예비 30%도 넣어요.`}</div><div style="margin-top:10px;padding:10px 12px;background:#fff;border:2px solid #17202e;border-radius:10px;font-size:14px;line-height:1.7">📅 <b>지금 할 일</b> — 내일 미국 종가 무렵 전체 투자금의 TQQQ 비중을 <b>${ap}%</b>에 맞추기 (더 많으면 팔고, 적으면 사기). 매달 넣는 돈도 넣은 뒤 TQQQ가 ${ap}%가 되도록 나눠요.${w>0?' 여윳돈으로 더 살지는 아래 🧭 막스 카드가 정해요.':' 판정이 0%일 땐 막스 카드와 상관없이 사지 않아요.'}</div><div id="finalCk" style="margin-top:10px;padding:10px 12px;background:#f3f7ff;border:1px solid #c9d6ea;border-radius:10px;font-size:13.5px;line-height:1.8">✍️ <b>사기 전 체크리스트</b> <span class="note">(멍거: "어떤 기준을 통과했을 때만 크게 건다" · 판정 날짜마다 새로 시작)</span>${FINAL.ckL.map((t,i)=>`<label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:6px;width:18px;height:18px" ${ckA[i]?'checked':''} onchange="FINAL.ck(${i},this)"><span>${t}</span></label>`).join('')}<div id="finalCkN" style="font-weight:800;margin-top:4px;color:${FINAL.ckL.every((_,i)=>ckA[i])?'#1a7f37':'#b42318'}">${FINAL.ckL.every((_,i)=>ckA[i])?'✅ 모두 확인 — 판정대로 사고팔아도 돼요':FINAL.ckL.filter((_,i)=>ckA[i]).length+' / '+FINAL.ckL.length+' 확인 — 다 체크되기 전엔 사지 않기'}</div></div>
   <details style="margin-top:10px"><summary style="cursor:pointer;font-weight:700">🔬 왜 이렇게 섞었나 — 섞는 방법 비교 (세후 · 16년 · 10만 달러 일시금)</summary>
    <div class="tw"><table class="g" style="font-size:12.5px;margin-top:6px"><thead><tr><th style="padding:5px">방법</th><th class="n">나스닥100<br><span class="note">가운데 / 운 나쁜 10%</span></th><th class="n">닷컴</th><th class="n">코로나</th><th class="n">2022</th><th class="n">S&amp;P500<br><span class="note">가운데 / 운 나쁜 10%</span></th><th class="n">닛케이<br><span class="note">가운데 / 운 나쁜 10%</span></th><th class="n">매매<br>1년</th></tr></thead><tbody>
    <tr><td style="padding:5px">송팀장만</td><td class="n">38.4 / 11.5</td><td class="n">−75%</td><td class="n">−70%</td><td class="n">−54%</td><td class="n">6.9 / 1.88</td><td class="n">2.8 / 0.29</td><td class="n">2.7번</td></tr>
@@ -2852,8 +2861,24 @@ const FINAL={
    <li>대신 가장 많이 버는 쪽(송팀장만 38.4배)보다는 덜 벌고, 큰 폭락 때 −46~47%(2022년 같은 긴 하락은 −58%)는 맞을 수 있어요. 매매도 1년 5~6번으로 늘어요(한 번에 15·35·50%씩).</li>
    <li><b>A:B를 5:5에서 7:3으로 바꾼 결과</b>: 나스닥은 좋아졌지만(가운데 30.8 → 33.2배, 운 나쁜 10% 12.8 → 14.4배) S&amp;P500(7.2 → 6.9배, 2.07 → 1.82)·닛케이(2.9 → 2.5배, 0.27 → 0.17)는 나빠졌어요. 오래 빠지는 시장이 또 올 가능성에 대한 대비를 조금 줄이고 나스닥의 빠른 회복에 더 건 선택이에요.</li>
    <li>"둘 다 🟢일 때만"은 폭락은 잘 피했지만 오르는 시간을 너무 많이 놓쳐서 탈락했어요.</li>
-   <li>계산: 신호는 나스닥100 종가, 다음 날 종가에 매매 · 양도세 22%(연 250만 원 공제) · 가상 TQQQ · 과거 계산이며 투자 자문이 아니에요.</li></ul></details></div>`},
- csv(){const z=FINAL.calc();if(!z)return [];return [['[최종 판정 — 송팀장 50% + A 35% + B 15%]'],['기준일',z.s.L.date,'송팀장(50%)',z.S?'보유':'현금','흔들림 A(35%)',z.A?'보유':'현금','흔들림 B(15%)',z.B?'보유':'현금','TQQQ 비중(%)',Math.round(z.w*100)],[]]}
+   <li>계산: 신호는 나스닥100 종가, 다음 날 종가에 매매 · 양도세 22%(연 250만 원 공제) · 가상 TQQQ · 과거 계산이며 투자 자문이 아니에요.</li></ul></details>
+  <details style="margin-top:10px"><summary style="cursor:pointer;font-weight:700">🕰️ 1999년(닷컴 직전)에 10만 달러로 시작했다면 + 💵 현금 30% 규칙 검증 (세후)</summary>
+   <div class="tw"><table class="g" style="font-size:12.5px;margin-top:6px"><thead><tr><th style="padding:5px">방법</th><th class="n">1999-01 → 2026-11<br><span class="note">세후 배수 · 1년 평균</span></th><th class="n">가장 크게<br>빠진 폭</th><th class="n">닷컴<br><span class="note">2000-03→2002-10</span></th><th class="n">2000→2010<br><span class="note">잃어버린 10년</span></th><th class="n">16년 (1986~ 매달 시작)<br><span class="note">가운데 / 운 나쁜 10% / 최저</span></th></tr></thead><tbody>
+   <tr><td style="padding:5px">TQQQ 그냥 보유</td><td class="n">1.7배 · +2.0%</td><td class="n neg">−100%</td><td class="n neg">−100%</td><td class="n neg">−100%</td><td class="n">1.1 / 0.08 / 0.01</td></tr>
+   <tr><td style="padding:5px">200일선 ±3%</td><td class="n">49배 · +15.0%</td><td class="n">−89%</td><td class="n">−88%</td><td class="n">−79%</td><td class="n">9.1 / 3.4 / 0.50</td></tr>
+   <tr><td style="padding:5px">최종 판정 (현금 30% 없이)</td><td class="n"><b>334배 · +23.2%</b></td><td class="n">−59%</td><td class="n">−46%</td><td class="n">+17%</td><td class="n"><b>33.2</b> / 14.4 / 4.1</td></tr>
+   <tr><td style="padding:5px">판정 × 70% + 현금 30% 계속 두기</td><td class="n">98배 · +17.9%</td><td class="n pos">−47%</td><td class="n pos">−32%</td><td class="n">+24%</td><td class="n">15.8 / 8.5 / 3.3</td></tr>
+   <tr style="background:#eef7f1"><td style="padding:5px"><b>✅ 판정 × 70% + 예비 30%는 −30% 하락 · 판정 보유일 때만 투입 (채택)</b></td><td class="n"><b>180배 · +20.5%</b></td><td class="n">−63%</td><td class="n">−41%</td><td class="n pos"><b>+32%</b></td><td class="n">21.9 / 12.5 / <b>5.5</b></td></tr>
+   <tr><td style="padding:5px">판정 × 70% + 예비 30%는 −30% 하락 때 <b>무조건</b> 투입</td><td class="n">132배 · +19.2%</td><td class="n neg">−69%</td><td class="n neg">−59%</td><td class="n neg">−15%</td><td class="n">17.3 / 8.0 / 3.9</td></tr>
+   </tbody></table></div>
+   <ul class="note" style="margin:8px 0 0;padding-left:18px;line-height:1.65">
+   <li><b>닷컴 직전에 시작하면 그냥 보유는 27년 뒤 1.7배</b>(세금 뒤 거의 제자리)였어요. 닷컴 때 −100%에 가까워져서 그 뒤 상승장을 다 받아도 회복이 안 됐어요. 지금 규칙은 닷컴을 −46%로 막아서 334배였어요.</li>
+   <li><b>현금 30%를 계속 들고만 있으면</b> 손실은 줄지만(가장 크게 빠진 폭 −59% → −47%) 16년 가운데가 33.2배 → 15.8배로 반 토막이에요.</li>
+   <li><b>"−30% 하락 · 판정 보유일 때만 투입"</b>은 가운데가 21.9배로 줄지만, 운 나쁜 10%는 12.5배로 거의 그대로이고 <b>가장 나빴던 16년은 4.1배 → 5.5배로 오히려 좋아졌어요.</b> 2000~2010년 10년도 +32%로 가장 좋았어요. 수익 일부를 내고 바닥을 높이는 선택이에요.</li>
+   <li><b>"떨어지면 무조건 산다"가 가장 위험했어요</b>: 판정이 현금인데 예비 돈을 넣으면 닷컴 −59%, 2000~2010년 −15%. 하락이 길게 이어질 때 바닥이 아닌 곳에서 다 써 버렸기 때문이에요.</li>
+   <li>투입 기준을 −20 · −25 · −40%로 바꿔도 가운데 22~24배, 운 나쁜 10% 12.5~13.3배로 비슷했어요 → −30%는 숫자를 맞춘 게 아니라 가운데쯤을 고른 값이에요.</li>
+   <li>계산: 2010년 전은 나스닥100으로 만든 가상 TQQQ(비용·현금 이자 포함) · 양도세 22%(연 250만 원 공제) · 신호 다음 날 종가 매매 · 자료 끝 2026-11-13. 2000년 이전 숫자는 크기보다 <b>순서</b>만 믿으세요. 과거 계산이며 투자 자문이 아니에요.</li></ul></details></div>`},
+ csv(){const z=FINAL.calc();if(!z)return [];return [['[최종 판정 — 송팀장 50% + A 35% + B 15%]'],['기준일',z.s.L.date,'송팀장(50%)',z.S?'보유':'현금','흔들림 A(35%)',z.A?'보유':'현금','흔들림 B(15%)',z.B?'보유':'현금','TQQQ 판정 비중(%)',Math.round(z.w*100),'현금 30% 규칙 적용 TQQQ(%)',Math.round(z.act*100),'예비 현금 투입 상태',z.D?'예':'아니오'],[]]}
 };
 {const _fS=SONG.card;SONG.card=function(){let x='';try{x=FINAL.card()}catch(e){}return x+_fS()}}
 {const _fC=APP.csv;APP.csv=function(){let r=[];try{r=FINAL.csv()}catch(e){}return r.concat(_fC())}}
@@ -2862,7 +2887,7 @@ const FINAL={
 boot();LIVE.refresh();LIVE.auto();
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261126074238';
+const FILE_BUILD='20261127113627';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
