@@ -2825,6 +2825,24 @@ const FINAL={
   const res=D&&w>0?0.3:0,act=0.7*w+res;return{s,c,S,A,B,w,D,Dd,res,act,dd}},
  RT:0.30,
  ckL:['오늘 비중이 위 판정 숫자 그대로인가요? (기분·뉴스로 바꾸지 않았나요)','예비 현금 30%를 남겼나요? (투입 상태가 아니라면)','사는 이유가 미리 적어 둔 규칙 안에 있나요?','이 돈이 TQQQ에서 −80%가 돼도 생활비·가족 계획은 괜찮나요?','급하게 "지금 안 사면 늦는다"는 마음은 아닌가요?'],
+ /* 📅 적립 계획 (2026-11-27 결정): 거치 1만 달러는 따로 계속 보유, 가진 현금은 모두 '매일 같은 금액'으로 적립 (기존 '매일 1주씩'에서 변경) */
+ dcaG(){let o={};try{o=JSON.parse(localStorage.getItem('laoer_dca')||'{}')}catch(e){}return{t:+o.t||100000,e:o.e||'2030-05-31'}},
+ dcaN(e){const a=new Date(),b=new Date(e+'T00:00:00');let n=0;for(const d=new Date(a.getFullYear(),a.getMonth(),a.getDate()+1);d<=b;d.setDate(d.getDate()+1)){const w=d.getDay();if(w&&w<6)n++}return Math.max(0,Math.round(n*(252/261)))},
+ dcaU(){const t=+document.getElementById('dcaT').value||0,e=document.getElementById('dcaE').value;try{localStorage.setItem('laoer_dca',JSON.stringify({t,e}))}catch(x){}const n=FINAL.dcaN(e),el=document.getElementById('dcaR');if(el)el.innerHTML=FINAL.dcaR(t,n)},
+ dcaR(t,n){if(!n||!t)return '끝낼 날짜를 오늘 뒤로 정해 주세요.';return `거래일 약 <b>${n.toLocaleString('ko-KR')}일</b> → 하루 <b style="font-size:18px;color:#1a5fb4">${Math.round(t/n).toLocaleString('en-US')}달러</b>씩 <span class="note">(주말·미국 휴장일 약 9일/년 뺀 어림값)</span>`},
+ dcaH(){const g=FINAL.dcaG(),n=FINAL.dcaN(g.e);return `<details style="margin-top:10px" open><summary style="cursor:pointer;font-weight:700">📅 내 적립 계획 — 매일 같은 금액 (2026-11-27 결정)</summary>
+  <div style="font-size:13.5px;line-height:1.7;margin-top:6px">
+  <div>🔒 <b>거치식 1만 달러</b>: 따로 계속 보유 (적립 돈과 섞지 않음)<br>💧 <b>가진 현금 전부</b>: 한 번에 넣지 않고 <b>매일 같은 금액</b>으로 나눠서 TQQQ 매수 <span class="note">(목표 10만 달러, 확정 아님)</span></div>
+  <div style="margin:8px 0;padding:8px 10px;background:#eef4fb;border-radius:8px">적립 총액 <input id="dcaT" type="number" min="0" step="1000" value="${g.t}" oninput="FINAL.dcaU()" style="width:96px">달러 · 끝낼 날짜 <input id="dcaE" type="date" value="${g.e}" onchange="FINAL.dcaU()"><div id="dcaR" style="margin-top:4px">${FINAL.dcaR(g.t,n)}</div></div>
+  <div><b>왜 '1주씩'에서 '같은 금액'으로 바꿨나</b> — 1주씩 사면 쌀 때 돈을 적게, 비쌀 때 많이 써요. 같은 금액으로 사면 쌀 때 주식을 더 많이 받아요.</div>
+  <div class="tw"><table class="g" style="font-size:12.5px;margin-top:4px"><thead><tr><th style="padding:5px">가격 100→50→100</th><th class="n">쓴 돈</th><th class="n">주식</th><th class="n">평균가</th></tr></thead><tbody>
+   <tr><td style="padding:5px">1주씩 (예전)</td><td class="n">$250</td><td class="n">3주</td><td class="n neg">$83.3</td></tr>
+   <tr style="background:#eef7f1"><td style="padding:5px"><b>✅ $83.3씩 (지금)</b></td><td class="n">$250</td><td class="n"><b>3.33주</b></td><td class="n pos"><b>$75</b></td></tr></tbody></table></div>
+  <ul class="note" style="margin:6px 0 0;padding-left:18px;line-height:1.65">
+   <li>같은 금액 방식은 <b>끝나는 날이 정해져요</b>. 1주씩은 가격이 오르면 늦게, 내리면 빨리 끝나서 계획이 흔들렸어요.</li>
+   <li>적립하는 동안은 <b>아직 안 산 돈이 현금 역할</b>을 해요. 적립이 끝난 뒤 위 💵 현금 30% 규칙을 어떻게 맞출지는 아직 정하지 않았어요.</li>
+   <li>아직 정할 것: 위 최종 판정이 현금(🔴)일 때 그날 적립을 멈출지 · 적립 중단 현금 기준 · 순자산 대비 TQQQ 최대 비중.</li>
+   <li>아래쪽 '매달 적립' 표들은 예전 월 적립 기준 계산이라 이 계획과 숫자가 그대로 맞지 않아요.</li></ul></div></details>`},
  ckK(){return 'laoer_ck_'+(FINAL._ckd||'')},
  ckG(){try{return JSON.parse(localStorage.getItem(FINAL.ckK())||'[]')}catch(e){return []}},
  ck(i,el){const a=FINAL.ckG();a[i]=!!el.checked;try{localStorage.setItem(FINAL.ckK(),JSON.stringify(a))}catch(e){}FINAL.ckc()},
@@ -2849,6 +2867,7 @@ const FINAL={
    ${row('🚨 흔들림 규칙 B','15%',B,'흔들림 + 200일선',bNext)}
   </tbody></table></div>
   <div style="margin-top:10px;padding:10px 12px;background:#fffbea;border:2px solid #b7791f;border-radius:10px;font-size:14px;line-height:1.7">💵 <b>현금 30% 규칙 적용 — 전체 투자금의 TQQQ <span style="font-size:20px;color:${col}">${ap}%</span> · 현금 ${100-ap}%</b><br>${D?`🔻 <b>예비 현금 투입 상태</b> (나스닥100이 최고가 대비 −30% 넘게 빠짐, ${esc(Dd)}부터 · 새 최고가 회복 때 다시 30% 현금으로) — ${w>0?'판정이 보유라서 예비 30%도 TQQQ에 넣어요.':'하지만 판정이 0%라서 예비 현금도 넣지 않아요.'}`:`평소 상태: 판정 ${pc}% × 70% = ${ap}%만 TQQQ, <b>30%는 하락 대비 예비 현금</b>. 나스닥100이 최고가 대비 −30%(지금 ${pp(dd)}) 넘게 빠지고 판정이 보유일 때만 예비 30%도 넣어요.`}</div><div style="margin-top:10px;padding:10px 12px;background:#fff;border:2px solid #17202e;border-radius:10px;font-size:14px;line-height:1.7">📅 <b>지금 할 일</b> — 내일 미국 종가 무렵 전체 투자금의 TQQQ 비중을 <b>${ap}%</b>에 맞추기 (더 많으면 팔고, 적으면 사기). 매달 넣는 돈도 넣은 뒤 TQQQ가 ${ap}%가 되도록 나눠요.${w>0?' 여윳돈으로 더 살지는 아래 🧭 막스 카드가 정해요.':' 판정이 0%일 땐 막스 카드와 상관없이 사지 않아요.'}</div><div id="finalCk" style="margin-top:10px;padding:10px 12px;background:#f3f7ff;border:1px solid #c9d6ea;border-radius:10px;font-size:13.5px;line-height:1.8">✍️ <b>사기 전 체크리스트</b> <span class="note">(멍거: "어떤 기준을 통과했을 때만 크게 건다" · 판정 날짜마다 새로 시작)</span>${FINAL.ckL.map((t,i)=>`<label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer"><input type="checkbox" style="margin-top:6px;width:18px;height:18px" ${ckA[i]?'checked':''} onchange="FINAL.ck(${i},this)"><span>${t}</span></label>`).join('')}<div id="finalCkN" style="font-weight:800;margin-top:4px;color:${FINAL.ckL.every((_,i)=>ckA[i])?'#1a7f37':'#b42318'}">${FINAL.ckL.every((_,i)=>ckA[i])?'✅ 모두 확인 — 판정대로 사고팔아도 돼요':FINAL.ckL.filter((_,i)=>ckA[i]).length+' / '+FINAL.ckL.length+' 확인 — 다 체크되기 전엔 사지 않기'}</div></div>
+  ${FINAL.dcaH()}
   <details style="margin-top:10px"><summary style="cursor:pointer;font-weight:700">🔬 왜 이렇게 섞었나 — 섞는 방법 비교 (세후 · 16년 · 10만 달러 일시금)</summary>
    <div class="tw"><table class="g" style="font-size:12.5px;margin-top:6px"><thead><tr><th style="padding:5px">방법</th><th class="n">나스닥100<br><span class="note">가운데 / 운 나쁜 10%</span></th><th class="n">닷컴</th><th class="n">코로나</th><th class="n">2022</th><th class="n">S&amp;P500<br><span class="note">가운데 / 운 나쁜 10%</span></th><th class="n">닛케이<br><span class="note">가운데 / 운 나쁜 10%</span></th><th class="n">매매<br>1년</th></tr></thead><tbody>
    <tr><td style="padding:5px">송팀장만</td><td class="n">38.4 / 11.5</td><td class="n">−75%</td><td class="n">−70%</td><td class="n">−54%</td><td class="n">6.9 / 1.88</td><td class="n">2.8 / 0.29</td><td class="n">2.7번</td></tr>
@@ -2875,6 +2894,7 @@ const FINAL={
    <li><b>닷컴 직전에 시작하면 그냥 보유는 27년 뒤 1.7배</b>(세금 뒤 거의 제자리)였어요. 닷컴 때 −100%에 가까워져서 그 뒤 상승장을 다 받아도 회복이 안 됐어요. 지금 규칙은 닷컴을 −46%로 막아서 334배였어요.</li>
    <li><b>현금 30%를 계속 들고만 있으면</b> 손실은 줄지만(가장 크게 빠진 폭 −59% → −47%) 16년 가운데가 33.2배 → 15.8배로 반 토막이에요.</li>
    <li><b>"−30% 하락 · 판정 보유일 때만 투입"</b>은 가운데가 21.9배로 줄지만, 운 나쁜 10%는 12.5배로 거의 그대로이고 <b>가장 나빴던 16년은 4.1배 → 5.5배로 오히려 좋아졌어요.</b> 2000~2010년 10년도 +32%로 가장 좋았어요. 수익 일부를 내고 바닥을 높이는 선택이에요.</li>
+   <li><b>200일선 ±3% 규칙은 폭락 모양에 따라 달랐어요</b> (TQQQ에 적용, 세후): 닷컴 −88%(그냥 보유 −100%) · 2008 −53%(−95%) · 코로나 −51%(−70%) · 2022 −34%(−81%). 2년 넘게 천천히 빠진 닷컴에서는 팔았다 샀다를 반복하며 조금씩 깎여 거의 못 막았고, 나머지 세 번은 손실을 크게 줄였어요.</li>
    <li><b>"떨어지면 무조건 산다"가 가장 위험했어요</b>: 판정이 현금인데 예비 돈을 넣으면 닷컴 −59%, 2000~2010년 −15%. 하락이 길게 이어질 때 바닥이 아닌 곳에서 다 써 버렸기 때문이에요.</li>
    <li>투입 기준을 −20 · −25 · −40%로 바꿔도 가운데 22~24배, 운 나쁜 10% 12.5~13.3배로 비슷했어요 → −30%는 숫자를 맞춘 게 아니라 가운데쯤을 고른 값이에요.</li>
    <li>계산: 2010년 전은 나스닥100으로 만든 가상 TQQQ(비용·현금 이자 포함) · 양도세 22%(연 250만 원 공제) · 신호 다음 날 종가 매매 · 자료 끝 2026-11-13. 2000년 이전 숫자는 크기보다 <b>순서</b>만 믿으세요. 과거 계산이며 투자 자문이 아니에요.</li></ul></details></div>`},
@@ -2887,7 +2907,7 @@ const FINAL={
 boot();LIVE.refresh();LIVE.auto();
 
 /* 🔄 새 버전 알림 (PC용 파일 전용 — 아이폰 앱·아티팩트는 따로 처리) : GitHub의 version.txt가 이 파일보다 새로우면 위에 알림 · 누르면 새 파일 내려받기 */
-const FILE_BUILD='20261127113627';
+const FILE_BUILD='20261127155344';
 async function chkFileUpd(){if(typeof PWA!=='undefined'||typeof ART!=='undefined')return;try{const r=await fetch('https://raw.githubusercontent.com/jakekim213/Trillionare/main/version.txt?t='+Date.now(),{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer'});if(!r.ok)return;const v=(await r.text()).trim();if(!/^\d{14}$/.test(v)||v<=FILE_BUILD||document.getElementById('fUpd'))return;
  const d=v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8)+' '+v.slice(8,10)+':'+v.slice(10,12),bs='border:0;border-radius:8px;padding:5px 10px;margin-left:6px;font:inherit;font-weight:700;cursor:pointer';
  const b=document.createElement('div');b.id='fUpd';b.className='noprint';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:90;background:#1f6feb;color:#fff;padding:10px 14px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:calc(100vw - 24px);font-size:14px;line-height:1.5';
